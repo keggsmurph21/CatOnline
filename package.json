@@ -1,0 +1,16 @@
+{
+  "name":"test-app",
+  "version":"0.0.0",
+  "description":"testing",
+  "main":"index.js",
+  "author":"murp-us",
+  "private":true,
+  "license":"BSD",
+  "dependencies": {
+    "socket.io":"2.0.4",
+    "express":"4.16.2"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
