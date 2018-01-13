@@ -12,9 +12,10 @@ server.listen(port, function() {
 
 // Setup postgreSQL DB
 var pg = require('pg');
+var pool = new pg.Pool();
 
 app.get('/db', function (request, response) {
-  pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+  pool.connect(function(err, client, done) {
     client.query('SELECT * FROM test_table', function(err, result) {
       done();
       if (err)
@@ -24,6 +25,8 @@ app.get('/db', function (request, response) {
     });
   });
 });
+
+pool.end()
 
 // Routing
 app.use(express.static(path.join(__dirname, 'public')));
