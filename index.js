@@ -1,22 +1,66 @@
 // Setup basic express server
 var express = require('express');
+var app = express();
 var path = require('path');
-var port = process.env.PORT || 3000;
-
-var app = express()
-  .use( express.static(path.join(__dirname, 'public')) )
-  .set( 'views', path.join(__dirname, 'views') )
-  .set( 'view engine', 'ejs' )
-  .get( '/', (req,res) => res.render('pages/index') )
-  .listen( port, () => console.log(`Listening on ${ PORT }`) )
-
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+var port = process.env.PORT || 3000;
 
-server.listen(port, function() {
+// Setup log file
+server.listen(port, function () {
   console.log('Server listening at port %d', port);
 });
 
+// Setup database
+var mongoose = require('mongoose');
+mongoose.connect( 'mongodb://localhost/test' );
+
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+  console.log( 'database connection established' );
+
+  var UserSchema = new mongoose.Schema({
+    username: {
+      type: String,
+      unique: true,
+      required: true,
+      trim: true
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    passwordConf: {
+      type: String,
+      required: true,
+    }
+  });
+  var User = mongoose.model('User', UserSchema);
+  module.exports = User;
+  /*
+  var kittySchema = mongoose.Schema({
+      name: String
+  });
+  kittySchema.methods.speak = function() {
+    var greeting = this.name
+      ? "Meow name is " + this.name
+      : "I don't have a name";
+    console.log(greeting);
+  }
+  var Kitten = mongoose.model('Kitten', kittySchema);
+  var silence = new Kitten({ name: 'Silence' });
+  var fluffy = new Kitten({ name: 'fluffy' });
+  fluffy.save(function (err, fluffy) {
+    if (err) return console.error(err);
+    fluffy.speak();
+  });*/
+});
+
+// Routing
+app.use(express.static(path.join(__dirname, 'public')));
+
+/*
 // Setup postgreSQL DB
 var pg = require('pg');
 
@@ -30,64 +74,14 @@ app.get('/db', function (request, response) {
        { response.render('pages/db', {results: result.rows} ); }
     });
   });
-});
+});*/
 
-// Routing
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Chatroom
-
-var numUsers = 0
+// Setup GameCollection object to hold currently active games
+var GameCollection = new function() {
+  this.totalGameCount = 0;
+  this.gameList = {};
+}
 
 io.sockets.on('connection', function(socket) {
-
- console.log('a new client connected');
- var addedUser = false;
-
- socket.on('new message', function(data) {
-   socket.broadcast.emit('new message', {
-     username: socket.username,
-     message: data
-   });
- });
-
-  socket.on('add user', function(username) {
-    if (addedUser) return;
-
-    socket.username = username;
-    ++numUsers;
-    addedUser = true;
-    socket.emit('login', {
-      numUsers: numUsers
-    });
-
-    socket.broadcast.emit('user joined', {
-        username: socket.username,
-        numUsers: numUsers
-    });
-  });
-
-  socket.on('typing', function() {
-    socket.broadcast.emit('typing', {
-      username: socket.username
-    });
-  });
-
-  socket.on('stop typing', function() {
-    socket.broadcast.emit('stop typing', {
-      username: socket.username
-    });
-  });
-
-  socket.on('disconnect', function() {
-    if (addedUser) {
-      --numUsers;
-
-      socket.broadcast.emit('user left', {
-        username: socket.username,
-        numUsers: numUsers
-      });
-    }
-  });
 
 });

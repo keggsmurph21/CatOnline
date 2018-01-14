@@ -1,0 +1,38 @@
+<!-- views/index.js -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Homepage test</title>
+  <link rel="stylesheet" href="styles/style.css">
+</head>
+
+<body>
+  <div class="banner">
+    <div class="logo-container">
+      <a href="/">CatOnline</a>
+    </div>
+    <div class="login-info-container">
+      test1
+      test2
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="jumbotron text-center">
+      <h1>This is the home page</h1>
+
+      <!-- show any messages -->
+      <% if (message.length > 0) { %>
+          <div class="alert alert-danger"><%= message %></div>
+      <% } %>
+
+      <p>Login or Register</p>
+
+      <a href="/login">Login</a>
+      <a href="/signup">Register</a>
+  </div>
+
+  <!--<script src='/socket.io/socket.io.js'> </script>-->
+  <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
+</body>
+</html>
