@@ -9,13 +9,13 @@ html {
 
 html, input {
   font-family:
-  "HelveticaNeue-Light",
-  "Helvetica Neue Light",
-  "Helvetica Neue",
-  Helvetica,
-  Arial,
-  "Lucida Grande",
-  sans-serif;
+    "HelveticaNeue-Light",
+    "Helvetica Neue Light",
+    "Helvetica Neue",
+    Helvetica,
+    Arial,
+    "Lucida Grande",
+    sans-serif;
 }
 
 html, body {
@@ -28,7 +28,7 @@ html, body {
   height: 30px;
   width: 100%;
   background-color: #222;
-  color: #ddd;
+  color: #bbb;
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
@@ -38,6 +38,12 @@ html, body {
   padding-right: 10px;
 }
 
-.banner * {
+.banner a {
+  text-decoration: none;
+  font-weight: 500;
+  color: #fff;
+}
 
+.logo-container a {
+  font-weight: 900;
 }

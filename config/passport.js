@@ -60,6 +60,12 @@ module.exports = function(passport) {
             newUser.password = newUser.generateHash(password);
             newUser.isSuperAdmin = false;
             newUser.isAdmin = false;
+            newUser.activeGames = [];
+            newUser.completeGames = [];
+            newUser.authoredGames = [];
+
+            // save username to the session
+            req.session.user = username;
 
             // save the user
             newUser.save(function(err) {
@@ -95,6 +101,9 @@ module.exports = function(passport) {
         } else if (!user.validPassword(password)) {
           return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
         }
+
+        // save username to the session
+        req.session.user = username;
 
         return done(null, user);
 

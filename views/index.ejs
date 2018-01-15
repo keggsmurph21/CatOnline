@@ -12,8 +12,12 @@
       <a href="/">CatOnline</a>
     </div>
     <div class="login-info-container">
-      test1
-      test2
+      <% if (typeof user === 'undefined') { %>
+        <a href="/login">Login</a>
+        <a href="/signup">Register</a>
+      <% } else { %>
+        Logged in as <a href="/profile"><%= user.username %></a> (<a href="/logout">Logout</a>)
+      <% } %>
     </div>
   </div>
 
@@ -25,8 +29,6 @@
       <% if (message.length > 0) { %>
           <div class="alert alert-danger"><%= message %></div>
       <% } %>
-
-      <p>Login or Register</p>
 
       <a href="/login">Login</a>
       <a href="/signup">Register</a>

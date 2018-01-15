@@ -8,8 +8,11 @@ var bcrypt   = require('bcrypt-nodejs');
 var UserSchema = mongoose.Schema({
   username : String,
   password : String,
-  isSuperAdmin: Boolean,
-  isAdmin: Boolean
+  isSuperAdmin : Boolean,
+  isAdmin : Boolean,
+  activeGames : Array,
+  completeGames : Array,
+  authoredGames : Array
 });
 
 // methods
@@ -23,5 +26,5 @@ UserSchema.methods.validPassword = function(password) {
   return bcrypt.compareSync( password, this.password );
 };
 
-// create the mdoel for users and expose it to our app
-module.exports = mongoose.model('User', UserSchema);
+// create the model for users and expose it to our app
+module.exports = mongoose.model('User', UserSchema, 'users');

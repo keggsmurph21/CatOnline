@@ -1,4 +1,3 @@
-<!-- views/index.js -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -23,35 +22,17 @@
 
   <div class="content">
     <div class="jumbotron text-center">
-      <h1>This is the lobby page</h1>
+      <h1>This is the profile page</h1>
 
       <!-- show any messages -->
       <% if (message.length > 0) { %>
           <div class="alert alert-danger"><%= message %></div>
       <% } %>
 
-      <form action="/newgame" method="get">
-        <button type="submit">Host a game</button>
-      </form>
-
-      <div class="active-game-container">
-        Join an existing game
-        <ul>
-        </ul>
-      </div>
-
+      <p>username: <%= user.username %></p>
   </div>
 
-  <script src='/socket.io/socket.io.js'> </script>
-  <script>
-    var GameCollection = new function() {
-      this.totalGameCount = 0;
-      this.gameList = {};
-    }
-
-    var socket = io();
-
-  </script>
+  <!--<script src='/socket.io/socket.io.js'> </script>-->
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
 </body>
 </html>

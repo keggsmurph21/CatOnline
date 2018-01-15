@@ -1,0 +1,85 @@
+<!-- views/index.js -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Homepage test</title>
+  <link rel="stylesheet" href="styles/style.css">
+</head>
+
+<body>
+  <div class="banner">
+    <div class="logo-container">
+      <a href="/">CatOnline</a>
+    </div>
+    <div class="login-info-container">
+      <% if (typeof user === 'undefined') { %>
+        <a href="/login">Login</a>
+        <a href="/signup">Register</a>
+      <% } else { %>
+        Logged in as <a href="/profile"><%= user.username %></a> (<a href="/logout">Logout</a>)
+      <% } %>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="jumbotron text-center">
+      <h1>This is the new game page</h1>
+
+      <!-- show any messages -->
+      <% if (message.length > 0) { %>
+          <div class="alert alert-danger"><%= message %></div>
+      <% } %>
+
+      <form action="/newgame" method="post">
+        Rules: <select name="rules">
+          <% for (i=0; i< options.values.length; i++) { %>
+            <% if (options.values[i] === defaultSetting) { %>
+              <option value="<%= options.values[i] %>" selected="selected">
+            <% } else { %>
+              <option value="<%= options.values[i] %>">
+            <% } %>
+              <%= options.values[i].charAt(0).toUpperCase() + options.values[i].slice(1) %>
+            </option>
+          <% } %>
+        </select>
+        <div class="rules-container">
+          <% for (var s=0; s< settings.choices.length; s++) { %>
+            <% if (settings.choices[s].name === defaultSetting) {
+              for (var key in settings.choices[s]['game-setup'].variable) {
+                var value = settings.choices[s]['game-setup'].variable[key]; %>
+                <%= value.label %>:
+                <% if (value.options.type === 'integer') { %>
+                  <input type="number" step="1" pattern="\d+" min="<%=value.options.min%>" max="<%=value.options.max%>" value="<%=value.default%>" name="<%= key %>" />
+                <% } else { %>
+                  <select name="<%= key %>" >
+                    <% for (i=0; i< value.options.values.length; i++) {
+                      if (value.options.values[i] === value.default) { %>
+                        <option value="<%= value.options.values[i] %>" selected="selected">
+                      <% } else { %>
+                        <option value="<%= value.options.values[i] %>" >
+                      <% } %>
+                      <%= value.options.values[i] %>
+                      </option>
+                    <% } %>
+                  </select>
+                <% } %>
+                <br />
+              <% }
+            }
+          } %>
+        </div>
+        <button type="submit">Launch</button>
+      </form>
+
+  </div>
+
+  <script src='/socket.io/socket.io.js'> </script>
+  <script>
+
+    var socket = io();
+
+  </script>
+  <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
+</body>
+</html>
