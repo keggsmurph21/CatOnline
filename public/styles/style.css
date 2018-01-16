@@ -47,3 +47,7 @@ html, body {
 .logo-container a {
   font-weight: 900;
 }
+
+.game-list-item:hover {
+  background-color: #bbb;
+}

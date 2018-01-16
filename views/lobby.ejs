@@ -36,22 +36,47 @@
 
       <div class="active-game-container">
         Join an existing game
-        <ul>
-        </ul>
+        <table class="game-list-table">
+          <tr>
+            <th>Rules</th>
+            <th>Humans</th>
+            <th>CPUs</th>
+            <th>Owner</th>
+            <th>Victory Points</th>
+            <th>Turn</th>
+            <th>Date Created</th>
+            <th>Date Modified</th>
+          </tr>
+          <% for (var g=0; g< games.length; g++) {
+            if (games[g].meta.active) { %>
+              <tr class="game-list-item" id="<%=games[g]._id%>">
+                <th><%=games[g].settings.rules%></th>
+                <th><%=games[g].settings.humans%></th>
+                <th><%=games[g].settings.CPUs%></th>
+                <th><%=games[g].meta.author.name%></th>
+                <th><%=games[g].settings.victoryPointsGoal%></th>
+                <th>0</th>
+                <th><%=games[g].meta.created%></th>
+                <th><%=games[g].meta.modified%></th>
+              </tr>
+            <% }
+          } %>
+        </table>
       </div>
 
   </div>
 
   <script src='/socket.io/socket.io.js'> </script>
+  <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
   <script>
-    var GameCollection = new function() {
-      this.totalGameCount = 0;
-      this.gameList = {};
-    }
 
-    var socket = io();
+  //  io = socket();
+
+    // redirect to open a game on click
+    gli = $(".game-list-item").click( function(event) {
+      window.location.href=("/play/" + event.target.parentElement.id);
+    });
 
   </script>
-  <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
 </body>
 </html>

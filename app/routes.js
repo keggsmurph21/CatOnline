@@ -18,10 +18,15 @@ module.exports = function(app, passport) {
 
   // LOBBY PAGE
   app.get('/lobby', isLoggedIn, function(req,res) {
-    res.render('lobby.ejs', {
-      message: req.flash('lobbyMessage'),
-      user: req.user//,
-      //games: Game.find
+    Game.find( {}, function(err,games) {
+      if (err) throw err;
+
+      res.render('lobby.ejs', {
+        message: req.flash('lobbyMessage'),
+        user: req.user,
+        games: games
+      });
+
     });
   });
 
@@ -48,7 +53,10 @@ module.exports = function(app, passport) {
     var newGame = new Game();
 
     newGame.meta = {
-      author: req.user._id,
+      author: {
+        id : req.user._id,
+        name : req.user.username
+      },
       players: [req.user._id],
       active: true,
       created: new Date,

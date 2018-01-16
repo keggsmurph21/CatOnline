@@ -7,7 +7,10 @@ var mongoose = require('mongoose');
 var GameSchema = mongoose.Schema({
 
   meta : {
-    author: String,
+    author: {
+      id : String,
+      name : String
+    },
     players: Array,
     active: Boolean,
     created: Date,
