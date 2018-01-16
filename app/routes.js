@@ -72,9 +72,10 @@ module.exports = function(app, passport) {
       resourceStrategy: req.body.resourceSetup
     };
 
-    newGame.state = funcs.initGameStateNoPlayers(req.body.rules);
+    console.log( funcs.initGameStateNoPlayers );
+    newGame.state = new funcs.initGameStateNoPlayers(req.body.rules);
 
-    // save username to the session
+    // save gameid to the session
     req.session.game = newGame._id;
 
     // save the user

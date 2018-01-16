@@ -51,8 +51,8 @@
             if (games[g].meta.active) { %>
               <tr class="game-list-item" id="<%=games[g]._id%>">
                 <th><%=games[g].settings.rules%></th>
-                <th><%=games[g].settings.humans%></th>
-                <th><%=games[g].settings.CPUs%></th>
+                <th>1/<%=games[g].settings.humans%></th>
+                <th><%=games[g].settings.CPUs%>/<%=games[g].settings.CPUs%></th>
                 <th><%=games[g].meta.author.name%></th>
                 <th><%=games[g].settings.victoryPointsGoal%></th>
                 <th>0</th>
