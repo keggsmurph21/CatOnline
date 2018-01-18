@@ -3,23 +3,12 @@
 <html>
 <head>
   <title>Login page test</title>
-  <link rel="stylesheet" href="styles/style.css">
+  <link rel="stylesheet" href="/styles/style.css">
 </head>
 
 <body>
-  <div class="banner">
-    <div class="logo-container">
-      <a href="/">CatOnline</a>
-    </div>
-    <div class="login-info-container">
-      <% if (typeof user === 'undefined') { %>
-        <a href="/login">Login</a>
-        <a href="/signup">Register</a>
-      <% } else { %>
-        Logged in as <a href="/profile"><%= user.username %></a> (<a href="/logout">Logout</a>)
-      <% } %>
-    </div>
-  </div>
+
+  <%- include( 'header.ejs' ) %>
 
   <div class="content">
     <h1>This is the registration page</h1>

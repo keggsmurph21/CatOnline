@@ -1,9 +1,7 @@
 // load stuff
-var funcs = require('../game/logic/funcs.js');
-var Game = require('../app/models/game.js');
-var User = require('../app/models/user.js');
-var Options = require('../app/models/options.js');
-var Settings = require('../app/models/settings.js');
+var aSync = require('async');
+var tools = require('../app/tools.js');
+var funcs = require('../game/funcs.js');
 
 // app/routes.js
 module.exports = function(app, passport) {
@@ -18,7 +16,7 @@ module.exports = function(app, passport) {
 
   // LOBBY PAGE
   app.get('/lobby', isLoggedIn, function(req,res) {
-    Game.find( {}, function(err,games) {
+    games = tools.models.Game.find( {}, function(err,games) {
       if (err) throw err;
 
       res.render('lobby.ejs', {
@@ -32,62 +30,83 @@ module.exports = function(app, passport) {
 
   // NEWGAME PAGES
   app.get('/newgame', isLoggedIn, function(req,res) {
-    Options.findOne({ "availableRulesSets" : {$exists:true} }, function(err, options) {
+
+    tools.models.Config.findOne( {}, function(err,config) {
       if (err) throw err;
 
-      Settings.findOne({ "availableRulesSets" : {$exists:false} }, function(err, settings) {
-        if (err) throw err;
-
-        res.render('newgame.ejs', {
-          message: req.flash('newgameMessage'),
-          user: req.user,
-          options: options.availableRulesSets,
-          defaultSetting: options.availableRulesSets.default,
-          settings: settings
-        });
-
+      res.render('newgame.ejs', {
+        message: req.flash('newgameMessage'),
+        user: req.user,
+        config: config.toJSON()
       });
+
     });
   });
   app.post('/newgame', isLoggedIn, function(req,res) {
-    var newGame = new Game();
 
-    newGame.meta = {
+    var game = new tools.models.Game();
+    game.meta = { // from the SESSION
       author: {
         id : req.user._id,
         name : req.user.username
       },
       players: [req.user._id],
       active: true,
-      created: new Date,
-      updated: new Date,
+      created: new Date
     };
-
-    newGame.settings = {
-      rules: req.body.rules,
+    game.settings = { // from the POST
+      scenario: req.body.scenarios,
       victoryPointsGoal: req.body.victoryPointsGoal,
-      humans: req.body.humans,
-      CPUs: req.body.CPUs,
-      portStrategy: req.body.portStyle,
-      resourceStrategy: req.body.resourceSetup
+      numHumans: req.body.numHumans,
+      numCPUs: req.body.numCPUs,
+      portStyle: req.body.portStyle,
+      tileStyle: req.body.tileStyle
     };
+    game.state = funcs.initGameStateNoPlayers(req.body, function(State) {
 
-    console.log( funcs.initGameStateNoPlayers );
-    newGame.state = new funcs.initGameStateNoPlayers(req.body.rules);
+      // save gameid to the session
+      req.session.gameid = game._id;
 
-    // save gameid to the session
-    req.session.game = newGame._id;
+      // save the user
+      game.meta.updated = new Date;
+      game.state = State;
+      game.save( function(err) {
+        if (err) throw err;
 
-    // save the user
-    newGame.save(function(err) {
-      if (err) throw err;
+        req.flash('lobbyMessage', 'Your game has been created.');
+        res.redirect('/lobby');
 
-      req.flash('lobbyMessage', 'Your game has been created.');
-      res.redirect('/lobby');
+      });
 
     });
 
-  })
+  });
+
+  // PLAY PAGES
+  app.get('/play/:gameid', isLoggedIn, function(req,res) {
+
+    console.log( 'game : ' + req.params.gameid );
+    console.log( 'user : ' + req.user._id);
+    tools.models.Game.findById( req.params.gameid, function(err,game) {
+
+      if (err) throw err;
+
+      if (!game) {
+        req.flash('lobbyMessage', 'Unable to find game ' + req.params.gameid );
+        res.redirect('/lobby');
+      }
+
+      game.getAccessibleData( req.user._id, function(data) {
+
+        res.render('play.ejs', {
+          message: req.flash('playMessage'),
+          user: req.user,
+          data: data
+        });
+
+      });
+    });
+  });
 
   // LOGIN PAGES
   app.get('/login', function(req,res) {
@@ -140,11 +159,4 @@ function isLoggedIn(req,res,next) {
   req.flash('homepageMessage', 'You must be logged this page!');
   res.redirect('/');
 
-}
-
-// database queries
-function queryDB( collection, query, callback ) {
-  mongoose.connection.db.collection( collection, function(err, collection) {
-    collection.find(query).toArray(callback);
-  });
 }

@@ -2,7 +2,7 @@
 
 // load stuff
 var LocalStrategy = require('passport-local').Strategy;
-var User          = require('../app/models/user.js');
+var tools = require('../app/tools.js')
 
 // expose this function to our app using module.exports
 module.exports = function(passport) {
@@ -18,11 +18,10 @@ module.exports = function(passport) {
 
   // used to deserialize the user
   passport.deserializeUser( function(id,done) {
-    User.findById(id, function(err, user) {
+    tools.models.User.findById(id, function(err, user) {
       done(err, user);
     });
   });
-
 
 
   // local signup
@@ -42,7 +41,7 @@ module.exports = function(passport) {
       process.nextTick(function() {
         // find a user whose username is the same as the form's username
         // we are checking to see if the user trying to register already exists
-        User.findOne({ 'username' : username }, function(err,user) {
+        tools.models.User.findOne( { username : username }, function(err,user) {
           // if there are any errors, return the error
           if (err) { return done(err) }
 
@@ -53,24 +52,24 @@ module.exports = function(passport) {
 
             // if there is no user with the email
             // create the user
-            var newUser = new User();
+            var user = new tools.models.User();
 
             // set the credentials
-            newUser.username = username;
-            newUser.password = newUser.generateHash(password);
-            newUser.isSuperAdmin = false;
-            newUser.isAdmin = false;
-            newUser.activeGames = [];
-            newUser.completeGames = [];
-            newUser.authoredGames = [];
+            user.username = username;
+            user.password = user.generateHash(password);
+            user.isSuperAdmin = false;
+            user.isAdmin = false;
+            user.activeGames = [];
+            user.completeGames = [];
+            user.authoredGames = [];
 
             // save username to the session
             req.session.user = username;
 
-            // save the user
-            newUser.save(function(err) {
-              if (err) { throw err; }
-              return done(null, newUser);
+            // save the user ( replaced )
+            user.save( function(err) {
+              if (err) throw err;
+              return done(null, user)
             });
 
           }
@@ -89,11 +88,10 @@ module.exports = function(passport) {
 
       // find a user whose username is the same as the form's username
       // we are checking to see if the user trying to register already exists
-      User.findOne({ 'username' : username }, function(err,user) {
+      tools.models.User.findOne( { 'username' : username }, function(err,user) {
 
         // if there are any errors, return the error
         if (err) { return done(err) }
-
 
         // if something goes wrong, return the message
         if (!user) {

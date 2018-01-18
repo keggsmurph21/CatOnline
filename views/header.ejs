@@ -1,0 +1,13 @@
+<div class="banner">
+  <div class="logo-container">
+    <a href="/">CatOnline</a>
+  </div>
+  <div class="login-info-container">
+    <% if (typeof user === 'undefined') { %>
+      <a href="/login">Login</a>
+      <a href="/signup">Register</a>
+    <% } else { %>
+      Logged in as <a href="/profile"><%= user.username %></a> (<a href="/logout">Logout</a>)
+    <% } %>
+  </div>
+</div>

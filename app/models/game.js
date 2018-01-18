@@ -18,17 +18,28 @@ var GameSchema = mongoose.Schema({
   },
 
   settings : {
-    rules: String,
+    scenario: String,
     victoryPointsGoal: Number,
-    humans: Number,
-    CPUs: Number,
-    portStrategy: String,
-    resourceStrategy: String
+    numHumans: Number,
+    numCPUs: Number,
+    portStyle: String,
+    tileStyle: String
   },
 
   state : Object
 
-})
+});
+
+GameSchema.methods.getAccessibleData = function(userid,callback) {
+  data = {
+    meta : this.meta,
+    sett : this.settings,
+    publ : this.state.public,
+    priv : [0,1,2,3]
+  };
+
+  callback(data);
+}
 
 // create the model for games and expose it to our app
 module.exports = mongoose.model('Game', GameSchema, 'games');

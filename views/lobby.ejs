@@ -3,23 +3,12 @@
 <html>
 <head>
   <title>Homepage test</title>
-  <link rel="stylesheet" href="styles/style.css">
+  <link rel="stylesheet" href="/styles/style.css">
 </head>
 
 <body>
-  <div class="banner">
-    <div class="logo-container">
-      <a href="/">CatOnline</a>
-    </div>
-    <div class="login-info-container">
-      <% if (typeof user === 'undefined') { %>
-        <a href="/login">Login</a>
-        <a href="/signup">Register</a>
-      <% } else { %>
-        Logged in as <a href="/profile"><%= user.username %></a> (<a href="/logout">Logout</a>)
-      <% } %>
-    </div>
-  </div>
+
+  <%- include( 'header.ejs' ) %>
 
   <div class="content">
     <div class="jumbotron text-center">
@@ -50,14 +39,14 @@
           <% for (var g=0; g< games.length; g++) {
             if (games[g].meta.active) { %>
               <tr class="game-list-item" id="<%=games[g]._id%>">
-                <th><%=games[g].settings.rules%></th>
-                <th>1/<%=games[g].settings.humans%></th>
-                <th><%=games[g].settings.CPUs%>/<%=games[g].settings.CPUs%></th>
+                <th><%=games[g].settings.scenario%></th>
+                <th>1/<%=games[g].settings.numHumans%></th>
+                <th><%=games[g].settings.numCPUs%>/<%=games[g].settings.numCPUs%></th>
                 <th><%=games[g].meta.author.name%></th>
                 <th><%=games[g].settings.victoryPointsGoal%></th>
                 <th>0</th>
                 <th><%=games[g].meta.created%></th>
-                <th><%=games[g].meta.modified%></th>
+                <th><%=games[g].meta.updated%></th>
               </tr>
             <% }
           } %>
@@ -70,10 +59,11 @@
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
   <script>
 
-  //  io = socket();
+    socket = socket();
 
     // redirect to open a game on click
-    gli = $(".game-list-item").click( function(event) {
+    gli = $(".game-list-item");
+    gli.click( function(event) {
       window.location.href=("/play/" + event.target.parentElement.id);
     });
 
