@@ -13,10 +13,13 @@ var io            = require('socket.io');
 
 var morgan        = require('morgan');
 var cookieParser  = require('cookie-parser');
+var sioCookieParser=require('socket.io-cookie-parser');
 var bodyParser    = require('body-parser');
 var session       = require('express-session');
 
 var configDB      = require('./config/database.js');
+
+var sessionStore   = new express.session.MemoryStore();
 
 // configuration
 mongoose.connect(configDB.url);
@@ -29,7 +32,11 @@ app.use(bodyParser());
 
 app.set('view engine', 'ejs');
 
-app.use(session({ secret: 'testsecret', key: 'express.sid' }));
+app.use(session({
+  store:  sessionStore,
+  secret: 'testsecret',
+  key: 'express.sid'
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
@@ -43,8 +50,9 @@ var server = http.createServer(app).listen(port, function() {
   console.log( 'Express server listening on port ' + port );
 })
 
-// handle sockets
-var socket = io.listen(server);
-socket.sockets.on('connection', function() {
-  console.log( 'a socket connected');
-})
+// setup sockets
+var sio = io.listen(server);
+sio.use(sioCookieParser());
+
+// handle socket requests
+require('./game/sockets.js')(sio, sessionStore);

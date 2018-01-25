@@ -1,4 +1,5 @@
 <!-- views/index.js -->
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,22 +35,19 @@
             <th>Victory Points</th>
             <th>Turn</th>
             <th>Date Created</th>
-            <th>Date Modified</th>
           </tr>
-          <% for (var g=0; g< games.length; g++) {
-            if (games[g].meta.active) { %>
-              <tr class="game-list-item" id="<%=games[g]._id%>">
-                <th><%=games[g].settings.scenario%></th>
-                <th>1/<%=games[g].settings.numHumans%></th>
-                <th><%=games[g].settings.numCPUs%>/<%=games[g].settings.numCPUs%></th>
-                <th><%=games[g].meta.author.name%></th>
-                <th><%=games[g].settings.victoryPointsGoal%></th>
-                <th>0</th>
-                <th><%=games[g].meta.created%></th>
-                <th><%=games[g].meta.updated%></th>
-              </tr>
-            <% }
-          } %>
+          <%= games %>
+          <% for (var g=0; g< games.length; g++) { %>
+            <tr class="game-list-item" id="<%=games[g]._id%>">
+              <th><%=games[g].scenario%></th>
+              <th>1/<%=games[g].numHumans%></th>
+              <th><%=games[g].numCPUs%></th>
+              <th><%=games[g].author%></th>
+              <th><%=games[g].VPs%></th>
+              <th>0</th>
+              <th><%= games[g].created %></th>
+            </tr>
+          <% } %>
         </table>
       </div>
 
@@ -57,9 +55,10 @@
 
   <script src='/socket.io/socket.io.js'> </script>
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
+  <script src='/resources/lib.js'> </script>
   <script>
 
-    socket = socket();
+    socket = io();
 
     // redirect to open a game on click
     gli = $(".game-list-item");

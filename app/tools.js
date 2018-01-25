@@ -1,5 +1,5 @@
 // public/resources/js/tools.js
-var mongoose = require('mongoose');
+var dateFormat = require('dateformat');
 
 // keep functions here that are not necessarily strictly game logic
 module.exports = {
@@ -16,12 +16,15 @@ module.exports = {
     return arr
   },
 
+  formatDate : function(datetime) {
+    return dateFormat(datetime, "dddd, mmmm dS, yyyy, h:MM:ss TT")
+  },
+
   models : {
     User : require('./models/User'),
     Config : require('./models/Config'),
     Scenario : require('./models/Scenarios'),
     Game : require('./models/Game')
   }
-
 
 }

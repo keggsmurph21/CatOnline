@@ -19,6 +19,10 @@
           <div class="alert alert-danger"><%= message %></div>
       <% } %>
 
+      <% if (typeof user !== 'undefined') { %>
+        <button onclick="location.href='/lobby';" id="lobby-button">Go to lobby</button>
+      <% } %>
+      
       <a href="/login">Login</a>
       <a href="/signup">Register</a>
   </div>

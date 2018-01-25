@@ -19,12 +19,15 @@ module.exports = function(app, passport) {
     games = tools.models.Game.find( {}, function(err,games) {
       if (err) throw err;
 
-      res.render('lobby.ejs', {
-        message: req.flash('lobbyMessage'),
-        user: req.user,
-        games: games
-      });
+      stripDataForLobby( games, function(data) {
 
+        res.render('lobby.ejs', {
+          message: req.flash('lobbyMessage'),
+          user: req.user,
+          games: data
+        });
+
+      });
     });
   });
 
@@ -109,7 +112,7 @@ module.exports = function(app, passport) {
   });
 
   // LOGIN PAGES
-  app.get('/login', function(req,res) {
+  app.get('/login', notLoggedIn, function(req,res) {
     res.render('login.ejs', {
       message: req.flash('loginMessage'),
       user: req.user
@@ -122,7 +125,7 @@ module.exports = function(app, passport) {
   }));
 
   // SIGNUP PAGES
-  app.get('/signup', function(req,res) {
+  app.get('/signup', notLoggedIn, function(req,res) {
     res.render('signup.ejs', {
       message: req.flash('signupMessage'),
       user: req.user
@@ -156,7 +159,37 @@ function isLoggedIn(req,res,next) {
     return next();
   }
 
-  req.flash('homepageMessage', 'You must be logged this page!');
+  req.flash('homepageMessage', 'You must be logged in to view this page!');
   res.redirect('/');
 
+}
+
+// route middleware to disallow login page to those already logged in
+function notLoggedIn(req,res,next) {
+
+  if (!req.isAuthenticated()) {
+    return next();
+  }
+
+  req.flash('profileMessage', "You're already logged in!");
+  res.redirect('/profile');
+}
+
+// only pass relevant information to the lobby.ejs page for each game
+function stripDataForLobby(games,callback) {
+  data = [];
+  for (let g=0; g<games.length; g++) {
+    datum = {
+      scenario : games[g].settings.scenario,
+      numHumans: games[g].settings.numHumans,
+      numCPUs  : games[g].settings.numCPUs,
+      author   : games[g].meta.author.name,
+      VPs      : games[g].settings.victoryPointsGoal,
+      created  : tools.formatDate( games[g].meta.created )
+    }
+    if (games[g].meta.active) {
+      data.push( datum );
+    }
+  }
+  callback(data);
 }

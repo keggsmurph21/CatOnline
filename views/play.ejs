@@ -10,9 +10,18 @@
 
   <%- include( 'header.ejs' ) %>
 
+  <button onclick="location.href='/lobby';" id="lobby-button">Go to lobby</button>
+
   <div class="content">
     <%- JSON.stringify(data) %>
   </div>
 
+  <script src='/socket.io/socket.io.js'> </script>
+  <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
+  <script>
+
+    socket = io();
+
+  </script>
 </body>
 </html>

@@ -63,8 +63,9 @@ module.exports = function(passport) {
             user.completeGames = [];
             user.authoredGames = [];
 
-            // save username to the session
+            // save username and userid to the session
             req.session.user = username;
+            req.session.userid = user._id;
 
             // save the user ( replaced )
             user.save( function(err) {
@@ -100,8 +101,9 @@ module.exports = function(passport) {
           return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
         }
 
-        // save username to the session
+        // save username and userid to the session
         req.session.user = username;
+        req.session.userid = user._id;
 
         return done(null, user);
 
