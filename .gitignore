@@ -60,3 +60,5 @@ typings/
 # database scenarios backups
 .db-backup
 
+# useless crap
+.DS_Store
