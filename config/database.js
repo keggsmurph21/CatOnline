@@ -1,6 +1,6 @@
 // config/database.js
 module.exports = {
 
-  'url' : 'mongodb://localhost/catonline-db'
+  'url' : 'mongodb:://mongo:27017/catonline-db'
 
 };

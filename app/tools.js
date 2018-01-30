@@ -21,9 +21,9 @@ module.exports = {
   },
 
   models : {
-    User : require('./models/User'),
-    Scenario : require('./models/Scenarios'),
-    Game : require('./models/Game')
+    User : require('./models/user'),
+    Scenario : require('./models/scenarios'),
+    Game : require('./models/game')
   }
 
 }
