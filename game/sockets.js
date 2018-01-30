@@ -46,11 +46,13 @@ module.exports = function(sio, sessionStore) {
       // we don't want to override anything, but the age)
       // reloading will also ensure we keep an up2date copy
       // of the session with our connection.
+
+      /* this isn't working
       req.session.reload( function () {
         // "touch" it (resetting maxAge and lastAccess)
         // and save it back again.
         req.session.touch().save();
-      });
+      }); */
     }, 60 * 1000);
 
     socket.on('disconnect', function () {

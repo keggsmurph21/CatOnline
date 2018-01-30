@@ -22,7 +22,6 @@ module.exports = {
 
   models : {
     User : require('./models/User'),
-    Config : require('./models/Config'),
     Scenario : require('./models/Scenarios'),
     Game : require('./models/Game')
   }

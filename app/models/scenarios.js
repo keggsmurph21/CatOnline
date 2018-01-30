@@ -3,7 +3,7 @@
 var mongoose = require('mongoose');
 
 var ScenarioSchema = mongoose.Schema({
-      "scenario" : String,
+      "name" : String,
       "buildingCosts" : Object,
       "maxEachBuilding" : Object,
       "devCards" : Object,

@@ -1,0 +1,49 @@
+{
+  "scenario" : {
+    "type"   : "string",
+    "label"  : "Choose a scenario",
+    "default": "standard",
+    "options": [
+      "standard"
+    ]
+  },
+  "victoryPointsGoal" : {
+    "type"   : "int",
+    "label"  : "Victory points",
+    "default": 10,
+    "min"    : 8,
+    "max"    : 12
+  },
+  "numHumans" : {
+    "type"   : "int",
+    "label"  : "Number of humans",
+    "default": 4,
+    "min"    : 0,
+    "max"    : 5
+  },
+  "numCPUs" : {
+    "type"   : "int",
+    "label"  : "Number of CPUs",
+    "default": 0,
+    "min"    : 0,
+    "max"    : 5
+  },
+  "portStyle" : {
+    "type"   : "string",
+    "label"  : "Port placement style",
+    "default": "fixed",
+    "options": [
+      "fixed",
+      "random"
+    ]
+  },
+  "tileStyle" : {
+    "type"   : "string",
+    "label"  : "Tile placement style",
+    "default": "fixed",
+    "options": [
+      "fixed",
+      "random"
+    ]
+  }
+}

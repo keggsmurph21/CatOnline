@@ -28,7 +28,7 @@
         Join an existing game
         <table class="game-list-table">
           <tr>
-            <th>Rules</th>
+            <th>Scenario</th>
             <th>Humans</th>
             <th>CPUs</th>
             <th>Owner</th>
@@ -36,8 +36,8 @@
             <th>Turn</th>
             <th>Date Created</th>
           </tr>
-          <%= games %>
           <% for (var g=0; g< games.length; g++) { %>
+            <%= console.log(games[g]) %>
             <tr class="game-list-item" id="<%=games[g]._id%>">
               <th><%=games[g].scenario%></th>
               <th>1/<%=games[g].numHumans%></th>

@@ -10,17 +10,57 @@
 
   <%- include( 'header.ejs' ) %>
 
-  <button onclick="location.href='/lobby';" id="lobby-button">Go to lobby</button>
+  <div class="play-content">
 
-  <div class="content">
-    <%- JSON.stringify(data) %>
+    <div class="frame" id="control">
+      <div class="panel" id="navigation">
+        <button onclick="location.href='/lobby';" id="lobby-button">Go to lobby</button>
+      </div>
+
+      <div class="panel" id="info">
+        info
+      </div>
+
+      <div class="panel" id="messages">
+        messages
+      </div>
+    </div>
+
+    <div class="frame" id="game">
+      game
+    </div>
+
   </div>
+
+    <!--<p><%- JSON.stringify(data) %></p>-->
 
   <script src='/socket.io/socket.io.js'> </script>
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
   <script>
 
     socket = io();
+
+    $(document).ready(function(){
+      $('.frame').on( 'mousewheel DOMMouseScroll', function(e) {
+
+        scroll = e.originalEvent.detail ? e.originalEvent.detail : e.originalEvent.wheelDelta;
+        scroll = Math.abs(scroll) > 1 ? true : false;
+
+        if (scroll) {
+          console.log( 'big scroll');
+        }
+        return
+        console.log(e.originalEvent.detail);
+        console.log(e.originalEvent.wheelDelta);
+        return
+        if (e.originalEvent.wheelDelta > 0) {
+          console.log( 'scrolling up !' );
+        } else {
+          console.log( 'scrolling down !' );
+        }
+      });
+    });
+
 
   </script>
 </body>

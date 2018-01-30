@@ -24,6 +24,11 @@ html, body {
   padding: 0;
 }
 
+body {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
 .banner {
   height: 30px;
   width: 100%;
@@ -50,4 +55,29 @@ html, body {
 
 .game-list-item:hover {
   background-color: #bbb;
+}
+
+.play-content {
+  display: flex;
+  flex-flow: row-reverse nowrap;
+  height: 100%;
+}
+
+.frame {
+  height: 100%;
+  width: 100%;
+}
+
+.frame#control {
+  background-color: #ddd;
+  width: 600px;
+  display: flex;
+  flex-flow: column nowrap;
+  padding: 5px;
+  border-left: #222 solid 2px;
+}
+
+.panel {
+  background-color: #222;
+  margin: 5px;
 }

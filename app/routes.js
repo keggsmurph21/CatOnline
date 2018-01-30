@@ -1,7 +1,8 @@
 // load stuff
 var aSync = require('async');
-var tools = require('../app/tools.js');
+var tools = require('./tools.js');
 var funcs = require('../game/funcs.js');
+var config= require('./scenario-config.json');
 
 // app/routes.js
 module.exports = function(app, passport) {
@@ -34,16 +35,12 @@ module.exports = function(app, passport) {
   // NEWGAME PAGES
   app.get('/newgame', isLoggedIn, function(req,res) {
 
-    tools.models.Config.findOne( {}, function(err,config) {
-      if (err) throw err;
-
-      res.render('newgame.ejs', {
-        message: req.flash('newgameMessage'),
-        user: req.user,
-        config: config.toJSON()
-      });
-
+    res.render('newgame.ejs', {
+      message: req.flash('newgameMessage'),
+      user: req.user,
+      config: config
     });
+
   });
   app.post('/newgame', isLoggedIn, function(req,res) {
 
@@ -58,7 +55,7 @@ module.exports = function(app, passport) {
       created: new Date
     };
     game.settings = { // from the POST
-      scenario: req.body.scenarios,
+      scenario: req.body.scenario,
       victoryPointsGoal: req.body.victoryPointsGoal,
       numHumans: req.body.numHumans,
       numCPUs: req.body.numCPUs,
@@ -180,6 +177,7 @@ function stripDataForLobby(games,callback) {
   data = [];
   for (let g=0; g<games.length; g++) {
     datum = {
+      _id      : games[g]._id,
       scenario : games[g].settings.scenario,
       numHumans: games[g].settings.numHumans,
       numCPUs  : games[g].settings.numCPUs,
