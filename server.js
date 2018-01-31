@@ -22,7 +22,9 @@ var configDB      = require('./config/database.js');
 var sessionStore   = new express.session.MemoryStore();
 
 // configuration
-mongoose.connect(configDB.url);
+mongoose.connect(configDB.url, function(err) {
+  if (err) console.log(err);
+});
 
 require('./config/passport.js')(passport);
 

@@ -58,7 +58,8 @@ typings/
 .env
 
 # database scenarios backups
-.db-backup
+#.db-backup # contains JSON default scenario ( $ mongo $ use catonline-db $ db.scenarios.insert({ CONTENTS }) )
+data
 
 # useless crap
 .DS_Store

@@ -11,8 +11,6 @@ services:
       - mongo
     depends_on:
       - mongo
-    environment:
-      DATABASE_URL: mongodb:://mongo:27017/catonline-db
     volumes:
       - .:/usr/src/app/
       - /usr/app/node_modules

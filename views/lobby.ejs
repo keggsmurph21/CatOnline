@@ -37,14 +37,13 @@
             <th>Date Created</th>
           </tr>
           <% for (var g=0; g< games.length; g++) { %>
-            <%= console.log(games[g]) %>
             <tr class="game-list-item" id="<%=games[g]._id%>">
               <th><%=games[g].scenario%></th>
               <th>1/<%=games[g].numHumans%></th>
               <th><%=games[g].numCPUs%></th>
               <th><%=games[g].author%></th>
               <th><%=games[g].VPs%></th>
-              <th>0</th>
+              <th><%=games[g].turn%></th>
               <th><%= games[g].created %></th>
             </tr>
           <% } %>

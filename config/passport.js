@@ -87,18 +87,12 @@ module.exports = function(passport) {
     },
     function(req, username, password, done) {
 
-      console.log( 'checkpoint 1');
-      console.log( username );
-      console.log( password );
-      console.log( tools.models.User);
       // find a user whose username is the same as the form's username
       // we are checking to see if the user trying to register already exists
       tools.models.User.findOne( { 'username' : username }, function(err,user) {
-        console.log( 'checkpoint 2');
 
         // if there are any errors, return the error
         if (err) { return done(err) }
-        console.log( 'checkpoint 3');
 
         // if something goes wrong, return the message
         if (!user) {
@@ -106,7 +100,6 @@ module.exports = function(passport) {
         } else if (!user.validPassword(password)) {
           return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
         }
-        console.log( 'checkpoint 4');
 
         // save username and userid to the session
         req.session.user = username;

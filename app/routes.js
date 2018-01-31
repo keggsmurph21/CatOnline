@@ -85,8 +85,6 @@ module.exports = function(app, passport) {
   // PLAY PAGES
   app.get('/play/:gameid', isLoggedIn, function(req,res) {
 
-    console.log( 'game : ' + req.params.gameid );
-    console.log( 'user : ' + req.user._id);
     tools.models.Game.findById( req.params.gameid, function(err,game) {
 
       if (err) throw err;
@@ -101,6 +99,7 @@ module.exports = function(app, passport) {
         res.render('play.ejs', {
           message: req.flash('playMessage'),
           user: req.user,
+          svg: funcs.prepareForSvg( data ),
           data: data
         });
 
@@ -183,6 +182,7 @@ function stripDataForLobby(games,callback) {
       numCPUs  : games[g].settings.numCPUs,
       author   : games[g].meta.author.name,
       VPs      : games[g].settings.victoryPointsGoal,
+      turn     : games[g].state.public.turn,
       created  : tools.formatDate( games[g].meta.created )
     }
     if (games[g].meta.active) {

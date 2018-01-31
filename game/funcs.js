@@ -13,6 +13,7 @@ module.exports = {
         dcDeck : []
       },
       public : {
+        turn   : 0,
         dice   : [],
         hexes  : [],
         juncs  : [],
@@ -161,6 +162,11 @@ module.exports = {
       callback( State );
 
     });
+  },
+
+  prepareForSvg:function(data) {
+    console.log('preparing for svg');
+    return 69;
   },
 
   getObj:function( gameid, userid, type, id, callback ) {
