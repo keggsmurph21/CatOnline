@@ -60,6 +60,7 @@ typings/
 # database scenarios backups
 #.db-backup # contains JSON default scenario ( $ mongo $ use catonline-db $ db.scenarios.insert({ CONTENTS }) )
 data
+data/*
 
 # useless crap
 .DS_Store

@@ -2,7 +2,7 @@
 var aSync = require('async');
 var tools = require('./tools.js');
 var funcs = require('../game/funcs.js');
-var config= require('./scenario-config.json');
+var config= require('../config/scenario.json');
 
 // app/routes.js
 module.exports = function(app, passport) {

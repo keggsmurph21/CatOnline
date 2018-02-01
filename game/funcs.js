@@ -165,8 +165,117 @@ module.exports = {
   },
 
   prepareForSvg:function(data) {
-    console.log('preparing for svg');
-    return 69;
+
+    guidefs = require('../config/gui/standard');
+
+    svgData = {
+      'tiles': [],
+      'roads': [],
+      'ports': [],
+      'spots': []
+    };
+
+    // data for tiles
+    for (let i=0; i<data.publ.hexes.length; i++) {
+      textCoords = module.exports.anchorToPoints([ guidefs.tiles[i][0]+1, guidefs.tiles[i][1]+0.5 ]);
+      svgData.tiles.push({
+        'resource': data.publ.hexes[i].resource,
+        'points': module.exports.tileAnchorToPointsStr( guidefs.tiles[i] ),
+        'roll': data.publ.hexes[i].roll,
+        'x': textCoords[0],
+        'y': textCoords[1]
+      });
+    }
+
+    // data for ports
+    for (let i=0; i<guidefs.ports.length; i++) {
+
+    }
+
+    // data for roads
+    var r = 0; // keep track of our road-indexer
+    for (let i=0; i<guidefs.spots.length; i++) {
+      switch (guidefs.roadkeys[i]) {
+        case 0: // 0-> draw legs at 8:00, 4:00  /\
+          svgData.roads.push({
+            'owner': data.publ.roads[r].owner,
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 8 )
+          });
+          svgData.roads.push({
+            'owner': data.publ.roads[r].owner,
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 4 )
+          });
+          break;
+        case 1: // 0-> draw leg at 6:00 |
+          svgData.roads.push({
+            'owner': data.publ.roads[r].owner,
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 6 )
+          });
+          break;
+        case 2: // 0-> draw legs at 10:00, 2:00  /\
+          svgData.roads.push({
+            'owner': data.publ.roads[r].owner,
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 10 )
+          });
+          svgData.roads.push({
+            'owner': data.publ.roads[r].owner,
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 2 )
+          });
+          break;
+        case 3: // 0-> draw leg at 12:00
+          svgData.roads.push({
+            'owner': data.publ.roads[r].owner,
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 12 )
+          });
+          break; // ignore 4
+      }
+    }
+
+    // data for spots
+    for (let i=0; i<data.publ.juncs.length; i++) {
+      coords = module.exports.anchorToPoints( guidefs.spots[i] );
+      svgData.spots.push({
+        'owner': data.publ.juncs[i].owner,
+        'x': coords[0],
+        'y': coords[1]
+      });
+    }
+
+    return svgData;
+  },
+
+  tileAnchorToPointsStr:function( coords ) {
+    var translations = [ [0,0], [1,-1], [2,0], [2,1], [1,2], [0,1] ];
+    var str = '';
+    for (let i=0; i<translations.length; i++) {
+      transformedCoords = module.exports.anchorToPoints([ coords[0] + translations[i][0], coords[1] + translations[i][1] ]);
+      str += transformedCoords[0] + ' ' + transformedCoords[1] + ' ';
+    }
+    return str;
+  },
+
+  roadAnchorToPathStr:function( coords, dir ) {
+    var [x1,y1] = module.exports.anchorToPoints( coords );
+    switch (dir) {
+      case 2:
+        [dx,dy] = [1,-1]; break;
+      case 4:
+        [dx,dy] = [1,1];  break;
+      case 6:
+        [dx,dy] = [0,1];  break;
+      case 8:
+        [dx,dy] = [-1,1]; break;
+      case 10:
+        [dx,dy] = [-1,-1];break;
+      case 12:
+        [dx,dy] = [0,-1]; break;
+    }
+    var [x2,y2] = module.exports.anchorToPoints([ coords[0]+dx, coords[1]+dy ])
+    return 'M '+x1+' '+y1+' L '+x2+' '+y2;
+  },
+
+  anchorToPoints:function( coords, scale=1.5 ) {
+    return [ coords[0]*scale, coords[1]*Math.sqrt(3)/2*scale ];
   },
 
   getObj:function( gameid, userid, type, id, callback ) {

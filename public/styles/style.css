@@ -29,6 +29,7 @@ body {
   flex-flow: column nowrap;
 }
 
+
 .banner {
   height: 30px;
   width: 100%;
@@ -70,45 +71,64 @@ body {
 
 .frame#control {
   background-color: #ddd;
-  width: 600px;
+  width: 100%;
+  max-width: 420px;
   display: flex;
   flex-flow: column nowrap;
   padding: 5px;
   border-left: #222 solid 2px;
 }
 
+.frame#game {
+  background-color: #00f;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 150px;
+}
+
 .panel {
   background-color: #222;
   margin: 5px;
+  flex-grow: 0;
 }
 
-polygon._sheep {
+.panel#messages {
+  flex-grow: 1;
+}
+
+svg#gameboard {
+  width: 100%;
+  height: 100%;
+}
+
+polygon.sheep {
   fill: #adf442;
 }
 
-._brick {
+.brick {
   fill: #ed8428;
 }
 
-._wood {
+.wood {
   fill: #2b6836;
 }
 
-._wheat {
+.wheat {
   fill: #e2d92f;
 }
 
-._ore {
+.ore {
   fill: #38332f;
 }
 
-._desert {
+.desert {
   fill: #ead5c2;
 }
 
 .tile-polygon {
-  stroke: #fff;
-  stroke-width: 0.25;
+  /*stroke: #fff;
+  stroke-width: 0.25;*/
 }
 
 .tile-text {
@@ -117,4 +137,23 @@ polygon._sheep {
 
 .tile-text.red {
   fill: #ff0000;
+}
+
+.spot-circle {
+  fill: #000;
+  stroke: #fff;
+  stroke-width: 0.1;
+}
+
+.road-path {
+  stroke: #fff;
+  stroke-width: 0.2;
+}
+
+svg#gameboard > * {
+  cursor: pointer;
+}
+
+svg#gameboard > rect {
+  cursor: default;
 }
