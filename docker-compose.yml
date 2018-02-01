@@ -1,5 +1,12 @@
 version: "2"
 services:
+  mongo:
+    container_name: mongo
+    image: mongo
+    volumes:
+      - ./data:/data/db
+    expose:
+      - "27017"
   app:
     container_name: catonline_app
     restart: always
@@ -14,10 +21,3 @@ services:
     volumes:
       - .:/usr/src/app/
       - /usr/app/node_modules
-  mongo:
-    container_name: mongo
-    image: mongo
-    volumes:
-      - ./data:/data/db
-    ports:
-      - "27017:27017"

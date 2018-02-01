@@ -177,7 +177,7 @@ module.exports = {
 
     // data for tiles
     for (let i=0; i<data.publ.hexes.length; i++) {
-      textCoords = module.exports.anchorToPoints([ guidefs.tiles[i][0]+1, guidefs.tiles[i][1]+0.5 ]);
+      const textCoords = module.exports.anchorToPoints([ guidefs.tiles[i][0]+1, guidefs.tiles[i][1]+0.5 ]);
       svgData.tiles.push({
         'resource': data.publ.hexes[i].resource,
         'points': module.exports.tileAnchorToPointsStr( guidefs.tiles[i] ),
@@ -189,7 +189,9 @@ module.exports = {
 
     // data for ports
     for (let i=0; i<guidefs.ports.length; i++) {
-
+      let key = guidefs.ports[i];
+      svgData.ports.push({
+        'path' :  module.exports.portAnchorToPathStr( key ) });
     }
 
     // data for roads
@@ -233,7 +235,7 @@ module.exports = {
 
     // data for spots
     for (let i=0; i<data.publ.juncs.length; i++) {
-      coords = module.exports.anchorToPoints( guidefs.spots[i] );
+      const coords = module.exports.anchorToPoints( guidefs.spots[i] );
       svgData.spots.push({
         'owner': data.publ.juncs[i].owner,
         'x': coords[0],
@@ -245,10 +247,10 @@ module.exports = {
   },
 
   tileAnchorToPointsStr:function( coords ) {
-    var translations = [ [0,0], [1,-1], [2,0], [2,1], [1,2], [0,1] ];
-    var str = '';
+    const translations = [ [0,0], [1,-1], [2,0], [2,1], [1,2], [0,1] ];
+    let str = '';
     for (let i=0; i<translations.length; i++) {
-      transformedCoords = module.exports.anchorToPoints([ coords[0] + translations[i][0], coords[1] + translations[i][1] ]);
+      const transformedCoords = module.exports.anchorToPoints([ coords[0] + translations[i][0], coords[1] + translations[i][1] ]);
       str += transformedCoords[0] + ' ' + transformedCoords[1] + ' ';
     }
     return str;
@@ -272,6 +274,14 @@ module.exports = {
     }
     var [x2,y2] = module.exports.anchorToPoints([ coords[0]+dx, coords[1]+dy ])
     return 'M '+x1+' '+y1+' L '+x2+' '+y2;
+  },
+
+  portAnchorToPathStr:function( key ) {
+    let [x1,y1] = module.exports.anchorToPoints([ key[0], key[1] ]);
+    let [x2,y2] = module.exports.anchorToPoints([ key[0], key[1]-1 ])
+    let offset3 = ( key[2] ? -1 : 1 );
+    let [x3,y3] = module.exports.anchorToPoints([ key[0]+offset3, key[1]-1 ]);
+    return 'M '+x1+' '+y1+' L '+x2+' '+y2+' L '+x3+' '+y3;
   },
 
   anchorToPoints:function( coords, scale=1.5 ) {

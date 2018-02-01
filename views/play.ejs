@@ -42,7 +42,7 @@
           </g>
         <% }
         for (let i=0; i< svg.ports.length; i++) { %>
-
+          <path class="port-path <%= // port type %>" id="<%= i %>" d="<%= svg.ports[i].path %>" />
         <% }
         for (let i=0; i< svg.roads.length; i++) { %>
           <path class="road-path <%= svg.roads[i].owner %>" id="<%= i %>" d="<%= svg.roads[i].path %>" />
