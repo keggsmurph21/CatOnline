@@ -125,10 +125,10 @@ module.exports = {
           }
 
           // instead of saving a port class, put all this data right on the Junc
-          for (let i=0; i<scenario.counts.ports; i++) {
-            for (let j=0; j<locations[i].juncs.length; j++) {
-              var jid = locations[i].juncs[j];
-              State.public.juncs[jid].setPort( types[i], locations[i].orientation );
+          for (let i=0; i<scenario.ports.types.length; i++) {
+            for (let j=0; j<scenario.ports.locations[i].juncs.length; j++) {
+              var jid = scenario.ports.locations[i].juncs[j];
+              State.public.juncs[jid].setPort( i, scenario.ports.types[i], scenario.ports.locations[i].orientation );
             }
           }
 
@@ -138,15 +138,18 @@ module.exports = {
         // set the edge data for Road and Conn guys
         function( State, callback ) {
 
-
           // save the ids (nums) of two juncs to each Road
           aSync.eachOf( scenario.edgeData.roads, function( value, key ) {
-            State.public.roads[key].setVertices( value.u.id, value.v.id );
+            State.public.roads[key].setVertices( value.u, value.v );
+            State.public.juncs[value.u].roads.push(key);
+            State.public.juncs[value.v].roads.push(key);
           })
 
           // save the id (num) of a hex and a junc to each conn
           aSync.eachOf( scenario.edgeData.conns, function( value, key ) {
-            State.public.conns[key].setVertices( value.u.id, value.v.id );
+            State.public.conns[key].setVertices( value.u, value.v );
+            State.public.juncs[value.u].conns.push(key);
+            State.public.hexes[value.v].conns.push(key);
           })
 
           callback(null, State);
@@ -183,64 +186,92 @@ module.exports = {
         'points': module.exports.tileAnchorToPointsStr( guidefs.tiles[i] ),
         'roll': data.publ.hexes[i].roll,
         'x': textCoords[0],
-        'y': textCoords[1]
+        'y': textCoords[1],
+        'conns': data.publ.hexes[i].conns.join(',')
       });
     }
 
-    // data for ports
-    for (let i=0; i<guidefs.ports.length; i++) {
-      let key = guidefs.ports[i];
-      svgData.ports.push({
-        'path' :  module.exports.portAnchorToPathStr( key ) });
-    }
-
     // data for roads
-    var r = 0; // keep track of our road-indexer
+    let r = 0; // keep track of our road-indexer
     for (let i=0; i<guidefs.spots.length; i++) {
+      let owner = data.publ.roads[r].owner;
       switch (guidefs.roadkeys[i]) {
         case 0: // 0-> draw legs at 8:00, 4:00  /\
           svgData.roads.push({
-            'owner': data.publ.roads[r].owner,
-            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 8 )
+            'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 8 ),
+            'juncs': data.publ.roads[r].juncs.join(',')
           });
           svgData.roads.push({
-            'owner': data.publ.roads[r].owner,
-            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 4 )
+            'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 4 ),
+            'juncs': data.publ.roads[r].juncs.join(',')
           });
+          r += 2;
           break;
         case 1: // 0-> draw leg at 6:00 |
           svgData.roads.push({
-            'owner': data.publ.roads[r].owner,
-            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 6 )
+            'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 6 ),
+            'juncs': data.publ.roads[r].juncs.join(',')
           });
+          r += 1;
           break;
         case 2: // 0-> draw legs at 10:00, 2:00  /\
           svgData.roads.push({
-            'owner': data.publ.roads[r].owner,
-            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 10 )
+            'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 10 ),
+            'juncs': data.publ.roads[r].juncs.join(',')
           });
           svgData.roads.push({
-            'owner': data.publ.roads[r].owner,
-            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 2 )
+            'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 2 ),
+            'juncs': data.publ.roads[r].juncs.join(',')
           });
+          r += 2;
           break;
         case 3: // 0-> draw leg at 12:00
           svgData.roads.push({
-            'owner': data.publ.roads[r].owner,
-            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 12 )
+            'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+            'path' : module.exports.roadAnchorToPathStr( guidefs.spots[i], 12 ),
+            'juncs': data.publ.roads[r].juncs.join(',')
           });
+          r += 1;
           break; // ignore 4
       }
     }
 
+    // build port skeleton
+    for (let i=0; i<guidefs.ports.length; i++) {
+      svgData.ports.push({ 'type':null, 'path':null, 'juncs':[] })
+    }
+
     // data for spots
     for (let i=0; i<data.publ.juncs.length; i++) {
+      let junc = data.publ.juncs[i];
       const coords = module.exports.anchorToPoints( guidefs.spots[i] );
+
+      let hexes = [];
+      for (let j=0; j<junc.conns.length; j++) {
+        hexes.push( data.publ.conns[ junc.conns[j] ].hex );
+      }
       svgData.spots.push({
-        'owner': data.publ.juncs[i].owner,
+        'owner': junc.owner ? data.publ.players[ junc.owner ].hashcode : 'none',
         'x': coords[0],
-        'y': coords[1]
+        'y': coords[1],
+        'isCity': junc.isCity,
+        'roads': junc.roads.join(','),
+        'hexes': hexes.join(',')
       });
+
+      // use this to build port data (check if empty object)
+      if ( Object.keys(junc.port).length > 0 ) {
+        let portid = junc.port.num;
+        const portkey = guidefs.ports[portid];
+        svgData.ports[ junc.port.num ].type = junc.port.type;
+        svgData.ports[ junc.port.num ].path = module.exports.portAnchorToPathStr( portkey );
+        svgData.ports[ junc.port.num ].juncs.push( junc.num );
+      }
     }
 
     return svgData;
@@ -277,11 +308,38 @@ module.exports = {
   },
 
   portAnchorToPathStr:function( key ) {
-    let [x1,y1] = module.exports.anchorToPoints([ key[0], key[1] ]);
-    let [x2,y2] = module.exports.anchorToPoints([ key[0], key[1]-1 ])
-    let offset3 = ( key[2] ? -1 : 1 );
-    let [x3,y3] = module.exports.anchorToPoints([ key[0]+offset3, key[1]-1 ]);
-    return 'M '+x1+' '+y1+' L '+x2+' '+y2+' L '+x3+' '+y3;
+    let [x1,y1] = key; // note: key has len 3
+    let x2, y2, x3, y3;
+    switch (key[2]) {
+      case 0:
+        [x2,y2] = [ x1+0.1, y1-0.9 ];
+        [x3,y3] = [ x1+1.0, y1-1.0 ];
+        break;
+      case 1:
+        [x2,y2] = [ x1-0.1, y1-0.9 ];
+        [x3,y3] = [ x1-1.0, y1-1.0 ];
+        break;
+      case 2:
+        [x2,y2] = [ x1+0.5, y1-0.5 ];
+        [x3,y3] = [ x1,     y1-1.0 ];
+        break;
+      case 3:
+        [x2,y2] = [ x1-0.5, y1-0.5 ];
+        [x3,y3] = [ x1,     y1-1.0 ];
+        break;
+      case 4:
+        [x2,y2] = [ x1+0.1, y1+0.9 ];
+        [x3,y3] = [ x1+1.0, y1+1.0 ];
+        break;
+      case 5:
+        [x2,y2] = [ x1-0.1, y1+0.9 ];
+        [x3,y3] = [ x1-1.0, y1+1.0 ];
+        break;
+    }
+    [x1,y1] = module.exports.anchorToPoints([ x1,y1 ]);
+    [x2,y2] = module.exports.anchorToPoints([ x2,y2 ]);
+    [x3,y3] = module.exports.anchorToPoints([ x3,y3 ]);
+    return 'M '+x1+' '+y1+' L '+x2+' '+y2+' L '+x3+' '+y3+' L '+x1+' '+y1;
   },
 
   anchorToPoints:function( coords, scale=1.5 ) {

@@ -1,0 +1,41 @@
+<!-- views/login.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CatOnline &mdash; Register</title>
+  <link rel="stylesheet" href="/styles/style.css">
+  <link rel="SHORTCUT ICON" href="images/favicon.ico" />
+  <link rel="icon" href="images/favicon.ico" type="image/ico" />
+</head>
+
+<body>
+
+  <%- include( 'header.ejs' ) %>
+
+  <div class="content">
+    <h1>This is the registration page</h1>
+
+    <!-- show any messages -->
+    <% if (message.length > 0) { %>
+        <div class="alert alert-danger"><%= message %></div>
+    <% } %>
+
+    <!-- LOGIN form -->
+    <form action="/signup" method="post">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" class="form-control" name="username"></input>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" class="form-control" name="password"></input>
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+
+    <p><a href="/login">Login with an existing account</a></p>
+  </div>
+
+  <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
+</body>

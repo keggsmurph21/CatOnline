@@ -126,6 +126,10 @@ polygon.sheep {
   fill: #ead5c2;
 }
 
+.mystery {
+  fill: #ccc;
+}
+
 .tile-polygon {
   /*stroke: #fff;
   stroke-width: 0.25;*/
@@ -151,8 +155,6 @@ polygon.sheep {
 }
 
 .port-path {
-  stroke: #fff;
-  stroke-width: 0.1;
 }
 
 svg#gameboard > * {

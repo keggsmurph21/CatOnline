@@ -99,39 +99,39 @@
     "locations" : [
       {
         "orientation": 11,
-        "juncs": [0,3]
+        "juncs": [1,4]
       },
       {
         "orientation": 1,
-        "juncs": [1,5]
+        "juncs": [2,6]
       },
       {
         "orientation": 1,
-        "juncs": [10,15]
+        "juncs": [7,11]
       },
       {
         "orientation": 9,
-        "juncs": [11,16]
+        "juncs": [15,20]
       },
       {
         "orientation": 3,
-        "juncs": [26,32]
+        "juncs": [21,27]
       },
       {
         "orientation": 9,
-        "juncs": [33,38]
+        "juncs": [37,42]
       },
       {
         "orientation": 5,
-        "juncs": [42,46]
+        "juncs": [38,43]
       },
       {
         "orientation": 7,
-        "juncs": [47,51]
+        "juncs": [48,52]
       },
       {
         "orientation": 5,
-        "juncs": [49,52]
+        "juncs": [50,53]
       }
     ]
   },
