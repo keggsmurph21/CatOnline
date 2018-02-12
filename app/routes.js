@@ -120,16 +120,16 @@ module.exports = function(app, passport) {
     failureFlash : true
   }));
 
-  // SIGNUP PAGES
-  app.get('/signup', notLoggedIn, function(req,res) {
-    res.render('signup.ejs', {
-      message: req.flash('signupMessage'),
+  // REGISTER PAGES
+  app.get('/register', notLoggedIn, function(req,res) {
+    res.render('register.ejs', {
+      message: req.flash('registerMessage'),
       user: req.user
     });
   });
-  app.post('/signup', passport.authenticate('local-signup', {
+  app.post('/register', passport.authenticate('local-register', {
     successRedirect : '/lobby',
-    failureRedirect : '/signup',
+    failureRedirect : '/register',
     failureFlash : true
   }));
 

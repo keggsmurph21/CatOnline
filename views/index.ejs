@@ -2,8 +2,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Homepage test</title>
+  <title>CatOnline</title>
   <link rel="stylesheet" href="/styles/style.css">
+  <link rel="SHORTCUT ICON" href="images/favicon.ico" />
+  <link rel="icon" href="images/favicon.ico" type="image/ico" />
 </head>
 
 <body>
@@ -20,9 +22,9 @@
       <% } %>
 
       <% if (typeof user !== 'undefined') { %>
-        <button onclick="location.href='/lobby';" id="lobby-button">Go to lobby</button>
+        <button onclick="location.href='/lobby';" id="lobby">Go to lobby</button>
       <% } %>
-      
+
       <a href="/login">Login</a>
       <a href="/signup">Register</a>
   </div>

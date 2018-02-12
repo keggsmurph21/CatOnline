@@ -39,11 +39,13 @@ class Junc {
     this.port = {};
     this.roads = [];
     this.conns = [];
+    this.isCity = false;
     return this;
   }
 
-  setPort( type, orientation ) {
+  setPort( num, type, orientation ) {
     this.port = {
+      num : num,
       type : type,
       orientation : orientation
     }
