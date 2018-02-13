@@ -70,6 +70,55 @@ body {
   width: 100%;
 }
 
+.panel {
+  /*background-color: #222;*/
+  margin: 5px;
+  flex-grow: 0;
+}
+
+/***
+ MESSAGES
+ ***/
+
+ .frame#messages {
+   background-color: #ddd;
+   width: 100%;
+   display: flex;
+   flex-flow: column nowrap;
+   padding: 5px;
+   border-left: #222 solid 2px;
+ }
+
+ .panel#messages {
+   border: #222 solid 1px;
+   flex-grow: 1;
+   display: flex;
+   flex-flow: column nowrap;
+ }
+
+div.messages.public {
+  width: 100%;
+  flex-grow: 1;
+}
+
+ul.messages {
+  width: inherit;
+  list-style: none;
+  word-wrap: break-word;
+  padding: 0.5em;
+  margin: 0;
+}
+
+div.messages.input {
+  width: 100%;
+}
+
+input.messages {
+  width: inherit;
+  border: none;
+  padding: 0.2em 0.5em;
+}
+
 /***
  LOBBY
  ***/
@@ -102,15 +151,6 @@ body {
   height: 100%;
   padding: 0 1em;
   min-width: 650px;
-}
-
-.frame#messages {
-  background-color: #ddd;
-  width: 100%;
-  display: flex;
-  flex-flow: column nowrap;
-  padding: 5px;
-  border-left: #222 solid 2px;
 }
 
 table.lobby {
@@ -197,16 +237,6 @@ tr.lobby.max {
   justify-content: center;
   align-items: center;
   min-height: 150px;
-}
-
-.panel {
-  background-color: #222;
-  margin: 5px;
-  flex-grow: 0;
-}
-
-.panel#messages {
-  flex-grow: 1;
 }
 
 svg#gameboard {

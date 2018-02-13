@@ -55,11 +55,20 @@ module.exports = function(sio, sessionStore) {
       }); */
     }, 60 * 1000);
 
+    console.log( req.session );
+    socket.broadcast.emit('new connection', {
+      username: req.session.user,
+      userid: req.session.userid
+    });
+
     socket.on('disconnect', function () {
       console.log('User ' + req.session.userid + ' disconnected from ' + req.ref);
       // clear the socket interval to stop refreshing the session
       clearInterval(intervalID);
     });
+
+
+    // COPIED STUFF BELOW
 
     var addedUser = false;
 

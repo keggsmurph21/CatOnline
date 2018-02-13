@@ -9,21 +9,26 @@ $(function() {
 
   // Initialize variables
   var $window = $(window);
-  var $usernameInput = $('.usernameInput'); // Input for username
   var $messages = $('.messages'); // Messages area
   var $inputMessage = $('.inputMessage'); // Input message input box
 
   var $loginPage = $('.login.page'); // The login page
   var $chatPage = $('.chat.page'); // The chatroom page
 
-  // Prompt for setting a username
   var username;
   var connected = false;
   var typing = false;
   var lastTypingTime;
-  var $currentInput = $usernameInput.focus();
+  var $currentInput;
 
-  var socket = io();
+  var messagesUL = $('ul.messages');
+  var messagesInput = $('input.messages');
+
+  function getTimeStr() {
+    let datetime = new Date();
+    let datestr = datetime.getHours() + ':' + datetime.getMinutes() + ':' + datetime.getSeconds();
+    return datestr;
+  }
 
   function addParticipantsMessage (data) {
     var message = '';
@@ -97,6 +102,21 @@ $(function() {
       .append($usernameDiv, $messageBodyDiv);
 
     addMessageElement($messageDiv, options);
+  }
+
+  function NEW_addChatMessage(data, options) {
+    console.log( data);
+    console.log( options);
+    let msgText = '<li class="';
+    msgText += 'message ' + options.class.join(' ') + '">';
+    if (options.showTimestamp) {
+      msgText += '<span class="timestamp">[' + getTimeStr() + ']</span>';
+    }
+    if (options.showUsername) {
+      msgText += '<span class="username">' + data.username + '</span>';
+    }
+    msgText += '<span class="body">' + data.body + '</span></li>';
+    messagesUL.append( msg );
   }
 
   // Adds the visual chat typing message
@@ -224,6 +244,19 @@ $(function() {
   });
 
   // Socket events
+
+  socket.on('new connection', function(data) {
+    console.log('new connection');
+    NEW_addChatMessage(
+      {
+        body: data.username + ' has connected!'
+      },
+      {
+        showTimestamp: true,
+        showUsername: false,
+        class:  'admin'
+      });
+  })
 
   // Whenever the server emits 'login', log the login message
   socket.on('login', function (data) {
