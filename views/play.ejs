@@ -25,7 +25,17 @@
       </div>
 
       <div class="panel" id="messages">
-        messages
+        <div class="messages public">
+          <ul class="messages">
+            <li class='message admin center'><span>Welcome to CatOnline chat!</span></li>
+          </ul>
+        </div>
+        <div class="messages status">
+          currently online: <span class="currently-online">0</span>
+        </div>
+        <div class="messages input">
+          <input class="messages" placeholder="type your message here ...">
+        </div>
       </div>
     </div>
 
@@ -68,6 +78,7 @@
   <script src='/socket.io/socket.io.js'> </script>
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
   <script src='http://ariutta.github.io/svg-pan-zoom/dist/svg-pan-zoom.min.js'> </script>
+  <script src="/resources/lib.js"> </script>
   <script>
 
     // declare functions

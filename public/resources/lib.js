@@ -1,4 +1,5 @@
 $(function() {
+  /*
   var FADE_TIME = 150; // ms
   var TYPING_TIMER_LENGTH = 400; // ms
   var COLORS = [
@@ -19,17 +20,26 @@ $(function() {
   var connected = false;
   var typing = false;
   var lastTypingTime;
-  var $currentInput;
+  var $currentInput;*/
 
+  var username, userid;
   var messagesUL = $('ul.messages');
   var messagesInput = $('input.messages');
 
+  function forceTwoDigits(num) {
+    return num > 9 ? '' + num : '0' + num;
+  }
+
   function getTimeStr() {
     let datetime = new Date();
-    let datestr = datetime.getHours() + ':' + datetime.getMinutes() + ':' + datetime.getSeconds();
+    let datestr =
+      forceTwoDigits(datetime.getHours()) + ':' +
+      forceTwoDigits(datetime.getMinutes()) + ':' +
+      forceTwoDigits(datetime.getSeconds());
     return datestr;
   }
 
+  /*
   function addParticipantsMessage (data) {
     var message = '';
     if (data.numUsers === 1) {
@@ -103,22 +113,51 @@ $(function() {
 
     addMessageElement($messageDiv, options);
   }
-
-  function NEW_addChatMessage(data, options) {
+  */
+  function addChatMessage(data, options) {
     console.log( data);
     console.log( options);
     let msgText = '<li class="';
-    msgText += 'message ' + options.class.join(' ') + '">';
+    msgText += 'message ' + (options.class || '') + '">';
     if (options.showTimestamp) {
-      msgText += '<span class="timestamp">[' + getTimeStr() + ']</span>';
+      msgText += '<span class="timestamp">[' + getTimeStr() + ']</span> ';
     }
     if (options.showUsername) {
-      msgText += '<span class="username">' + data.username + '</span>';
+      msgText += '<strong class="username">' + data.username + '</strong>&nbsp;';
     }
     msgText += '<span class="body">' + data.body + '</span></li>';
-    messagesUL.append( msg );
+    console.log( msgText);
+    messagesUL.append( msgText );
   }
 
+  function updateCurrentlyOnline(num) {
+    console.log( 'update current online' );
+    $('span.currently-online').html(num);
+  }
+
+  function sendChatMessage() {
+    var message = messagesInput.val();
+    // Prevent markup from being injected into the message
+    message = cleanInput(message);
+    // if there is a non-empty message and a socket connection
+    if (message) {
+      messagesInput.val('');
+      addChatMessage({ username:username, body:message }, { showTimestamp:true, showUsername:true });
+      /*addChatMessage({
+        username: username,
+        message: message
+      });*/
+      // tell server to execute 'new message' and send along one parameter
+      socket.emit('new message', message);
+    }
+  }
+
+  // Prevents input from having injected markup
+  function cleanInput (input) {
+    return $('<div/>').text(input).html();
+  }
+
+  /*
   // Adds the visual chat typing message
   function addChatTyping (data) {
     data.typing = true;
@@ -242,22 +281,59 @@ $(function() {
   $inputMessage.click(function () {
     $inputMessage.focus();
   });
+  */
+
+  // Keyboard events
+
+  $(window).keydown( function(event) {
+    // When the client hits ENTER on their keyboard
+    if (event.which === 13) {
+      if (messagesInput.is(':focus')) {
+        sendChatMessage();
+        //socket.emit('stop typing');
+        //typing = false;
+      }
+    }
+  });
 
   // Socket events
 
+  socket.on('on connection', function(data) {
+    updateCurrentlyOnline(data.numUsers);
+    username = data.username;
+    userid = data.userid;
+  });
+
   socket.on('new connection', function(data) {
-    console.log('new connection');
-    NEW_addChatMessage(
+    updateCurrentlyOnline(data.numUsers);
+    addChatMessage(
       {
-        body: data.username + ' has connected!'
+        body: '<strong>' + data.username + '</strong>&nbsp;has connected!'
       },
       {
         showTimestamp: true,
         showUsername: false,
         class:  'admin'
-      });
+      }
+    );
+  });
+
+  socket.on('end connection', function(data) {
+    updateCurrentlyOnline(data.numUsers);
+    addChatMessage(
+      { body: '<strong>' + data.username + '</strong>&nbsp;has disconnected!' },
+      { showTimestamp:true, showUsername:false, class:'admin' }
+    );
+  });
+
+  socket.on('new message', function(data) {
+    addChatMessage(
+      { body:data.message, username:data.username },
+      { showTimestamp:true, showUsername:true }
+    );
   })
 
+  /*
   // Whenever the server emits 'login', log the login message
   socket.on('login', function (data) {
     connected = true;
@@ -311,5 +387,5 @@ $(function() {
   socket.on('reconnect_error', function () {
     log('attempt to reconnect has failed');
   });
-
+  */
 });

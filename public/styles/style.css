@@ -34,6 +34,7 @@ body {
 }
 
 .banner {
+  position: absolute;
   height: 1.5em;
   width: 100%;
   background-color: #222;
@@ -58,6 +59,10 @@ body {
 }
 
 .content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding-top: 1.5em;
   display: flex;
   flex-flow: column nowrap;
   align-items: baseline;
@@ -80,33 +85,63 @@ body {
  MESSAGES
  ***/
 
- .frame#messages {
-   background-color: #ddd;
-   width: 100%;
-   display: flex;
-   flex-flow: column nowrap;
-   padding: 5px;
-   border-left: #222 solid 2px;
- }
+.messages {
+  font-size: 1em;
+}
 
- .panel#messages {
-   border: #222 solid 1px;
-   flex-grow: 1;
-   display: flex;
-   flex-flow: column nowrap;
- }
+.frame#messages {
+  background-color: #ddd;
+  width: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  padding: 5px;
+  border-left: #222 solid 2px;
+}
+
+.panel#messages {
+  border: #222 solid 1px;
+  flex-grow: 1;
+  display: flex;
+  flex-flow: column nowrap;
+  overflow: auto;
+}
 
 div.messages.public {
   width: 100%;
   flex-grow: 1;
+  overflow: auto;
 }
 
 ul.messages {
   width: inherit;
+  max-height: inherit;
+  height: 100%;
   list-style: none;
   word-wrap: break-word;
   padding: 0.5em;
   margin: 0;
+}
+
+span {
+  font-weight: 300;
+}
+
+li.center {
+  text-align: center;
+}
+
+li.center span {
+  font-weight: 500;
+}
+
+div.messages.status {
+  text-align: right;
+  font-size: 0.8em;
+  padding: 0 0.5em;
+}
+
+span.currently-online {
+  color: #0a0;
 }
 
 div.messages.input {
@@ -219,6 +254,7 @@ tr.lobby.max {
 
 .play.content {
   flex-flow: row-reverse nowrap;
+  align-items: normal;
 }
 
 .frame#control {

@@ -2,6 +2,8 @@
 
 module.exports = function(sio, sessionStore) {
 
+  var numUsersByPage = { 'lobby':0 };
+
   sio.set( 'authorization', function(handshake, next) {
 
     // probably want to do more authentication here
@@ -38,8 +40,12 @@ module.exports = function(sio, sessionStore) {
   });
 
   sio.sockets.on('connection', function (socket) {
+
     var req = socket.request;
-    console.log('User ' + req.session.userid + ' connected to ' + req.ref);
+    socket.join( req.ref );
+
+    numUsersByPage[req.ref] = numUsersByPage[req.ref]+1 || 1;
+
     // setup an inteval that will keep our session fresh
     var intervalID = setInterval(function () {
       // reload the session (just in case something changed,
@@ -55,20 +61,46 @@ module.exports = function(sio, sessionStore) {
       }); */
     }, 60 * 1000);
 
+    console.log('User ' + req.session.userid + ' connected to ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
     console.log( req.session );
-    socket.broadcast.emit('new connection', {
+    socket.broadcast.to(req.ref).emit('new connection', {
       username: req.session.user,
-      userid: req.session.userid
+      userid: req.session.userid,
+      numUsers: numUsersByPage[req.ref]
+    });
+    socket.emit('on connection', {
+      username: req.session.user,
+      userid: req.session.userid,
+      numUsers: numUsersByPage[req.ref]
     });
 
-    socket.on('disconnect', function () {
-      console.log('User ' + req.session.userid + ' disconnected from ' + req.ref);
+    socket.on('disconnect', function() {
+      numUsersByPage[req.ref]--;
+      console.log('User ' + req.session.userid + ' disconnected from ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
       // clear the socket interval to stop refreshing the session
       clearInterval(intervalID);
+
+      socket.broadcast.to(req.ref).emit('end connection', {
+        username: req.session.user,
+        userid: req.session.userid,
+        numUsers: numUsersByPage[req.ref]
+      });
     });
+
+    socket.on('new message', function(data) {
+      socket.broadcast.to(req.ref).emit('new message', {
+        username: req.session.user,
+        userid: req.session.userid,
+        message: data
+      });
+    });
+
+  });
+
 
 
     // COPIED STUFF BELOW
+    /*
 
     var addedUser = false;
 
@@ -125,6 +157,6 @@ module.exports = function(sio, sessionStore) {
         });
       }
     });
-  });
+  });*/
 
 };
