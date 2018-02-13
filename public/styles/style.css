@@ -1,3 +1,7 @@
+/***
+  SITE-WIDE
+  ***/
+
 * {
   box-sizing: border-box;
 }
@@ -29,7 +33,6 @@ body {
   flex-flow: column nowrap;
 }
 
-
 .banner {
   height: 1.5em;
   width: 100%;
@@ -54,19 +57,121 @@ body {
   font-weight: 900;
 }
 
-.game-list-item:hover {
-  background-color: #bbb;
-}
-
-.play-content {
+.content {
   display: flex;
-  flex-flow: row-reverse nowrap;
+  flex-flow: column nowrap;
+  align-items: baseline;
+  justify-content: center;
   height: 100%;
 }
 
 .frame {
   height: 100%;
   width: 100%;
+}
+
+/***
+ LOBBY
+ ***/
+
+.lobby.content {
+  flex-flow: row-reverse nowrap;
+}
+
+.lobby.container {
+  display: flex;
+  flex-flow: column;
+  padding: 1em;
+}
+
+.lobby.container#host-new-game {
+  align-items: flex-end;
+}
+
+.lobby.container > p {
+  margin: 0;
+  padding-left: 0.5em;
+}
+
+#private-code span {
+  text-align: center;
+}
+
+.frame#messages {
+  background-color: #ddd;
+  width: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  padding: 5px;
+  border-left: #222 solid 2px;
+}
+
+table.lobby {
+  font-size: 0.9em;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+tr.lobby:first-child {
+  border-left: 1px solid #222;
+}
+tr.lobby.header:first-child {
+  border-left: none;
+}
+
+tr.lobby th {
+  background-color: #ddd;
+  color: #222;
+  border-bottom: 1px solid #222;
+  font-weight: 300;
+}
+tr.lobby.header th {
+  background-color: #222;
+  color: #fff;
+  font-weight: 500;
+}
+tr.lobby.header th:first-child {
+  border-radius: 5px 0 0;
+}
+tr.lobby.header th:last-child {
+  border-radius: 0 5px 0 0;
+}
+
+tr.lobby.max {
+  display: none;
+}
+
+.lobby.null-container {
+  padding: 0.5em 0;
+}
+
+.lobby.max-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5em 1em;
+}
+
+.max.info {
+  display: flex;
+  flex-flow: column;
+  align-items: baseline;
+}
+
+.max.info > p {
+  margin: 0;
+}
+
+.max.info > p.victory-points-info {
+  margin-bottom: 0.5em;
+}
+
+/***
+ PLAY
+ ***/
+
+.play.content {
+  flex-flow: row-reverse nowrap;
 }
 
 .frame#control {

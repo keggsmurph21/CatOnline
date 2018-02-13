@@ -27,12 +27,11 @@
     <form action="/newgame" method="post">
       <div class="config-container">
         <% for (var key in config) { %>
+          <%= config[key].label %>:&nbsp;
           <% if (config[key].type === 'int') { %>
-            <%= config[key].label %>:&nbsp;
             <input type="number" step="1" pattern="\d+" min="<%=config[key].min%>" max="<%=config[key].max%>" value="<%=config[key].default%>" name="<%= key %>" />
             <br />
           <% } else if (config[key].type === 'string') { %>
-            <%= config[key].label %>:&nbsp;
             <select name="<%= key %>" >
               <% for (i=0; i< config[key].options.length; i++) {
                 if (config[key].options[i] === config[key].default) { %>
@@ -45,6 +44,8 @@
               <% } %>
             </select>
             <br />
+          <% } else if (config[key].type === 'bool') { %>
+            <input type="checkbox" name="<%= key %>" <%= config[key].default ? 'checked' : '' %>>
           <% }
         } %>
       </div>

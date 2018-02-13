@@ -14,7 +14,8 @@ var GameSchema = mongoose.Schema({
     players: Array,
     active: Boolean,
     created: Date,
-    updated: { type: Date, default: Date.now }
+    updated: { type: Date, default: Date.now },
+    publiclyViewable: Boolean
   },
 
   settings : {
@@ -28,6 +29,8 @@ var GameSchema = mongoose.Schema({
 
   state : Object
 
+}, {
+  usePushEach: true
 });
 
 GameSchema.methods.getAccessibleData = function(userid,callback) {

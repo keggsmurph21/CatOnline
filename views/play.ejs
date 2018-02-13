@@ -12,7 +12,7 @@
 
   <%- include( 'header.ejs' ) %>
 
-  <div class="play-content">
+  <div class="play content">
 
     <div class="frame" id="control">
       <div class="panel" id="navigation">
@@ -77,13 +77,13 @@
       panzoom.center();
     };
     windowResizeWide = function() {
-      $('.play-content').css('flex-flow',  'row-reverse nowrap');
+      $('.play.content').css('flex-flow',  'row-reverse nowrap');
       $('.frame#control').css('border-left-width', '2px').css('max-width', '420px');
       $('button.switch-view').prop('id', 'wide').html('Switch to wide view');
       windowResize();
     };
     windowResizeNarr = function() {
-      $('.play-content').css('flex-flow',  'column-reverse nowrap');
+      $('.play.content').css('flex-flow',  'column-reverse nowrap');
       $('.frame#control').css('border-left-width', '0px').css('max-width', '4200px');
       $('button.switch-view').prop('id', 'narrow').html('Switch to narrow view');
       windowResize();

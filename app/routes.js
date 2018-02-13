@@ -16,14 +16,60 @@ module.exports = function(app, passport) {
   });
 
   // LOBBY PAGE
+  app.get('/lobby/:gameid', isLoggedIn, function(req,res) {
+    // reqs.params.gameid
+    games = tools.models.Game.findById(req.params.gameid, function(err,game) {
+      if (err) throw err;
+
+      console.log(game);
+      if (game.meta.active) {
+
+        let found = false;
+        for (let p=0; p<game.meta.players.length; p++) {
+          if (game.meta.players[p].name === req.user.username) {
+            found = true;
+          }
+        }
+
+        if (!found && game.meta.players.length < game.settings.numHumans) {
+          game.meta.players.push({ id:req.user.id, name:req.user.username });
+          game.save( function(err) {
+            if (err) throw err;
+
+            req.flash('lobbyMessage', 'You have joined a game.');
+            res.redirect('/lobby');
+
+          });
+        }
+      }
+
+    });
+  });
   app.get('/lobby', isLoggedIn, function(req,res) {
+    games = tools.models.Game.find({}, function(err,games) {
+      if (err) throw err;
+
+      stripDataForLobby( req.user, games, function(data) {
+
+        res.render('lobby.ejs', {
+          message: req.flash('lobbyMessage'),
+          user: req.user,
+          games: data
+        });
+
+      });
+    });
+  });
+
+  // JOIN PAGE
+  app.post('/join', isLoggedIn, function(req,res) {
     games = tools.models.Game.find( {}, function(err,games) {
       if (err) throw err;
 
       stripDataForLobby( games, function(data) {
 
         res.render('lobby.ejs', {
-          message: req.flash('lobbyMessage'),
+          message: 'attempting to join a game',
           user: req.user,
           games: data
         });
@@ -50,9 +96,13 @@ module.exports = function(app, passport) {
         id : req.user._id,
         name : req.user.username
       },
-      players: [req.user._id],
+      players: [{
+        id:req.user._id,
+        name:req.user.username
+      }],
       active: true,
-      created: new Date
+      created: new Date,
+      publiclyViewable: (req.body.publiclyViewable === 'on')
     };
     game.settings = { // from the POST
       scenario: req.body.scenario,
@@ -73,6 +123,8 @@ module.exports = function(app, passport) {
       game.save( function(err) {
         if (err) throw err;
 
+        console.log(req.body);
+        console.log(game.meta);
         req.flash('lobbyMessage', 'Your game has been created.');
         res.redirect('/lobby');
 
@@ -127,7 +179,7 @@ module.exports = function(app, passport) {
       user: req.user
     });
   });
-  app.post('/register', passport.authenticate('local-register', {
+  app.post('/register', passport.authenticate('local-signup', {
     successRedirect : '/lobby',
     failureRedirect : '/register',
     failureFlash : true
@@ -172,21 +224,37 @@ function notLoggedIn(req,res,next) {
 }
 
 // only pass relevant information to the lobby.ejs page for each game
-function stripDataForLobby(games,callback) {
-  data = [];
+function stripDataForLobby(user, games,callback) {
+  data = { 'current':[], 'available':[] };
   for (let g=0; g<games.length; g++) {
     datum = {
       _id      : games[g]._id,
       scenario : games[g].settings.scenario,
       numHumans: games[g].settings.numHumans,
       numCPUs  : games[g].settings.numCPUs,
+      players  : games[g].meta.players,
       author   : games[g].meta.author.name,
       VPs      : games[g].settings.victoryPointsGoal,
       turn     : games[g].state.public.turn,
-      created  : tools.formatDate( games[g].meta.created )
+      created  : tools.formatDate( games[g].meta.created ),
+      updated  : tools.formatDate( games[g].meta.updated )
     }
+    //console.log( games[g].meta );
+    //console.log( datum );
+    //console.log({id:user.id, name:user.username});
     if (games[g].meta.active) {
-      data.push( datum );
+      let found = false;
+      for (let p=0; p<games[g].meta.players.length; p++) {
+        if (games[g].meta.players[p].name === user.username) {
+          data.current.push( datum );
+          found = true;
+        }
+      }
+      if (!found) {
+        if (datum.players.length < datum.numHumans && games[g].meta.publiclyViewable) {
+          data.available.push( datum );
+        }
+      }
     }
   }
   callback(data);

@@ -45,5 +45,10 @@
       "fixed",
       "random"
     ]
+  },
+  "publiclyViewable" : {
+    "type"   : "bool",
+    "label"  : "Add to global game list",
+    "default": "true"
   }
 }
