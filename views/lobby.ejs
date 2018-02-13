@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <div class="frame" id="navigation-container">
+    <div class="frame" id="lists">
       <!-- show any messages -->
       <% if (message.length > 0) { %>
           <div class="alert alert-danger"><%= message %></div>
@@ -241,7 +241,7 @@
       if (id !== expandedid) {
         mini.children()
           .css( 'border-bottom-style', 'none' )
-          .css( 'background-color', '#fff' );
+          .css( 'background-color', '#eee' );
       } else {
         mini.children()
           .css( 'border-bottom-style', 'solid' )
@@ -254,7 +254,7 @@
       max =  $( '#' + id.replace(/mini/, 'max') );
       if (id !== expandedid) {
         max.css( 'display', 'table-row' )
-          .children().css( 'background-color', '#fff' );
+          .children().css( 'background-color', '#eee' );
       } else {
         max.css( 'display', 'none' )
           .children().css( 'background-color', '#ddd' );
@@ -280,13 +280,15 @@
       $('button#play' + id).prop( 'disabled', (parseInt(current) < parseInt(required) ? 'disabled' : 'enabled' ) );
     }
 
-    var expandedid, tablerows, tablelinks, socket,
-      minWidthForWideView = 750, // want user to be able to change this later on
-      maxWidthForNarrView = 700;
+    var copytextbox, expandedid, tablerows, tablelinks, socket,
+      minWidthForWideView = 1200, // want user to be able to change this later on
+      maxWidthForNarrView = 1000;
 
     socket = io();
 
     $(document).ready(function(){
+
+      copytextbox = $('#copytextbox');
 
       tablerows = $("tr.lobby");
       tablerows.click( function(event) {
@@ -305,6 +307,16 @@
       tablejoinlinks.click( function(event) {
         window.location.href=("/lobby/" + event.target.id);
       });
+
+      tablesharelinks = $(".lobby.share.link");
+      tablesharelinks.click( function(event) {
+        let text = event.target.id.replace(/share/, '');
+        // use the copytextbox
+
+        text.select();
+        document.execCommand('Copy');
+        alert( 'copied to clipboard' );
+      })
 
 
       if ($(window).width() < maxWidthForNarrView || checkForMobile()) forceSwitchView();

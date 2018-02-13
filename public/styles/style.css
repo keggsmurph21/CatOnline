@@ -81,11 +81,12 @@ body {
 .lobby.container {
   display: flex;
   flex-flow: column;
-  padding: 1em;
+  padding-bottom: 1em;
 }
 
 .lobby.container#host-new-game {
   align-items: flex-end;
+  padding-bottom: 0;
 }
 
 .lobby.container > p {
@@ -95,6 +96,12 @@ body {
 
 #private-code span {
   text-align: center;
+}
+
+.frame#lists {
+  height: 100%;
+  padding: 0 1em;
+  min-width: 650px;
 }
 
 .frame#messages {
