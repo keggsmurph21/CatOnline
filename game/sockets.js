@@ -88,6 +88,10 @@ module.exports = function(sio, sessionStore) {
     });
 
     socket.on('new message', function(data) {
+
+      // check if data begins with "!!" and if emitting user is an admin
+      // if so then execute it as a command
+
       socket.broadcast.to(req.ref).emit('new message', {
         username: req.session.user,
         userid: req.session.userid,

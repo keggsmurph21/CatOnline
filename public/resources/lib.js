@@ -133,7 +133,7 @@ $(function() {
   */
   function addChatMessage(data, options={}) {
     let msgText = '<li class="';
-    msgText += 'message ' + (options.class || '') + '">';
+    msgText += 'message ' + (options.class || '') + ' ' + data.username + '">';
     if (!options.omitTimestamp) {
       msgText += '<span class="timestamp">' + getTimeStr() + '</span>';
     }

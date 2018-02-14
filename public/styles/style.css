@@ -68,6 +68,7 @@ body {
   align-items: baseline;
   justify-content: center;
   height: 100%;
+  background-color: #eee;
 }
 
 .frame {
@@ -95,6 +96,7 @@ span {
 
 .index.content:hover {
   cursor: pointer;
+  background-color: #ddd;
 }
 
 .index.links {
@@ -118,6 +120,7 @@ form.lr {
   align-items: center;
   padding: 1em;
   background-color: #ddd;
+  border: 1px solid #222;
 }
 
 input.lr {
