@@ -10,26 +10,30 @@
 
 <body>
 
-  <%- include( 'header.ejs' ) %>
-
-  <div class="content">
-    <div class="jumbotron text-center">
-      <h1>This is the home page</h1>
+  <div class="index content">
+    <div class="index container">
+      <h1>Welcome to CatOnline</h1>
 
       <!-- show any messages -->
       <% if (message.length > 0) { %>
-          <div class="alert alert-danger"><%= message %></div>
+          <p class="alert alert-danger"><%= message %></p>
       <% } %>
 
-      <% if (typeof user !== 'undefined') { %>
-        <button onclick="location.href='/lobby';" id="lobby">Go to lobby</button>
-      <% } %>
-
-      <a href="/login">Login</a>
-      <a href="/register">Register</a>
+      <div style="display:none;" class="index links">
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+      </div>
+    </div>
   </div>
+
+  <%- include( 'banner.ejs' ) %>
 
   <!--<script src='/socket.io/socket.io.js'> </script>-->
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
+  <script>
+    $('.index.content').click( function() {
+      window.location.href=("/lobby");
+    });
+  </script>
 </body>
 </html>

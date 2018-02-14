@@ -9,21 +9,21 @@
 
 <body>
 
-  <%- include( 'header.ejs' ) %>
-
   <div class="content">
     <div class="jumbotron text-center">
       <h1>This is the profile page</h1>
 
       <!-- show any messages -->
       <% if (message.length > 0) { %>
-          <div class="alert alert-danger"><%= message %></div>
+          <p class="alert alert-danger"><%= message %></p>
       <% } %>
 
       <button onclick="location.href='/lobby';" id="lobby">Go to lobby</button>
 
       <p>username: <%= user.username %></p>
   </div>
+
+  <%- include( 'banner.ejs' ) %>
 
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
 </body>

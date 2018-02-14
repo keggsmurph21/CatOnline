@@ -11,15 +11,13 @@
 
 <body>
 
-  <%- include( 'header.ejs' ) %>
-
   <div class="content">
 
     <h1>This is the new game page</h1>
 
     <!-- show any messages -->
     <% if (message.length > 0) { %>
-        <div class="alert alert-danger"><%= message %></div>
+        <p class="alert alert-danger"><%= message %></p>
     <% } %>
 
     <button onclick="location.href='/lobby';" id="lobby">Go to lobby</button>
@@ -53,6 +51,8 @@
     </form>
 
   </div>
+
+  <%- include( 'banner.ejs' ) %>
 
 </body>
 </html>

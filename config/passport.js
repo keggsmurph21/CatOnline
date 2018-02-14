@@ -96,9 +96,9 @@ module.exports = function(passport) {
 
         // if something goes wrong, return the message
         if (!user) {
-          return done(null, false, req.flash('loginMessage', 'No user found.'));
+          return done(null, false, req.flash('loginMessage', 'User not found.'));
         } else if (!user.validPassword(password)) {
-          return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
+          return done(null, false, req.flash('loginMessage', 'Invalid username or password.'));
         }
 
         // save username and userid to the session

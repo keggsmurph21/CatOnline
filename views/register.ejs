@@ -10,32 +10,37 @@
 
 <body>
 
-  <%- include( 'header.ejs' ) %>
-
-  <div class="content">
-    <h1>This is the registration page</h1>
+  <div class="lr content">
+    <h1>Register for an account</h1>
 
     <!-- show any messages -->
     <% if (message.length > 0) { %>
-        <div class="alert alert-danger"><%= message %></div>
+        <p class="alert alert-danger"><%= message %></p>
     <% } %>
 
     <!-- LOGIN form -->
-    <form action="/register" method="post">
+    <form class="lr" action="/register" method="post">
       <div class="form-group">
-        <label>Username</label>
-        <input type="text" class="form-control" name="username"></input>
+        <label>username</label>
+        <input type="text" class="lr" name="username"></input>
       </div>
       <div class="form-group">
-        <label>Password</label>
-        <input type="password" class="form-control" name="password"></input>
+        <label>password</label>
+        <input type="password" class="lr" name="password"></input>
       </div>
 
-      <button type="submit">Register</button>
+      <button class="lr" type="submit">Register</button>
+
     </form>
 
-    <p><a href="/login">Login with an existing account</a></p>
+    <p><a class="lr" href="/login">Login with an existing account</a></p>
+
   </div>
 
+  <%- include( 'banner.ejs' ) %>
+
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
+  <script>
+    $('input.lr')[0].focus();
+  </script>
 </body>

@@ -11,8 +11,6 @@
 
 <body>
 
-  <%- include( 'header.ejs' ) %>
-
   <div class="lobby content">
 
     <div class="frame" id="messages">
@@ -34,7 +32,7 @@
     <div class="frame" id="lists">
       <!-- show any messages -->
       <% if (message.length > 0) { %>
-          <div class="alert alert-danger"><%= message %></div>
+          <p class="alert alert-danger"><%= message %></p>
       <% } %>
 
       <div class="lobby container" id="host-new-game">
@@ -169,6 +167,10 @@
       </div>
     </div>
 
+  </div>
+
+  <%- include( 'banner.ejs' ) %>
+
 
 
     <div style="display:none;" class="jumbotron text-center">
@@ -205,7 +207,8 @@
         </table>
       </div>
 
-  </div>
+    </div>
+
 
   <script src='/socket.io/socket.io.js'> </script>
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>

@@ -24,7 +24,10 @@ $(function() {
 
   var username, userid;
   var messagesUL = $('ul.messages');
+  var messagesDiv = $('div.messages.public');
   var messagesInput = $('input.messages');
+
+  messagesInput.focus();
 
   function forceTwoDigits(num) {
     return num > 9 ? '' + num : '0' + num;
@@ -33,10 +36,24 @@ $(function() {
   function getTimeStr() {
     let datetime = new Date();
     let datestr =
-      forceTwoDigits(datetime.getHours()) + ':' +
+      forceTwoDigits(datetime.getHours()%12) + ':' +
       forceTwoDigits(datetime.getMinutes()) + ':' +
-      forceTwoDigits(datetime.getSeconds());
+      forceTwoDigits(datetime.getSeconds()) + ' ' +
+      (datetime.getHours() > 12 ? 'pm' : 'am');
     return datestr;
+  }
+
+  function hashStringToHex(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    let color = '#';
+    for (let i = 0; i < 3; i++) {
+      let value = (hash >> (i * 8)) & 0xFF;
+      color += ('00' + value.toString(16)).substr(-2);
+    }
+    return color;
   }
 
   /*
@@ -114,24 +131,22 @@ $(function() {
     addMessageElement($messageDiv, options);
   }
   */
-  function addChatMessage(data, options) {
-    console.log( data);
-    console.log( options);
+  function addChatMessage(data, options={}) {
     let msgText = '<li class="';
     msgText += 'message ' + (options.class || '') + '">';
-    if (options.showTimestamp) {
-      msgText += '<span class="timestamp">[' + getTimeStr() + ']</span> ';
+    if (!options.omitTimestamp) {
+      msgText += '<span class="timestamp">' + getTimeStr() + '</span>';
     }
-    if (options.showUsername) {
-      msgText += '<strong class="username">' + data.username + '</strong>&nbsp;';
+    if (!options.omitUsername) {
+      let color = hashStringToHex(data.username);
+      msgText += '<strong class="username" style="color:' + color + '">' + data.username + '</strong>&nbsp;';
     }
     msgText += '<span class="body">' + data.body + '</span></li>';
-    console.log( msgText);
     messagesUL.append( msgText );
+    messagesDiv.scrollTop( messagesDiv[0].scrollHeight );
   }
 
   function updateCurrentlyOnline(num) {
-    console.log( 'update current online' );
     $('span.currently-online').html(num);
   }
 
@@ -142,7 +157,7 @@ $(function() {
     // if there is a non-empty message and a socket connection
     if (message) {
       messagesInput.val('');
-      addChatMessage({ username:username, body:message }, { showTimestamp:true, showUsername:true });
+      addChatMessage({ body:message, username:username });
       /*addChatMessage({
         username: username,
         message: message
@@ -306,31 +321,16 @@ $(function() {
 
   socket.on('new connection', function(data) {
     updateCurrentlyOnline(data.numUsers);
-    addChatMessage(
-      {
-        body: '<strong>' + data.username + '</strong>&nbsp;has connected!'
-      },
-      {
-        showTimestamp: true,
-        showUsername: false,
-        class:  'admin'
-      }
-    );
+    addChatMessage({ body:'has connected!', username:data.username });
   });
 
   socket.on('end connection', function(data) {
     updateCurrentlyOnline(data.numUsers);
-    addChatMessage(
-      { body: '<strong>' + data.username + '</strong>&nbsp;has disconnected!' },
-      { showTimestamp:true, showUsername:false, class:'admin' }
-    );
+    addChatMessage({ body:'has disconnected', username:data.username });
   });
 
   socket.on('new message', function(data) {
-    addChatMessage(
-      { body:data.message, username:data.username },
-      { showTimestamp:true, showUsername:true }
-    );
+    addChatMessage({ body:data.message, username:data.username });
   })
 
   /*

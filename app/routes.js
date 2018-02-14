@@ -207,8 +207,8 @@ function isLoggedIn(req,res,next) {
     return next();
   }
 
-  req.flash('homepageMessage', 'You must be logged in to view this page!');
-  res.redirect('/');
+  req.flash('loginMessage', 'You must be logged in to view this page!');
+  res.redirect('/login');
 
 }
 
@@ -220,7 +220,7 @@ function notLoggedIn(req,res,next) {
   }
 
   req.flash('profileMessage', "You're already logged in!");
-  res.redirect('/profile');
+  res.redirect('/lobby');
 }
 
 // only pass relevant information to the lobby.ejs page for each game
