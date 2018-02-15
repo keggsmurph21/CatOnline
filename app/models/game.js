@@ -9,7 +9,9 @@ var GameSchema = mongoose.Schema({
   meta : {
     author: {
       id : String,
-      name : String
+      name : String,
+      isAdmin : Boolean,
+      isSuperAdmin : Boolean
     },
     players: Array,
     active: Boolean,
@@ -38,7 +40,7 @@ var GameSchema = mongoose.Schema({
   usePushEach: true
 });
 
-GameSchema.methods.getDataForUser = function(userid,callback) {
+GameSchema.methods.getDataForUser = function(user,callback) {
   data = {
     meta : this.meta,
     sett : this.settings,

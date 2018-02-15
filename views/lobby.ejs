@@ -178,6 +178,16 @@
       }
       return color;
     }
+    function clientCheckIfUserInGame( user, game ) {
+      for (let p=0; p<game.players.length; p++) {
+        if (game.players[p].id.toString() === user.id.toString()) {
+          console.log( game.players[p], user );
+          return true;
+        }
+      }
+
+      return false;
+    }
     function updateTables(data) {
       /***
         take incoming data from a socket event and use it to populate our lobby tables
@@ -186,8 +196,13 @@
       // remove the "no current games ..." displays
       $('tr.lobby.null').detach();
 
+      // get a list of ids, eventually remove ones we don't match
+      let ids = [];
+
       // iterate over each piece of incoming data
       for (let f=0; f<data.length; f++) {
+
+        ids.push( data[f].id )
         // decide which table it belongs in
         let type;
         if ( data[f].status==='in-progress' ) {
@@ -196,18 +211,17 @@
           type = 'available';
           for (let p=0; p<data[f].players.length; p++) {
             let player = data[f].players[p];
-            if (player.name===username && player.id===userid) {
+            if (player.id.toString()===user.id.toString()) {
               type = 'pending';
             }
           }
         }
-
         // some bools as helpers
-        let isVisible = (!data[f].isFull || data[f].userInGame);
-        let hasChanged = $('span#date'+data[f]._id ).html()!==data[f].updated.toString();
-        let isInTables = $('table.gamelist').has( 'tr#min' + data[f]._id ).length > 0;
+        let isVisible = (!data[f].isFull || clientCheckIfUserInGame( user, data[f] ));
+        let hasChanged = $('span#date'+data[f].id ).html()!==data[f].updated.toString();
+        let isInTables = $('table.gamelist').has( 'tr#min' + data[f].id ).length > 0;
 
-        // decide if we need to remove, add, update, or nothing
+        // decide if we need to remove (it's filled up), add, update, or nothing
         if ( !isVisible ) {
           removeTableRow( data[f] );
         } else if ( !isInTables && isVisible ) {
@@ -216,6 +230,17 @@
           updateTableRow( data[f] );
         }
 
+      }
+
+      // now remove the ones that were deleted with /delete
+      let unmatchedids = [];
+      $('table.gamelist').find('tr.min').each( function(k,v) {
+        let id = $(v).prop('id').replace(/min/, '');
+        if (ids.indexOf(id)<0) unmatchedids.push( id );
+      });
+      for (let f=0; f<unmatchedids.length; f++) {
+        $('tr#min'+unmatchedids[f]).detach();
+        $('tr#max'+unmatchedids[f]).detach();
       }
 
       // check if we need to add the "no current games ..." displays
@@ -261,31 +286,32 @@
         let id = event.target.id.replace( 'join', '' );
         $('#jf'+id).submit(); // POST
       });
+
+      // open up the hashed object
       if (window.location.hash.length) {
         let id = window.location.hash.replace(/#/, 'min');
         handleClickListitem(null,id); window.location.hash = '';
       }
     }
     function removeTableRow(data) {
-      $('tr#min'+data._id).detach();
-      $('tr#max'+data._id).detach();
+      $('tr#min'+data.id).detach();
+      $('tr#max'+data.id).detach();
     }
     function updateTableRow(data) {
-      $('span.current-number#' + data._id).html( data.players.length );
+      $('span.current-number#' + data.id).html( data.players.length );
 
       let html = '';
 
       for (let p=0; p<data.numHumans; p++) {
-        let name = ( data.players[p] ? data.players[p].name : '' );
-        let color = hashStringToHex(name);
         html += '<p>';
         html +=   '<span class="num">Player ' + (p+1) + ':&nbsp;&nbsp</span>';
-        html +=   '<strong class="name" style="color:' + color + '">' + name + '</strong>';
+        html +=   formatUsername( data.players[p] );
         html += '</p>';
       }
 
-      $('div.players-list#pl' + data._id).html( html );
-      $('span#date' + data._id).html( data.updated );
+      $('div.players-list#pl' + data.id).html( html );
+      $('button.launch.link').prop( 'disabled', (data.status!=='ready') );
+      $('span#date' + data.id).html( data.updated );
 
     }
     function addTableRow(data, type) {
@@ -294,7 +320,7 @@
 
       let minrow = '';
 
-      minrow += '<tr class="lobby min" id="min' + data._id + '">';
+      minrow += '<tr class="lobby min" id="min' + data.id + '">';
       if (type==='active') {
         minrow += '<th>' + data.turn + ' (' + data.waitfor.name + ')</th>';
       } else {
@@ -305,17 +331,17 @@
       if (type==='active') {
         minrow +=   (data.numHumans + data.numCPUs);
       } else {
-        minrow +=   '<span class="current-number" id="' + data._id + '">' + data.players.length + '</span>/';
+        minrow +=   '<span class="current-number" id="' + data.id + '">' + data.players.length + '</span>/';
         minrow +=   '<span class="required-number">'+ data.numHumans + '</span>';
       }
       minrow +=   '</th>';
-      minrow +=   '<th><strong class="name" style="color:' + hashStringToHex(data.author) + '">' + data.author + '<strong></th>';
-      minrow +=   '<th><span class="date-updated" id="date' + data._id + '">' + data.updated + '</span></th>';
+      minrow +=   '<th>' + formatUsername( data.author ) + '</th>';
+      minrow +=   '<th><span class="date-updated" id="date' + data.id + '">' + data.updated + '</span></th>';
       minrow += '</tr>';
 
       let maxrow = '';
 
-      maxrow += '<tr class="lobby max" id="max' + data._id + '">';
+      maxrow += '<tr class="lobby max" id="max' + data.id + '">';
       maxrow +=   '<th colspan="6">';
       maxrow +=     '<div class="lobby max-container">';
       maxrow +=       '<div class="lobby max info">';
@@ -323,13 +349,11 @@
       maxrow +=           '<strong>' + data.VPs + '&nbsp;';
       maxrow +=           'Victory Points</strong> required for victory';
       maxrow +=         '</p>';
-      maxrow +=         '<div class="players-list" id="pl' + data._id + '">';
+      maxrow +=         '<div class="players-list" id="pl' + data.id + '">';
       for (let p=0; p<data.numHumans; p++) {
-        let name = ( data.players[p] ? data.players[p].name : '' );
-        let color = hashStringToHex(name);
         maxrow +=         '<p>';
         maxrow +=           '<span class="num">Player ' + (p+1) + ':&nbsp;&nbsp</span>';
-        maxrow +=           '<strong class="name" style="color:' + color + '">' + name + '</strong>';
+        maxrow +=           formatUsername( data.players[p] );
         maxrow +=         '</p>';
       }
       maxrow +=         '</div>';
@@ -337,30 +361,30 @@
       maxrow +=       '<div class="lobby max button">';
       switch (type) {
         case 'active':
-          maxrow +=     '<button class="lobby play link" id="play' + data._id + '">Play</button>';
+          maxrow +=     '<button class="lobby play link" id="play' + data.id + '">Play</button>';
           break;
         case 'pending':
-          if (data.author===username) {
-            maxrow +=   '<button class="lobby delete link" id="delete' + data._id + '">Delete</button>';
-            maxrow +=   '<form action="/delete" method="POST" id="ld' + data._id + '" class="hidden-form">';
-            maxrow +=     '<input type="hidden" name="gameid" value="' + data._id + '" />';
+          if (data.author.id.toString()===user.id.toString()) {
+            maxrow +=   '<button class="lobby delete link" id="delete' + data.id + '">Delete</button>';
+            maxrow +=   '<form action="/delete" method="POST" id="ld' + data.id + '" class="hidden-form">';
+            maxrow +=     '<input type="hidden" name="gameid" value="' + data.id + '" />';
             maxrow +=   '</form>';
           } else {
-            maxrow +=   '<button class="lobby leave link" id="leave' + data._id + '">Leave</button>';
-            maxrow +=   '<form action="/leave" method="POST" id="lf' + data._id + '" class="hidden-form">';
-            maxrow +=   '<input type="hidden" name="gameid" value="' + data._id + '" />';
+            maxrow +=   '<button class="lobby leave link" id="leave' + data.id + '">Leave</button>';
+            maxrow +=   '<form action="/leave" method="POST" id="lf' + data.id + '" class="hidden-form">';
+            maxrow +=   '<input type="hidden" name="gameid" value="' + data.id + '" />';
             maxrow +=   '</form>';
           }
-          maxrow +=     '<button class="lobby share link" id="share' + data._id + '">Share</button>';
-          maxrow +=     '<button class="lobby launch link" id="launch'  + data._id + '" ' + (data.players.length===data.numHumans ? '' : 'disabled') + '>Launch</button>';
-          maxrow +=     '<form action="/launch" method="POST" id="ll' + data._id + '" class="hidden-form">';
-          maxrow +=       '<input type="hidden" name="gameid" value="' + data._id + '" />';
+          maxrow +=     '<button class="lobby share link" id="share' + data.id + '">Share</button>';
+          maxrow +=     '<button class="lobby launch link" id="launch'  + data.id + '" ' + (data.players.length===data.numHumans ? '' : 'disabled') + '>Launch</button>';
+          maxrow +=     '<form action="/launch" method="POST" id="ll' + data.id + '" class="hidden-form">';
+          maxrow +=       '<input type="hidden" name="gameid" value="' + data.id + '" />';
           maxrow +=     '</form>';
           break;
         case 'available':
-          maxrow +=     '<button class="lobby join link" id="join' + data._id + '">Join</button>';
-          maxrow +=     '<form action="/join" method="POST" id="jf' + data._id + '" class="hidden-form">';
-          maxrow +=       '<input type="hidden" name="gameid" value="' + data._id + '" />';
+          maxrow +=     '<button class="lobby join link" id="join' + data.id + '">Join</button>';
+          maxrow +=     '<form action="/join" method="POST" id="jf' + data.id + '" class="hidden-form">';
+          maxrow +=       '<input type="hidden" name="gameid" value="' + data.id + '" />';
           maxrow +=     '</form>';
           break;
       }
@@ -377,7 +401,9 @@
     }
     function handleClickListitem(event, id) {
 
-      id = (event) ? (event.target.parentNode.id || event.target.parentNode.parentNode.id) : id; console.log(id, expandedid);
+      // either get the id from a click or a direct pass
+      // (fragment identifiers are handled in this way)
+      id = (event) ? (event.target.parentNode.id || event.target.parentNode.parentNode.id) : id;
 
       min = $( '#' + id.replace(/max/, 'min') );
       if (id !== expandedid) {
@@ -434,20 +460,29 @@
         minWidthForWideView = Math.min( minWidthForWideView, $(window).width()*0.9 );
         windowResizeWide();
       }
-      //console.log( minWidthForWideView, maxWidthForNarrView );
-      //console.log( domobj.prop('id') );
     };
+    function formatUsername(user) {
+      if (!user) return '';
+      let color = hashStringToHex(user.name);
+      let prespan='', postspan='';
+      if (user.isAdmin && !user.isSuperAdmin) {
+        prespan = '<span class="admin">👑&nbsp;</span>';
+      } else if (user.isSuperAdmin) {
+        prespan = '<span class="superadmin">⚡️&nbsp;</span>';
+        postspan= '<span class="superadmin">&nbsp;⚡️</span>';
+      }
+      return '<strong class="username" style="color:' + color + '">' + prespan + user.name + postspan + '</strong>';
+    }
     function addChatMessage(data, options={}) {
       let msgText = '<li class="';
-      msgText += 'message ' + (options.class || '') + ' ' + data.username + '">';
+      msgText += 'message ' + (options.class || '') + ' ' + data.user.name + '">';
       if (!options.omitTimestamp) {
         msgText += '<span class="timestamp">' + getTimeStr() + '</span>';
       }
       if (!options.omitUsername) {
-        let color = hashStringToHex(data.username);
-        msgText += '<strong class="username" style="color:' + color + '">' + data.username + '</strong>&nbsp;';
+        msgText += formatUsername( data.user ) + '&nbsp;';
       }
-      msgText += '<span class="body ' + (data.username===username ? 'self' : '') + '">' + escapeMessageBody(data.body) + '</span></li>';
+      msgText += '<span class="body ' + (data.user.name===user.name ? 'self' : '') + '">' + escapeMessageBody(data.body) + '</span></li>';
       $('ul.messages').append( msgText );
       let messagesDiv = $('div.messages.public');
       messagesDiv.scrollTop( messagesDiv[0].scrollHeight );
@@ -496,7 +531,7 @@
       message = cleanInput(message);
       if (message) {
         msginput.val('');
-        addChatMessage({ body:message, username:username });
+        addChatMessage({ body:message, user:user });
         socket.emit('new message', message);
       }
     }
@@ -506,7 +541,7 @@
     }
 
     // GLOBALS
-    var username, userid, expandedid, msginput, ngsbutton, ngsdiv,
+    var user, expandedid, msginput, ngsbutton, ngsdiv,
       minWidthForWideView = 1200,
       maxWidthForNarrView = 1000,
       socket = io();
@@ -552,8 +587,7 @@
       // Socket events
 
       socket.on('on connection', function(data) {
-        username = data.username;
-        userid = data.userid;
+        user = data.user;
         updateCurrentlyOnline(data.numUsers);
         updateTables(data.games);
       });
@@ -561,14 +595,14 @@
         //$('#put-shit-here').html( JSON.stringify(data.games) );
         updateTables(data.games);
         updateCurrentlyOnline(data.numUsers);
-        addChatMessage({ body:'has connected!', username:data.username });
+        addChatMessage({ body:'has connected!', user:data.user });
       });
       socket.on('end connection', function(data) {
         updateCurrentlyOnline(data.numUsers);
-        addChatMessage({ body:'has disconnected', username:data.username });
+        addChatMessage({ body:'has disconnected', user:data.user });
       });
       socket.on('new message', function(data) {
-        addChatMessage({ body:data.message, username:data.username });
+        addChatMessage({ body:data.message, user:data.user });
       })
 
     });

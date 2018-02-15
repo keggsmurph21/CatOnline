@@ -22,17 +22,24 @@ module.exports = function(sio, sessionStore) {
 
         } else {
 
-          // make sure we know which page this socket is connecting from
-          if (handshake.headers.referer.includes( '/lobby' )) {
-            handshake.ref = 'lobby';
-          } else if (handshake.headers.referer.includes( '/play' )) {
-            handshake.ref = 'play';
+          // only accept sessions w/ authenticated users
+          if (session.user) {
+            // make sure we know which page this socket is connecting from
+            console.log( handshake.headers.referer );
+            if (handshake.headers.referer.includes( '/lobby' )) {
+              handshake.ref = 'lobby';
+            } else if (handshake.headers.referer.includes( '/play' )) {
+              handshake.ref = 'play';
+            }
+
+            // save the session data and accept the connection
+            handshake.session = session;
+            next(null, true);
+          } else {
+
+            next( 'No user data', false );
+
           }
-
-          // save the session data and accept the connection
-          handshake.session = session;
-          next(null, true);
-
         }
       });
 
@@ -44,8 +51,9 @@ module.exports = function(sio, sessionStore) {
   sio.sockets.on('connection', function (socket) {
 
     var req = socket.request;
-    console.log( req.ref );
+    console.log( 'socket ref:',req.ref );
     socket.join( req.ref );
+    console.log( 'socket ses:',req.session );
 
     numUsersByPage[req.ref] = numUsersByPage[req.ref]+1 || 1;
 
@@ -67,18 +75,15 @@ module.exports = function(sio, sessionStore) {
     games = tools.models.Game.find({}, function(err,games) {
       if (err) throw err;
 
-      funcs.prepareForLobby( req.session.userid, games, function(games) {
-        console.log('User ' + req.session.userid + ' connected to ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
-        console.log( req.session );
+      funcs.prepareForLobby( req.session.user, games, function(games) {
+        console.log('User ' + req.session.user.name + ' connected to ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
         socket.broadcast.to(req.ref).emit('new connection', {
-          username: req.session.user,
-          userid: req.session.userid,
+          user : req.session.user,
           numUsers: numUsersByPage[req.ref],
           games: games
         });
         socket.emit('on connection', {
-          username: req.session.user,
-          userid: req.session.userid,
+          user : req.session.user,
           numUsers: numUsersByPage[req.ref],
           games: games
         });
@@ -90,13 +95,12 @@ module.exports = function(sio, sessionStore) {
 
     socket.on('disconnect', function() {
       numUsersByPage[req.ref]--;
-      console.log('User ' + req.session.userid + ' disconnected from ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
+      console.log('User ' + req.session.user.name + ' disconnected from ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
       // clear the socket interval to stop refreshing the session
       //clearInterval(intervalID);
 
       socket.broadcast.to(req.ref).emit('end connection', {
-        username: req.session.user,
-        userid: req.session.userid,
+        user : req.session.user,
         numUsers: numUsersByPage[req.ref]
       });
     });
@@ -107,8 +111,7 @@ module.exports = function(sio, sessionStore) {
       // if so then execute it as a command
 
       socket.broadcast.to(req.ref).emit('new message', {
-        username: req.session.user,
-        userid: req.session.userid,
+        user : req.session.user,
         message: data
       });
     });

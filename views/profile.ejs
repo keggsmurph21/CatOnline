@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CatOnline &mdash; <%= user.username %></title>
+  <title>CatOnline &mdash; <%= user.name %></title>
   <link rel="stylesheet" href="/styles/style.css">
   <link rel="SHORTCUT ICON" href="images/favicon.ico" />
   <link rel="icon" href="images/favicon.ico" type="image/ico" />
@@ -20,7 +20,7 @@
 
       <button onclick="location.href='/lobby';" id="lobby">Go to lobby</button>
 
-      <p>username: <%= user.username %></p>
+      <p>username: <%= user.name %></p>
   </div>
 
   <%- include( 'banner.ejs' ) %>

@@ -6,13 +6,10 @@ var bcrypt   = require('bcrypt-nodejs');
 
 // define the schema for our user model
 var UserSchema = mongoose.Schema({
-  username : String,
+  name : String,
   password : String,
   isSuperAdmin : Boolean,
   isAdmin : Boolean,
-  activeGames : Array,
-  completeGames : Array,
-  authoredGames : Array
 });
 
 // methods
@@ -25,6 +22,14 @@ UserSchema.methods.generateHash = function(password) {
 UserSchema.methods.validPassword = function(password) {
   return bcrypt.compareSync( password, this.password );
 };
+
+UserSchema.methods.getPublicData = function() {
+  return {
+    id:this._id,
+    name:this.name,
+    isAdmin:this.isAdmin,
+    isSuperAdmin:this.isSuperAdmin };
+}
 
 // create the model for users and expose it to our app
 module.exports = mongoose.model('User', UserSchema, 'users');

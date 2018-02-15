@@ -43,8 +43,7 @@
         <defs>
         </defs>
 
-        <% // want to hash users to colors using their `hashcode` (=userid.slice(10)+username)
-        for (let i=0; i< svg.tiles.length; i++) { %>
+        <% for (let i=0; i< svg.tiles.length; i++) { %>
           <g class="tile-group" id="<%= i %>">
             <polygon class="tile-polygon <%= svg.tiles[i].resource %>" id="<%= i %>" points="<%= svg.tiles[i].points %>" conns="<%= svg.tiles[i].conns %>"/>
             <text class="tile-text <%= [6,8].includes(svg.tiles[i].roll) ? 'red' : '' %>" dominant-baseline="middle" alignment-baseline="central" text-anchor="middle" x="<%= svg.tiles[i].x %>" y="<%= svg.tiles[i].y %>">

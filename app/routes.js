@@ -9,10 +9,14 @@ module.exports = function(app, passport) {
 
   // LOBBY PAGE
   app.get('/lobby', isLoggedIn, function(req,res) {
+    //console.log('at lobby',req.user);
+    //console.log('sanitizing');
+    //req.user = req.user.getPublicData();
+    //console.log('at lobb2',req.user);
     games = tools.models.Game.find({}, function(err,games) {
       if (err) throw err;
 
-      funcs.prepareForLobby( req.user.id, games, function(data) {
+      funcs.prepareForLobby( req.user, games, function(data) {
         res.render('lobby.ejs', {
           message: req.flash('lobbyMessage'),
           user: req.user,
@@ -31,10 +35,11 @@ module.exports = function(app, passport) {
 
       if (game.meta.active) {
 
-        let found = funcs.checkIfUserIDInGame( req.user.id, game );
+        let found = funcs.serverCheckIfUserInGame( req.user, game );
 
         if (!found && !funcs.checkIsFull(game)) {
-          game.meta.players.push({ id:req.user.id, name:req.user.username });
+
+          game.meta.players.push( req.user/*.getPublicData()*/ );
           game.meta.status = ( funcs.checkIsFull(game) ? 'ready' : 'pending' );
           game.meta.updated = new Date;
           game.save( function(err) {
@@ -61,7 +66,7 @@ module.exports = function(app, passport) {
       if (err) throw err;
       if (game.meta.active) {
 
-        let found = funcs.checkIfUserIDInGame( req.user.id, game );
+        let found = funcs.serverCheckIfUserInGame( req.user, game );
         if (found) {
           if (game.meta.status!=='in-progress') {
 
@@ -100,7 +105,7 @@ module.exports = function(app, passport) {
       if (err) throw err;
       if (game.meta.active) {
 
-        let found = funcs.checkIfUserIDInGame( req.user.id, game );
+        let found = funcs.serverCheckIfUserInGame( req.user, game );
         if (found) {
           if (game.meta.status==='in-progress') {
             res.redirect('/play/'+req.body.gameid);
@@ -130,10 +135,10 @@ module.exports = function(app, passport) {
   app.post('/delete', isLoggedIn, function(req,res) {
     games = tools.models.Game.findById(req.body.gameid, function(err,game) {
       if (err) throw err;
-      if (game.meta.author.id.toString()===req.user.id.toString() || req.user.isAdmin) {
+      if (game.meta.author.id.toString()===req.user.id.toString() || req.user.isSuperAdmin) {
         game.remove( function(err,game) {
           if (err) throw err;
-          console.log( 'User',req.user.username,'deleted game',req.body.gameid );
+          console.log( 'User',req.user.name,'deleted game',req.body.gameid );
           req.flash('lobbyMessage', 'Deleted a game.');
           res.redirect('/lobby#'+req.body.gameid);
         });
@@ -147,27 +152,21 @@ module.exports = function(app, passport) {
   // NEWGAME PAGES
   app.post('/newgame', isLoggedIn, function(req,res) {
 
-    req.flash( 'code', 'exit' );
-    tools.models.Game.find({ "meta.author" : { "id" : req.user.id, "name" : req.user.username } }, function(err,games) {
+    tools.models.Game.find({ "meta.author" : req.user }, function(err,games) {
       if(err) throw err;
 
       if (games.length < 10 || req.user.isAdmin) {
 
-        var game = new tools.models.Game();
+        let game = new tools.models.Game();
+        console.log( 'public data', req.user );
         game.meta = { // from the SESSION
-          author: {
-            id : req.user._id,
-            name : req.user.username
-          },
-          players: [{
-            id:req.user._id,
-            name:req.user.username
-          }],
+          author: req.user,
+          players: [ req.user ],
           active: true,
           created: new Date,
           publiclyViewable: (req.body.publiclyViewable === 'on'),
-          waitfor: { id:'', name:'' }
-        };
+          waitfor: null
+        };console.log(game.meta);
         game.settings = { // from the POST
           scenario: req.body.scenario,
           victoryPointsGoal: req.body.victoryPointsGoal,
@@ -221,8 +220,8 @@ module.exports = function(app, passport) {
           res.redirect('/lobby');
         }
 
-        if ((funcs.checkIfUserIDInGame( req.user.id, game ) && game.meta.status==='in-progress') || req.user.isAdmin) {
-          game.getDataForUser( req.user._id, function(data) {
+        if ((funcs.serverCheckIfUserInGame( req.user, game ) && game.meta.status==='in-progress') || req.user.isAdmin) {
+          game.getDataForUser( req.user, function(data) {
 
             res.render('play.ejs', {
               message: req.flash('playMessage'),
@@ -306,6 +305,8 @@ module.exports = function(app, passport) {
 function isLoggedIn(req,res,next) {
 
   if (req.isAuthenticated()) {
+    console.log('is authenticated',req.user);
+    req.user = req.user.getPublicData();
     return next();
   }
 

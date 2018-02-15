@@ -6,17 +6,14 @@ var tools = require('../app/tools.js');
 // define lots of game logic here
 module.exports = {
 
-  checkIsFull : function(game) {
+  checkIsFull : function( game ) {
     return ( game.meta.players.length === (game.settings.numHumans+game.settings.numCPUs) );
   },
 
-  checkIfUserIDInGame : function( userid, game ) {
-    if (game===null || userid===null) {
-      console.log( game, userid);
-      return false;
-    }
+  serverCheckIfUserInGame : function( user, game ) {
     for (let p=0; p<game.meta.players.length; p++) {
-      if (game.meta.players[p].id.toString() === userid.toString()) {
+      if (game.meta.players[p].id.toString() === user.id.toString()) {
+        console.log( 'server check if user in game', game.meta.players[p], user );
         return true;
       }
     }
@@ -24,7 +21,7 @@ module.exports = {
     return false;
   },
 
-  initGameStateNoPlayers : function(form, callback) {
+  initGameStateNoPlayers : function( form, callback ) {
     console.log('initializing game state for ' + form.scenario);
     State = {
       hidden : {
@@ -186,16 +183,16 @@ module.exports = {
   },
 
   // only pass relevant information to the lobby.ejs page for each game
-  prepareForLobby :  function(userid, games, callback) {
+  prepareForLobby :  function( user, games, callback ) {
     data = [];
     for (let g=0; g<games.length; g++) {
       datum = {
-        _id      : games[g]._id,
+        id       : games[g]._id,
         scenario : games[g].settings.scenario,
         numHumans: games[g].settings.numHumans,
         numCPUs  : games[g].settings.numCPUs,
         players  : games[g].meta.players,
-        author   : games[g].meta.author.name,
+        author   : games[g].meta.author,
         VPs      : games[g].settings.victoryPointsGoal,
         turn     : games[g].state.public.turn,
         status   : games[g].meta.status,
@@ -203,18 +200,17 @@ module.exports = {
         waitfor  : games[g].meta.waitfor,
         created  : tools.formatDate( games[g].meta.created ),
         updated  : tools.formatDate( games[g].meta.updated ),
-        isFull   : module.exports.checkIsFull(games[g]),
-        userInGame:module.exports.checkIfUserIDInGame( userid, games[g] )
+        isFull   : module.exports.checkIsFull(games[g])
       }
 
-      if (games[g].meta.active) { // use games[g].meta.status
+      if (games[g].meta.active || user.isAdmin) {
         data.push( datum );
       }
     }
     callback(data);
   },
 
-  prepareForSvg : function(data) {
+  prepareForSvg : function( data ) {
 
     guidefs = require('../config/gui/standard');
 
@@ -393,11 +389,4 @@ module.exports = {
     return [ coords[0]*scale, coords[1]*Math.sqrt(3)/2*scale ];
   },
 
-  getObj : function( gameid, userid, type, id, callback ) {
-
-    //tools.models.Game.findOne( {})
-
-
-    callback(err,obj);
-  }
 }

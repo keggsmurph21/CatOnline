@@ -41,7 +41,7 @@ module.exports = function(passport) {
       process.nextTick(function() {
         // find a user whose username is the same as the form's username
         // we are checking to see if the user trying to register already exists
-        tools.models.User.findOne( { username : username }, function(err,user) {
+        tools.models.User.findOne( { name:username }, function(err,user) {
           // if there are any errors, return the error
           if (err) { return done(err) }
 
@@ -55,19 +55,15 @@ module.exports = function(passport) {
             var user = new tools.models.User();
 
             // set the credentials
-            user.username = username;
+            user.name = username;
             user.password = user.generateHash(password);
             user.isSuperAdmin = false;
             user.isAdmin = false;
-            user.activeGames = [];
-            user.completeGames = [];
-            user.authoredGames = [];
 
-            // save username and userid to the session
-            req.session.user = username;
-            req.session.userid = user._id;
+            // save user to the session
+            req.session.user = user.getPublicData();
 
-            // save the user ( replaced )
+            // save the user
             user.save( function(err) {
               if (err) throw err;
               return done(null, user)
@@ -89,7 +85,7 @@ module.exports = function(passport) {
 
       // find a user whose username is the same as the form's username
       // we are checking to see if the user trying to register already exists
-      tools.models.User.findOne( { 'username' : username }, function(err,user) {
+      tools.models.User.findOne( { name:username }, function(err,user) {
 
         // if there are any errors, return the error
         if (err) { return done(err) }
@@ -101,9 +97,9 @@ module.exports = function(passport) {
           return done(null, false, req.flash('loginMessage', 'Invalid username or password.'));
         }
 
-        // save username and userid to the session
-        req.session.user = username;
-        req.session.userid = user._id;
+        // save user to the session
+        req.session.user = user.getPublicData();
+        console.log('at login',req.session.user);
 
         return done(null, user);
 
