@@ -17,7 +17,7 @@
       <div class="panel" id="messages">
         <div class="messages public">
           <ul class="messages">
-            <li class='message admin center'><span>Welcome to CatOnline chat!</span></li>
+            <li class='message admin center'><strong>Welcome to CatOnline chat!</strong></li>
           </ul>
         </div>
         <div class="messages status">
@@ -36,71 +36,85 @@
       <% } %>
 
       <div class="lobby container" id="host-new-game">
-        <form action="/newgame" method="get">
-          <button type="submit">Host a game</button>
+        <form class="lobby" action="/newgame" method="post">
+
+          <button type="button" id="new-game-show">Host</button>
+          <br />
+
+          <div class="lobby new-game" id="show-hide">
+            <div class="lobby new-game" id="config-container">
+              <div class="lobby new-game subcontainer" id="dropdowns">
+                <% for (var key in config.strings) {
+                  value = config.strings[key]; %>
+                  <span class="lobby new-game setting" id="<%= key %>">
+                    <%= value.label %>:&nbsp;
+                    <select class="lobby" name="<%= key %>" >
+                      <% for (i=0; i< value.options.length; i++) {
+                        if (value.options[i] === value.default) { %>
+                          <option value="<%= value.options[i] %>" selected="selected">
+                        <% } else { %>
+                          <option value="<%= value.options[i] %>">
+                        <% } %>
+                          <%= value.options[i] %>
+                        </option>
+                      <% } %>
+                    </select>
+                  </span>
+                <% }  %>
+              </div>
+              <div class="lobby new-game subcontainer" id="ranges">
+                <% for (var key in config.ints) {
+                  value = config.ints[key]; %>
+                  <span class="lobby new-game setting" id="<%= key %>">
+                    <%= value.label %>:&nbsp;
+                    <input class="lobby" type="number" step="1" pattern="\d+" min="<%=value.min%>" max="<%=value.max%>" value="<%=value.default%>" name="<%= key %>" />
+                  </span>
+                <% } %>
+              </div>
+              <div class="lobby new-game subcontainer" id="checkboxes">
+                <% for (var key in config.bools) {
+                  value = config.bools[key]; %>
+                  <span class="lobby new-game setting" id="<%= key %>">
+                    <%= value.label %>:&nbsp;
+                    <input class="lobby" type="checkbox" name="<%= key %>" <%= value.default ? 'checked' : '' %>>
+                  </span>
+                <% } %>
+              </div>
+            </div>
+          </div>
         </form>
+
       </div>
 
-      <div class="lobby container" id="current-games">
-        <p>Your current games</p>
-        <table class="lobby gamelist" id="current-games">
+      <div class="lobby container" id="active-games-cont">
+        <p>Active games</p>
+        <table class="lobby gamelist" id="active-games">
           <tr class="lobby header">
             <th>Scenario</th>
             <th>Humans</th>
             <!--<th>CPUs</th>-->
             <th>Owner</th>
             <th>Turn</th>
-            <th>Date modified</th>
+            <th>Modified</th>
           </tr>
-          <% if (games.current.length > 0) {
-            for (let g=0; g< games.current.length; g++) { %>
-              <tr class="lobby mini" id="mini<%=games.current[g]._id%>">
-                <th><%=games.current[g].scenario%></th>
-                <th>
-                  <span class="current-number"><%=games.current[g].players.length%></span>/<span class="required-number"><%=games.current[g].numHumans%></span>
-                </th>
-                <!--<th><%=games.current[g].numCPUs%></th>-->
-                <th><%=games.current[g].author%></th>
-                <th><%=games.current[g].turn%></th>
-                <th><%= games.current[g].updated %></th>
-              </tr>
-              <tr class="lobby max" id="max<%=games.current[g]._id%>" players="<%= JSON.stringify(games.current[g].players) %>">
-                <th colspan="6">
-                  <div class="lobby max-container">
-                    <div class="max info">
-                      <p class="victory-points-info">
-                        <span style="font-weight:500;"><%=games.current[g].VPs%></span>&nbsp
-                        Victory Points required for victory
-                      </p>
-                      <% for (let p=0; p< games.current[g].numHumans; p++) { %>
-                        <p>
-                          <span class="num">Player <%=(p+1)%>:&nbsp&nbsp</span>
-                          <span class="name" style="font-weight:500;"><%= games.current[g].players[p] ? games.current[g].players[p].name : '' %></span>
-                        </p>
-                      <% } %>
-                    </div>
-                    <div class="lobby max button">
-                      <button class="lobby share link"id="share<%=games.current[g]._id%>">Share</button>
-                      <button class="lobby leave link"id="leave<%=games.current[g]._id%>">Leave</button>
-                      <button class="lobby play link" id="play<%=games.current[g]._id%>">Play</button>
-                    </div>
-                  </div>
-                </th>
-              </tr>
-            <% }
-          } else { %>
-            <tr class="lobby null">
-              <th colspan="7">
-                <div class="lobby null-container">
-                  no current games ...
-                </div>
-              </th>
-            </tr>
-          <% } %>
         </table>
       </div>
 
-      <div class="lobby container" id="available-games">
+      <div class="lobby container" id="pending-games-cont">
+        <p>Pending games</p>
+        <table class="lobby gamelist" id="pending-games">
+          <tr class="lobby header">
+            <th>Scenario</th>
+            <th>Humans</th>
+            <!--<th>CPUs</th>-->
+            <th>Owner</th>
+            <th>Turn</th> <!-- delete -->
+            <th>Modified</th>
+          </tr>
+        </table>
+      </div>
+
+      <div class="lobby container" id="available-games-cont">
         <p>Available games</p>
         <table class="lobby gamelist" id="available-games">
           <tr class="lobby header">
@@ -108,51 +122,8 @@
             <th>Humans</th>
             <!--<th>CPUs</th>-->
             <th>Owner</th>
-            <th>Date created</th>
+            <th>Modified</th>
           </tr>
-          <% if (games.available.length > 0) {
-            for (let g=0; g< games.available.length; g++) { %>
-              <tr class="lobby mini" id="mini<%=games.available[g]._id%>">
-                <th><%=games.available[g].scenario%></th>
-                <th>
-                  <span class="current-number"><%=games.available[g].players.length%></span>/
-                  <span class="required-number"><%=games.available[g].numHumans%><span>
-                </th>
-                <!--<th><%=games.available[g].numCPUs%></th>-->
-                <th><%=games.available[g].author%></th>
-                <th><%= games.available[g].created %></th>
-              </tr>
-              <tr class="lobby max" id="max<%=games.available[g]._id%>" players="<%= JSON.stringify(games.available[g].players) %>">
-                <th colspan="5">
-                  <div class="lobby max-container">
-                    <div class="max info">
-                      <p class="victory-points-info">
-                        <span style="font-weight:500;"><%=games.available[g].VPs%></span>&nbsp
-                        Victory Points required for victory
-                      </p>
-                      <% for (let p=0; p< games.available[g].numHumans; p++) { %>
-                        <p>
-                          <span class="num">Player <%=(p+1)%>:&nbsp&nbsp</span>
-                          <span class="name" style="font-weight:500;"><%= games.available[g].players[p] ? games.available[g].players[p].name : '' %></span>
-                        </p>
-                      <% } %>
-                    </div>
-                    <div class="lobby max button">
-                      <button class="lobby join link" id="<%=games.available[g]._id%>">Join</button>
-                    </div>
-                  </div>
-                </th>
-              </tr>
-            <% }
-          } else { %>
-            <tr class="lobby null">
-              <th colspan="7">
-                <div class="lobby null-container">
-                  no available games ...
-                </div>
-              </th>
-            </tr>
-          <% } %>
         </table>
       </div>
 
@@ -160,10 +131,11 @@
         <p>Enter a private code</p>
         <span>
           <form action="/join" method="post">
-            <input type="text" name="code" pattern=".{6,}" required>
+            <input type="text" name="gameid" pattern=".{24}" id="private-code-input" required>
             <button type="submit" id="join-by-code">Join</button>
           </form>
         </span>
+        <p id="put-shit-here"></p>
       </div>
     </div>
 
@@ -171,43 +143,6 @@
 
   <%- include( 'banner.ejs' ) %>
 
-
-
-    <div style="display:none;" class="jumbotron text-center">
-      <h1>This is the lobby page</h1>
-
-
-      <form action="/newgame" method="get">
-        <button type="submit">Host a game</button>
-      </form>
-
-      <div class="active-game-container">
-        Join an existing game
-        <table class="game-list-table">
-          <tr>
-            <th>Scenario</th>
-            <th>Humans</th>
-            <th>CPUs</th>
-            <th>Owner</th>
-            <th>Victory Points</th>
-            <th>Turn</th>
-            <th>Date Created</th>
-          </tr>
-          <% for (var g=0; g< games.length; g++) { %>
-            <tr class="game-list-item" id="<%=games[g]._id%>">
-              <th><%=games[g].scenario%></th>
-              <th>1/<%=games[g].numHumans%></th>
-              <th><%=games[g].numCPUs%></th>
-              <th><%=games[g].author%></th>
-              <th><%=games[g].VPs%></th>
-              <th><%=games[g].turn%></th>
-              <th><%= games[g].created %></th>
-            </tr>
-          <% } %>
-        </table>
-      </div>
-
-    </div>
 
 
   <script src='/socket.io/socket.io.js'> </script>
@@ -246,54 +181,9 @@
       console.log( minWidthForWideView, maxWidthForNarrView );
       console.log( domobj.prop('id') );
     };
-    handleClickListitem = function(event) {
 
-      id = event.target.parentNode.id || event.target.parentNode.parentNode.id;
-
-      mini = $( '#' + id.replace(/max/, 'mini') );
-      if (id !== expandedid) {
-        mini.children()
-          .css( 'border-bottom-style', 'none' )
-          .css( 'background-color', '#eee' );
-      } else {
-        mini.children()
-          .css( 'border-bottom-style', 'solid' )
-          .css( 'background-color', '#ddd' );
-      }
-      mini.siblings().filter('.mini').children()
-        .css( 'border-bottom-style', 'solid' )
-        .css( 'background-color', '#ddd' );
-
-      max =  $( '#' + id.replace(/mini/, 'max') );
-      if (id !== expandedid) {
-        max.css( 'display', 'table-row' )
-          .children().css( 'background-color', '#eee' );
-      } else {
-        max.css( 'display', 'none' )
-          .children().css( 'background-color', '#ddd' );
-      }
-      max.siblings().filter( '.max' )
-        .css( 'display', 'none' )
-        .children().css( 'background-color', '#ddd' );
-
-      if (id.indexOf('mini') > -1) {
-        expandedid = (id !== expandedid ? id : null);
-      }
-
-    }
-    handleJoinButton = function(event) {
-      console.log( 'trying to join' );
-      console.log(event);
-    }
-    setPlayButtonEnableDisable = function(object) {
-      const id = object.id.replace(/mini/, '').replace(/max/, '');
-      const current = $('tr#mini' + id + ' span.current-number')[0].innerHTML;
-      const required= $('tr#mini' + id + ' span.required-number')[0].innerHTML;
-      console.log('button.play#' + id);
-      $('button#play' + id).prop( 'disabled', (parseInt(current) < parseInt(required) ? 'disabled' : 'enabled' ) );
-    }
-
-    var copytextbox, expandedid, tablerows, tablelinks, socket,
+    var copytextbox, expandedid, ngsbutton, ngsdiv,
+      tablerows, tablelinks, socket,
       minWidthForWideView = 1200, // want user to be able to change this later on
       maxWidthForNarrView = 1000;
 
@@ -303,22 +193,34 @@
 
       copytextbox = $('#copytextbox');
 
-      tablerows = $("tr.lobby");
+      ngsbutton = $('button#new-game-show');
+      ngsdiv = $('div.new-game#show-hide');
+
+      ngsbutton.click( function(event) {
+        if (ngsdiv.css( 'display' )==='block') {
+          event.unbind();
+          ngsdiv.css( 'display', 'none' );
+          ngsbutton.html( 'Host' );
+          ngsbutton.prop( 'type', 'button' );
+        } else {
+          event.preventDefault();
+          ngsdiv.css( 'display', 'block' );
+          ngsbutton.html( 'Ready' );
+          ngsbutton.prop( 'type', 'submit' );
+        }
+      });
+
+      /*tablerows = $("tr.lobby");
       tablerows.click( function(event) {
         handleClickListitem(event);
       });
-      tablerows.filter('.mini').each( function(key,value) {
+      tablerows.filter('.min').each( function(key,value) {
         setPlayButtonEnableDisable(value);
-      });
+      });*/
 
       tableplaylinks = $(".lobby.play.link");
       tableplaylinks.click( function(event) {
         window.location.href=("/play/" + event.target.id);
-      });
-
-      tablejoinlinks = $(".lobby.join.link");
-      tablejoinlinks.click( function(event) {
-        window.location.href=("/lobby/" + event.target.id);
       });
 
       tablesharelinks = $(".lobby.share.link");

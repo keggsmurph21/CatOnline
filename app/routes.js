@@ -7,54 +7,18 @@ var config= require('../config/scenario.json');
 // app/routes.js
 module.exports = function(app, passport) {
 
-  // HOME PAGE
-  app.get('/', function(req, res) {
-    res.render('index.ejs', {
-      message: req.flash('homepageMessage'),
-      user: req.user
-    });
-  });
-
   // LOBBY PAGE
-  app.get('/lobby/:gameid', isLoggedIn, function(req,res) {
-    // reqs.params.gameid
-    games = tools.models.Game.findById(req.params.gameid, function(err,game) {
-      if (err) throw err;
-
-      console.log(game);
-      if (game.meta.active) {
-
-        let found = false;
-        for (let p=0; p<game.meta.players.length; p++) {
-          if (game.meta.players[p].name === req.user.username) {
-            found = true;
-          }
-        }
-
-        if (!found && game.meta.players.length < game.settings.numHumans) {
-          game.meta.players.push({ id:req.user.id, name:req.user.username });
-          game.save( function(err) {
-            if (err) throw err;
-
-            req.flash('lobbyMessage', 'You have joined a game.');
-            res.redirect('/lobby');
-
-          });
-        }
-      }
-
-    });
-  });
   app.get('/lobby', isLoggedIn, function(req,res) {
     games = tools.models.Game.find({}, function(err,games) {
       if (err) throw err;
 
-      stripDataForLobby( req.user, games, function(data) {
+      funcs.prepareForLobby( req.user, games, function(data) {
 
         res.render('lobby.ejs', {
           message: req.flash('lobbyMessage'),
           user: req.user,
-          games: data
+          games: data,
+          config: config
         });
 
       });
@@ -63,72 +27,181 @@ module.exports = function(app, passport) {
 
   // JOIN PAGE
   app.post('/join', isLoggedIn, function(req,res) {
-    games = tools.models.Game.find( {}, function(err,games) {
+    games = tools.models.Game.findById(req.body.gameid, function(err,game) {
       if (err) throw err;
 
-      stripDataForLobby( games, function(data) {
+      if (game.meta.active) {
 
-        res.render('lobby.ejs', {
-          message: 'attempting to join a game',
-          user: req.user,
-          games: data
+        let found = funcs.checkIfUserInGame( req.user, game );
+
+        if (!found && !funcs.checkIsFull(game)) {
+          game.meta.players.push({ id:req.user.id, name:req.user.username });
+          game.meta.status = ( funcs.checkIsFull(game) ? 'ready' : 'pending' );
+          game.meta.updated = new Date;
+          game.save( function(err) {
+            if (err) throw err;
+
+            req.flash('lobbyMessage', 'You have joined a game.');
+            res.redirect('/lobby');
+
+          });
+        } else {
+
+          req.flash( 'lobbyMessage', "You've already joined this game!" );
+          res.redirect('/lobby');
+
+        }
+      }
+
+    });
+  });
+
+  // LEAVE PAGE
+  app.post('/leave', isLoggedIn, function(req,res) {
+    games = tools.models.Game.findById(req.body.gameid, function(err,game) {
+      if (err) throw err;
+      if (game.meta.active) {
+
+        let found = funcs.checkIfUserInGame( req.user, game );
+        if (found) {
+          if (game.meta.status!=='in-progress') {
+
+            let newlist = [];
+            for (let p=0; p<game.meta.players.length; p++) {
+              if (game.meta.players[p].id.toString()!==req.user.id.toString()) {
+                newlist.push( game.meta.players[p] );
+              }
+            }
+            game.meta.players = newlist;
+            game.meta.status = ( funcs.checkIsFull(game) ? 'ready' : 'pending' );
+            game.meta.updated = new Date;
+            game.save( function(err) {
+              if (err) throw err;
+
+              req.flash('lobbyMessage', 'You have joined a game.');
+              res.redirect('/lobby');
+            });
+
+          } else {
+            req.flash('lobbyMessage', "You can't leave a game once it starts!  Try quitting instead");
+            res.redirect('/lobby');
+          }
+        } else {
+          req.flash('lobbyMessage', "You can't leave a game you haven't joined!");
+          res.redirect('/lobby');
+        }
+
+      }
+    });
+  });
+
+  // LAUNCH PAGE
+  app.post('/launch', isLoggedIn, function(req,res) {
+    games = tools.models.Game.findById(req.body.gameid, function(err,game) {
+      if (err) throw err;
+      if (game.meta.active) {
+
+        let found = funcs.checkIfUserInGame( req.user, game );
+        if (found) {
+          if (game.meta.status==='in-progress') {
+            res.redirect('/play/'+req.body.gameid);
+          } else if (game.meta.status==='ready') {
+
+            game.meta.status = 'in-progress';
+            game.meta.updated = new Date;
+            game.save( function(err) {
+              if (err) throw err;
+              res.redirect('/play/'+req.body.gameid);
+            });
+
+          } else {
+            req.flash('lobbyMessage', 'Unable to launch until enough players have joined.' );
+            res.redirect('/lobby');
+          }
+        } else {
+          req.flash('lobbyMessage', "You can't launch a game you haven't joined!");
+          res.redirect('/lobby');
+        }
+
+      }
+    });
+  });
+
+  // DELETE PAGE
+  app.post('/delete', isLoggedIn, function(req,res) {
+    games = tools.models.Game.findById(req.body.gameid, function(err,game) {
+      if (err) throw err;
+      if (game.meta.author.id.toString()===req.user.id.toString() || req.user.isAdmin) {
+        game.remove( function(err,game) {
+          if (err) throw err;
+          console.log( 'User',req.user.username,'deleted game',req.body.gameid );
+          req.flash('lobbyMessage', 'Deleted a game.');
         });
-
-      });
+      } else {
+        req.flash( 'lobbyMessage', 'Only the owner can delete this game.' );
+      }
+      res.redirect('/lobby');
     });
   });
 
   // NEWGAME PAGES
-  app.get('/newgame', isLoggedIn, function(req,res) {
-
-    res.render('newgame.ejs', {
-      message: req.flash('newgameMessage'),
-      user: req.user,
-      config: config
-    });
-
-  });
   app.post('/newgame', isLoggedIn, function(req,res) {
 
-    var game = new tools.models.Game();
-    game.meta = { // from the SESSION
-      author: {
-        id : req.user._id,
-        name : req.user.username
-      },
-      players: [{
-        id:req.user._id,
-        name:req.user.username
-      }],
-      active: true,
-      created: new Date,
-      publiclyViewable: (req.body.publiclyViewable === 'on')
-    };
-    game.settings = { // from the POST
-      scenario: req.body.scenario,
-      victoryPointsGoal: req.body.victoryPointsGoal,
-      numHumans: req.body.numHumans,
-      numCPUs: req.body.numCPUs,
-      portStyle: req.body.portStyle,
-      tileStyle: req.body.tileStyle
-    };
-    game.state = funcs.initGameStateNoPlayers(req.body, function(State) {
+    tools.models.Game.find({ "meta.author" : { "id" : req.user.id, "name" : req.user.username } }, function(err,games) {
+      if(err) throw err;
 
-      // save gameid to the session
-      req.session.gameid = game._id;
+      if (games.length < 10 || req.user.isAdmin) {
 
-      // save the user
-      game.meta.updated = new Date;
-      game.state = State;
-      game.save( function(err) {
-        if (err) throw err;
+        var game = new tools.models.Game();
+        game.meta = { // from the SESSION
+          author: {
+            id : req.user._id,
+            name : req.user.username
+          },
+          players: [{
+            id:req.user._id,
+            name:req.user.username
+          }],
+          active: true,
+          created: new Date,
+          publiclyViewable: (req.body.publiclyViewable === 'on'),
+          waitfor: { id:'', name:'' }
+        };
+        game.settings = { // from the POST
+          scenario: req.body.scenario,
+          victoryPointsGoal: req.body.victoryPointsGoal,
+          numHumans: req.body.numHumans,
+          numCPUs: req.body.numCPUs,
+          portStyle: req.body.portStyle,
+          tileStyle: req.body.tileStyle
+        };
+        game.state = funcs.initGameStateNoPlayers(req.body, function(State) {
 
-        console.log(req.body);
-        console.log(game.meta);
-        req.flash('lobbyMessage', 'Your game has been created.');
+          // save gameid to the session
+          req.session.gameid = game._id;
+
+          // save the user
+          game.meta.status = ( funcs.checkIsFull(game) ? 'ready' : 'pending' );
+          game.meta.updated = new Date;
+          game.state = State;
+          game.save( function(err) {
+            if (err) throw err;
+
+            //console.log(req.body);
+            //console.log(game.meta);
+            req.flash('lobbyMessage', 'Your game has been created.');
+            res.redirect('/lobby');
+
+          });
+
+        });
+
+      } else {
+
+        req.flash('lobbyMessage', 'Cannot create new game: limit reached.');
         res.redirect('/lobby');
 
-      });
+      }
 
     });
 
@@ -146,16 +219,22 @@ module.exports = function(app, passport) {
         res.redirect('/lobby');
       }
 
-      game.getAccessibleData( req.user._id, function(data) {
+      if (funcs.checkIfUserInGame( req.user, game ) || req.user.isAdmin) {
+        game.getDataForUser( req.user._id, function(data) {
 
-        res.render('play.ejs', {
-          message: req.flash('playMessage'),
-          user: req.user,
-          svg: funcs.prepareForSvg( data ),
-          data: data
+          res.render('play.ejs', {
+            message: req.flash('playMessage'),
+            user: req.user,
+            svg: funcs.prepareForSvg( data ),
+            data: data
+          });
+
         });
+      } else {
+        req.flash( 'lobbyMessage', 'You need to join the game before you can play it!' );
+        res.redirect( '/lobby' );
+      }
 
-      });
     });
   });
 
@@ -198,6 +277,22 @@ module.exports = function(app, passport) {
       user: req.user
     })
   });
+
+  // HOME PAGE
+  app.get('/', function(req, res) {
+    res.render('index.ejs', {
+      message: req.flash('homepageMessage'),
+      user: req.user
+    });
+  });
+
+  // 404
+  app.all('/:calledPage', function(req,res) {
+    res.render('index.ejs', {
+      message: '404 "/' + req.params.calledPage + '" not found',
+      user: req.user
+    });
+  });
 };
 
 // route middleware to make sure user is logged in
@@ -221,41 +316,4 @@ function notLoggedIn(req,res,next) {
 
   req.flash('profileMessage', "You're already logged in!");
   res.redirect('/lobby');
-}
-
-// only pass relevant information to the lobby.ejs page for each game
-function stripDataForLobby(user, games,callback) {
-  data = { 'current':[], 'available':[] };
-  for (let g=0; g<games.length; g++) {
-    datum = {
-      _id      : games[g]._id,
-      scenario : games[g].settings.scenario,
-      numHumans: games[g].settings.numHumans,
-      numCPUs  : games[g].settings.numCPUs,
-      players  : games[g].meta.players,
-      author   : games[g].meta.author.name,
-      VPs      : games[g].settings.victoryPointsGoal,
-      turn     : games[g].state.public.turn,
-      created  : tools.formatDate( games[g].meta.created ),
-      updated  : tools.formatDate( games[g].meta.updated )
-    }
-    //console.log( games[g].meta );
-    //console.log( datum );
-    //console.log({id:user.id, name:user.username});
-    if (games[g].meta.active) {
-      let found = false;
-      for (let p=0; p<games[g].meta.players.length; p++) {
-        if (games[g].meta.players[p].name === user.username) {
-          data.current.push( datum );
-          found = true;
-        }
-      }
-      if (!found) {
-        if (datum.players.length < datum.numHumans && games[g].meta.publiclyViewable) {
-          data.available.push( datum );
-        }
-      }
-    }
-  }
-  callback(data);
 }

@@ -85,6 +85,10 @@ span {
   font-weight: 300;
 }
 
+.hidden-form {
+  display: none;
+}
+
 /***
  INDEX
  ***/
@@ -202,6 +206,15 @@ span.timestamp {
   font-size: 0.9em;
 }
 
+span.body {
+  color: #666;
+}
+
+span.self {
+  /*font-style: italic;*/
+  color: #222;
+}
+
 span.currently-online {
   color: #0a0;
 }
@@ -220,6 +233,10 @@ input.messages {
   width: inherit;
   border: none;
   padding: 0.2em 0.5em;
+}
+
+a.chat-link {
+  color: inherit;
 }
 
 /***
@@ -241,6 +258,48 @@ input.messages {
   padding-bottom: 0;
 }
 
+form.lobby {
+  width: 100%;
+}
+
+button#new-game-show {
+  float: right;
+}
+
+div.lobby#show-hide {
+  display: none;
+  width: 100%;
+  padding-bottom: 1em;
+}
+
+div.lobby#config-container {
+  display: flex;
+  flex-flow: row;
+  display: space-between;
+  background-color: #ddd;
+  border: 1px solid #222;
+}
+
+div.lobby.subcontainer {
+  flex-grow: 1;
+  margin: 0.5em;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+}
+
+span.lobby.setting {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+input.lobby {
+  width: 4em;
+  height:2em;
+  text-align: center;
+}
+
 .lobby.container > p {
   margin: 0;
   padding-left: 0.5em;
@@ -248,6 +307,10 @@ input.messages {
 
 #private-code span {
   text-align: center;
+}
+
+input#private-code-input {
+  width: 24ch;
 }
 
 .frame#lists {
@@ -289,6 +352,11 @@ tr.lobby.header th:last-child {
 
 tr.lobby.max {
   display: none;
+}
+
+.players-list p {
+  margin: 0;
+  text-align: left;
 }
 
 .lobby.null-container {

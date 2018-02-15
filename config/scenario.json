@@ -1,54 +1,53 @@
 {
-  "scenario" : {
-    "type"   : "string",
-    "label"  : "Choose a scenario",
-    "default": "standard",
-    "options": [
-      "standard"
-    ]
+  "strings" : {
+    "scenario" : {
+      "label"  : "Choose a scenario",
+      "default": "standard",
+      "options": [
+        "standard"
+      ]
+    },
+    "portStyle" : {
+      "label"  : "Port placement style",
+      "default": "fixed",
+      "options": [
+        "fixed",
+        "random"
+      ]
+    },
+    "tileStyle" : {
+      "label"  : "Tile placement style",
+      "default": "random",
+      "options": [
+        "fixed",
+        "random"
+      ]
+    }
   },
-  "victoryPointsGoal" : {
-    "type"   : "int",
-    "label"  : "Victory points",
-    "default": 10,
-    "min"    : 8,
-    "max"    : 12
+  "ints" : {
+    "numHumans" : {
+      "label"  : "Number of humans",
+      "default": 4,
+      "min"    : 0,
+      "max"    : 5
+    },
+    "victoryPointsGoal" : {
+      "label"  : "Victory points",
+      "default": 10,
+      "min"    : 8,
+      "max"    : 12
+    },
+    "numCPUs" : {
+      "label"  : "Number of CPUs",
+      "default": 0,
+      "min"    : 0,
+      "max"    : 0
+    }
   },
-  "numHumans" : {
-    "type"   : "int",
-    "label"  : "Number of humans",
-    "default": 4,
-    "min"    : 0,
-    "max"    : 5
-  },
-  "numCPUs" : {
-    "type"   : "int",
-    "label"  : "Number of CPUs",
-    "default": 0,
-    "min"    : 0,
-    "max"    : 5
-  },
-  "portStyle" : {
-    "type"   : "string",
-    "label"  : "Port placement style",
-    "default": "fixed",
-    "options": [
-      "fixed",
-      "random"
-    ]
-  },
-  "tileStyle" : {
-    "type"   : "string",
-    "label"  : "Tile placement style",
-    "default": "fixed",
-    "options": [
-      "fixed",
-      "random"
-    ]
-  },
-  "publiclyViewable" : {
-    "type"   : "bool",
-    "label"  : "Add to global game list",
-    "default": "true"
+  "bools" : {
+    "publiclyViewable" : {
+      "label"  : "Public",
+      "default": "true"
+    }
   }
 }

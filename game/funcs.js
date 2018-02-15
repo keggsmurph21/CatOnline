@@ -6,7 +6,21 @@ var tools = require('../app/tools.js');
 // define lots of game logic here
 module.exports = {
 
-  initGameStateNoPlayers:function(form, callback) {
+  checkIsFull : function(game) {
+    return ( game.meta.players.length === (game.settings.numHumans+game.settings.numCPUs) );
+  },
+
+  checkIfUserInGame : function( user, game ) {
+    for (let p=0; p<game.meta.players.length; p++) {
+      if (game.meta.players[p].id.toString() === user.id.toString()) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  initGameStateNoPlayers : function(form, callback) {
     console.log('initializing game state for ' + form.scenario);
     State = {
       hidden : {
@@ -167,7 +181,34 @@ module.exports = {
     });
   },
 
-  prepareForSvg:function(data) {
+  // only pass relevant information to the lobby.ejs page for each game
+  prepareForLobby :  function(user, games, callback) {
+    data = [];
+
+    for (let g=0; g<games.length; g++) {
+      datum = {
+        _id      : games[g]._id,
+        scenario : games[g].settings.scenario,
+        numHumans: games[g].settings.numHumans,
+        numCPUs  : games[g].settings.numCPUs,
+        players  : games[g].meta.players,
+        author   : games[g].meta.author.name,
+        VPs      : games[g].settings.victoryPointsGoal,
+        turn     : games[g].state.public.turn,
+        status   : games[g].meta.status,
+        public   : games[g].meta.publiclyViewable,
+        created  : tools.formatDate( games[g].meta.created ),
+        updated  : tools.formatDate( games[g].meta.updated )
+      }
+
+      if (games[g].meta.active) { // use games[g].meta.status
+        data.push( datum );
+      }
+    }
+    callback(data);
+  },
+
+  prepareForSvg : function(data) {
 
     guidefs = require('../config/gui/standard');
 
@@ -277,7 +318,7 @@ module.exports = {
     return svgData;
   },
 
-  tileAnchorToPointsStr:function( coords ) {
+  tileAnchorToPointsStr : function( coords ) {
     const translations = [ [0,0], [1,-1], [2,0], [2,1], [1,2], [0,1] ];
     let str = '';
     for (let i=0; i<translations.length; i++) {
@@ -287,7 +328,7 @@ module.exports = {
     return str;
   },
 
-  roadAnchorToPathStr:function( coords, dir ) {
+  roadAnchorToPathStr : function( coords, dir ) {
     var [x1,y1] = module.exports.anchorToPoints( coords );
     switch (dir) {
       case 2:
@@ -307,7 +348,7 @@ module.exports = {
     return 'M '+x1+' '+y1+' L '+x2+' '+y2;
   },
 
-  portAnchorToPathStr:function( key ) {
+  portAnchorToPathStr : function( key ) {
     let [x1,y1] = key; // note: key has len 3
     let x2, y2, x3, y3;
     switch (key[2]) {
@@ -342,11 +383,11 @@ module.exports = {
     return 'M '+x1+' '+y1+' L '+x2+' '+y2+' L '+x3+' '+y3+' L '+x1+' '+y1;
   },
 
-  anchorToPoints:function( coords, scale=1.5 ) {
+  anchorToPoints : function( coords, scale=1.5 ) {
     return [ coords[0]*scale, coords[1]*Math.sqrt(3)/2*scale ];
   },
 
-  getObj:function( gameid, userid, type, id, callback ) {
+  getObj : function( gameid, userid, type, id, callback ) {
 
     //tools.models.Game.findOne( {})
 

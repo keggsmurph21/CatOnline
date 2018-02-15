@@ -15,7 +15,12 @@ var GameSchema = mongoose.Schema({
     active: Boolean,
     created: Date,
     updated: { type: Date, default: Date.now },
-    publiclyViewable: Boolean
+    publiclyViewable: Boolean,
+    status: String,
+    waitfor: {
+      id : String,
+      name : String
+    }
   },
 
   settings : {
@@ -33,7 +38,7 @@ var GameSchema = mongoose.Schema({
   usePushEach: true
 });
 
-GameSchema.methods.getAccessibleData = function(userid,callback) {
+GameSchema.methods.getDataForUser = function(userid,callback) {
   data = {
     meta : this.meta,
     sett : this.settings,

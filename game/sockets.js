@@ -1,4 +1,6 @@
 // game/sockets.js
+var tools = require('../app/tools.js');
+var funcs = require('./funcs.js');
 
 module.exports = function(sio, sessionStore) {
 
@@ -46,7 +48,7 @@ module.exports = function(sio, sessionStore) {
 
     numUsersByPage[req.ref] = numUsersByPage[req.ref]+1 || 1;
 
-    // setup an inteval that will keep our session fresh
+    /*// setup an inteval that will keep our session fresh
     var intervalID = setInterval(function () {
       // reload the session (just in case something changed,
       // we don't want to override anything, but the age)
@@ -58,27 +60,38 @@ module.exports = function(sio, sessionStore) {
         // "touch" it (resetting maxAge and lastAccess)
         // and save it back again.
         req.session.touch().save();
-      }); */
-    }, 60 * 1000);
+      });
+    }, 60 * 1000);*/
 
-    console.log('User ' + req.session.userid + ' connected to ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
-    console.log( req.session );
-    socket.broadcast.to(req.ref).emit('new connection', {
-      username: req.session.user,
-      userid: req.session.userid,
-      numUsers: numUsersByPage[req.ref]
-    });
-    socket.emit('on connection', {
-      username: req.session.user,
-      userid: req.session.userid,
-      numUsers: numUsersByPage[req.ref]
+    games = tools.models.Game.find({}, function(err,games) {
+      if (err) throw err;
+
+      funcs.prepareForLobby( req.session.user, games, function(games) {
+        console.log('User ' + req.session.userid + ' connected to ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
+        console.log( req.session );
+        socket.broadcast.to(req.ref).emit('new connection', {
+          username: req.session.user,
+          userid: req.session.userid,
+          numUsers: numUsersByPage[req.ref],
+          games: games
+        });
+        socket.emit('on connection', {
+          username: req.session.user,
+          userid: req.session.userid,
+          numUsers: numUsersByPage[req.ref],
+          games: games
+        });
+
+      });
+
+
     });
 
     socket.on('disconnect', function() {
       numUsersByPage[req.ref]--;
       console.log('User ' + req.session.userid + ' disconnected from ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
       // clear the socket interval to stop refreshing the session
-      clearInterval(intervalID);
+      //clearInterval(intervalID);
 
       socket.broadcast.to(req.ref).emit('end connection', {
         username: req.session.user,
