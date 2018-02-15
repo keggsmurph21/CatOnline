@@ -179,10 +179,16 @@
       return color;
     }
     function updateTables(data) {
+      /***
+        take incoming data from a socket event and use it to populate our lobby tables
+        ***/
 
+      // remove the "no current games ..." displays
       $('tr.lobby.null').detach();
 
+      // iterate over each piece of incoming data
       for (let f=0; f<data.length; f++) {
+        // decide which table it belongs in
         let type;
         if ( data[f].status==='in-progress' ) {
           type = 'active';
@@ -196,14 +202,12 @@
           }
         }
 
-        //console.log( type, data[f] );
-
+        // some bools as helpers
         let isVisible = (!data[f].isFull || data[f].userInGame);
         let hasChanged = $('span#date'+data[f]._id ).html()!==data[f].updated.toString();
         let isInTables = $('table.gamelist').has( 'tr#min' + data[f]._id ).length > 0;
 
-        //console.log( isFull, isVisible, hasChanged, isInActive, isInPending, isInAvailable );
-
+        // decide if we need to remove, add, update, or nothing
         if ( !isVisible ) {
           removeTableRow( data[f] );
         } else if ( !isInTables && isVisible ) {
@@ -214,7 +218,8 @@
 
       }
 
-      for (let f=0; f<2; f++) {
+      // check if we need to add the "no current games ..." displays
+      for (let f=0; f<3; f++) {
         let type = ['active', 'pending', 'available'][f];
         if ( $('table#' + type + '-games').find('tr').length===1 ) {
           let table = $('table#' + type + '-games tr:last');
@@ -222,16 +227,17 @@
         }
       }
 
+      // add listeners to things that live inside the tables
       $(".lobby.play.link").unbind().click( function(event) {
         let id = event.target.id.replace( 'play', '' );
-        window.location.href=('/play/' + id);
+        window.location.href=('/play/' + id); // GET
       });
       $( 'tr.lobby.min' ).unbind().click( function(event) {
         handleClickListitem(event);
       });
       $('.lobby.delete.link').unbind().click( function(event) {
         let id = event.target.id.replace( 'delete', '');
-        $('#ld'+id).submit();
+        $('#ld'+id).submit(); // POST
       })
       $('.lobby.share.link').unbind().click( function(event) {
         let id = event.target.id.replace( 'share', '' );
@@ -245,16 +251,20 @@
       });
       $('.lobby.leave.link').unbind().click( function(event) {
         let id = event.target.id.replace( 'leave', '' );
-        $('#lf'+id).submit();
+        $('#lf'+id).submit(); // POST
       });
       $(".lobby.launch.link").unbind().click( function(event) {
         let id = event.target.id.replace( 'launch', '' );
-        $('#ll'+id).submit();
+        $('#ll'+id).submit(); // POST
       });
       $(".lobby.join.link").unbind().click( function(event) {
         let id = event.target.id.replace( 'join', '' );
-        $('#jf'+id).submit();
+        $('#jf'+id).submit(); // POST
       });
+      if (window.location.hash.length) {
+        let id = window.location.hash.replace(/#/, 'min');
+        handleClickListitem(null,id); window.location.hash = '';
+      }
     }
     function removeTableRow(data) {
       $('tr#min'+data._id).detach();
@@ -266,16 +276,16 @@
       let html = '';
 
       for (let p=0; p<data.numHumans; p++) {
+        let name = ( data.players[p] ? data.players[p].name : '' );
+        let color = hashStringToHex(name);
         html += '<p>';
         html +=   '<span class="num">Player ' + (p+1) + ':&nbsp;&nbsp</span>';
-        html +=   '<strong class="name">' + (data.players[p] ? data.players[p].name : '') + '</strong>';
+        html +=   '<strong class="name" style="color:' + color + '">' + name + '</strong>';
         html += '</p>';
       }
 
       $('div.players-list#pl' + data._id).html( html );
       $('span#date' + data._id).html( data.updated );
-
-      // update play button
 
     }
     function addTableRow(data, type) {
@@ -365,9 +375,9 @@
       table.after( minrow );
 
     }
-    function handleClickListitem(event) {
+    function handleClickListitem(event, id) {
 
-      id = event.target.parentNode.id || event.target.parentNode.parentNode.id;
+      id = (event) ? (event.target.parentNode.id || event.target.parentNode.parentNode.id) : id; console.log(id, expandedid);
 
       min = $( '#' + id.replace(/max/, 'min') );
       if (id !== expandedid) {

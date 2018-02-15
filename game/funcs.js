@@ -11,6 +11,10 @@ module.exports = {
   },
 
   checkIfUserIDInGame : function( userid, game ) {
+    if (game===null || userid===null) {
+      console.log( game, userid);
+      return false;
+    }
     for (let p=0; p<game.meta.players.length; p++) {
       if (game.meta.players[p].id.toString() === userid.toString()) {
         return true;

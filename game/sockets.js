@@ -44,6 +44,7 @@ module.exports = function(sio, sessionStore) {
   sio.sockets.on('connection', function (socket) {
 
     var req = socket.request;
+    console.log( req.ref );
     socket.join( req.ref );
 
     numUsersByPage[req.ref] = numUsersByPage[req.ref]+1 || 1;

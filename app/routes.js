@@ -13,7 +13,6 @@ module.exports = function(app, passport) {
       if (err) throw err;
 
       funcs.prepareForLobby( req.user.id, games, function(data) {
-
         res.render('lobby.ejs', {
           message: req.flash('lobbyMessage'),
           user: req.user,
@@ -42,7 +41,7 @@ module.exports = function(app, passport) {
             if (err) throw err;
 
             req.flash('lobbyMessage', 'You have joined a game.');
-            res.redirect('/lobby');
+            res.redirect('/lobby#'+req.body.gameid);
 
           });
         } else {
@@ -79,7 +78,7 @@ module.exports = function(app, passport) {
               if (err) throw err;
 
               req.flash('lobbyMessage', 'You have joined a game.');
-              res.redirect('/lobby');
+              res.redirect('/lobby#'+req.body.gameid);
             });
 
           } else {
@@ -136,17 +135,19 @@ module.exports = function(app, passport) {
           if (err) throw err;
           console.log( 'User',req.user.username,'deleted game',req.body.gameid );
           req.flash('lobbyMessage', 'Deleted a game.');
+          res.redirect('/lobby#'+req.body.gameid);
         });
       } else {
         req.flash( 'lobbyMessage', 'Only the owner can delete this game.' );
+        res.redirect('/lobby');
       }
-      res.redirect('/lobby');
     });
   });
 
   // NEWGAME PAGES
   app.post('/newgame', isLoggedIn, function(req,res) {
 
+    req.flash( 'code', 'exit' );
     tools.models.Game.find({ "meta.author" : { "id" : req.user.id, "name" : req.user.username } }, function(err,games) {
       if(err) throw err;
 
@@ -190,7 +191,7 @@ module.exports = function(app, passport) {
             //console.log(req.body);
             //console.log(game.meta);
             req.flash('lobbyMessage', 'Your game has been created.');
-            res.redirect('/lobby');
+            res.redirect('/lobby#'+req.body.gameid);
 
           });
 
@@ -210,32 +211,38 @@ module.exports = function(app, passport) {
   // PLAY PAGES
   app.get('/play/:gameid', isLoggedIn, function(req,res) {
 
-    tools.models.Game.findById( req.params.gameid, function(err,game) {
+    if (req.params.gameid.length===24 && req.params.gameid.match(/^[a-z0-9]+$/i)) {
+      tools.models.Game.findById( req.params.gameid, function(err,game) {
 
-      if (err) throw err;
+        if (err) throw err;
 
-      if (!game) {
-        req.flash('lobbyMessage', 'Unable to find game ' + req.params.gameid );
-        res.redirect('/lobby');
-      }
+        if (!game) {
+          req.flash('lobbyMessage', 'Unable to find game ' + req.params.gameid );
+          res.redirect('/lobby');
+        }
 
-      if (funcs.checkIfUserIDInGame( req.user.id, game ) || req.user.isAdmin) {
-        game.getDataForUser( req.user._id, function(data) {
+        if ((funcs.checkIfUserIDInGame( req.user.id, game ) && game.meta.status==='in-progress') || req.user.isAdmin) {
+          game.getDataForUser( req.user._id, function(data) {
 
-          res.render('play.ejs', {
-            message: req.flash('playMessage'),
-            user: req.user,
-            svg: funcs.prepareForSvg( data ),
-            data: data
+            res.render('play.ejs', {
+              message: req.flash('playMessage'),
+              user: req.user,
+              svg: funcs.prepareForSvg( data ),
+              data: data
+            });
+
           });
+        } else {
+          req.flash( 'lobbyMessage', 'This game is not yet playable!' );
+          res.redirect( '/lobby' );
+        }
 
-        });
-      } else {
-        req.flash( 'lobbyMessage', 'You need to join the game before you can play it!' );
-        res.redirect( '/lobby' );
-      }
+      });
+    } else {
+      req.flash( 'lobbyMessage', 'invalid game id' );
+      res.redirect('/lobby');
+    }
 
-    });
   });
 
   // LOGIN PAGES

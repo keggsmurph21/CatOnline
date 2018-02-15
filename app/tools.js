@@ -17,7 +17,7 @@ module.exports = {
   },
 
   formatDate : function(datetime) {
-    return dateFormat(datetime, "mmm. dS, H:MM:ss tt")
+    return dateFormat(datetime, "mmm. dS, h:MM:ss tt")
   },
 
 
