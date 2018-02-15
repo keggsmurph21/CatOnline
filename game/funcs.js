@@ -10,9 +10,9 @@ module.exports = {
     return ( game.meta.players.length === (game.settings.numHumans+game.settings.numCPUs) );
   },
 
-  checkIfUserInGame : function( user, game ) {
+  checkIfUserIDInGame : function( userid, game ) {
     for (let p=0; p<game.meta.players.length; p++) {
-      if (game.meta.players[p].id.toString() === user.id.toString()) {
+      if (game.meta.players[p].id.toString() === userid.toString()) {
         return true;
       }
     }
@@ -182,9 +182,8 @@ module.exports = {
   },
 
   // only pass relevant information to the lobby.ejs page for each game
-  prepareForLobby :  function(user, games, callback) {
+  prepareForLobby :  function(userid, games, callback) {
     data = [];
-
     for (let g=0; g<games.length; g++) {
       datum = {
         _id      : games[g]._id,
@@ -197,8 +196,11 @@ module.exports = {
         turn     : games[g].state.public.turn,
         status   : games[g].meta.status,
         public   : games[g].meta.publiclyViewable,
+        waitfor  : games[g].meta.waitfor,
         created  : tools.formatDate( games[g].meta.created ),
-        updated  : tools.formatDate( games[g].meta.updated )
+        updated  : tools.formatDate( games[g].meta.updated ),
+        isFull   : module.exports.checkIsFull(games[g]),
+        userInGame:module.exports.checkIfUserIDInGame( userid, games[g] )
       }
 
       if (games[g].meta.active) { // use games[g].meta.status

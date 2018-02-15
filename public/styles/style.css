@@ -266,18 +266,27 @@ button#new-game-show {
   float: right;
 }
 
+button#new-game-submit {
+  margin-bottom: 0.5em;
+}
+
 div.lobby#show-hide {
   display: none;
   width: 100%;
-  padding-bottom: 1em;
+  margin-bottom: 1em;
+  background-color: #ddd;
+  border: 1px solid #222;
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
 }
 
 div.lobby#config-container {
   display: flex;
   flex-flow: row;
   display: space-between;
-  background-color: #ddd;
-  border: 1px solid #222;
+  width: 100%;
 }
 
 div.lobby.subcontainer {
@@ -383,6 +392,20 @@ tr.lobby.max {
 .max.info > p.victory-points-info {
   margin-bottom: 0.5em;
 }
+
+strong.in-progress {
+  color: #11f;
+}
+
+strong.ready {
+  color: #0a0;
+}
+
+strong.pending {
+  color: #ff6000;
+}
+
+
 
 /***
  PLAY

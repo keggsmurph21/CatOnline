@@ -12,7 +12,7 @@ module.exports = function(app, passport) {
     games = tools.models.Game.find({}, function(err,games) {
       if (err) throw err;
 
-      funcs.prepareForLobby( req.user, games, function(data) {
+      funcs.prepareForLobby( req.user.id, games, function(data) {
 
         res.render('lobby.ejs', {
           message: req.flash('lobbyMessage'),
@@ -32,7 +32,7 @@ module.exports = function(app, passport) {
 
       if (game.meta.active) {
 
-        let found = funcs.checkIfUserInGame( req.user, game );
+        let found = funcs.checkIfUserIDInGame( req.user.id, game );
 
         if (!found && !funcs.checkIsFull(game)) {
           game.meta.players.push({ id:req.user.id, name:req.user.username });
@@ -62,7 +62,7 @@ module.exports = function(app, passport) {
       if (err) throw err;
       if (game.meta.active) {
 
-        let found = funcs.checkIfUserInGame( req.user, game );
+        let found = funcs.checkIfUserIDInGame( req.user.id, game );
         if (found) {
           if (game.meta.status!=='in-progress') {
 
@@ -101,7 +101,7 @@ module.exports = function(app, passport) {
       if (err) throw err;
       if (game.meta.active) {
 
-        let found = funcs.checkIfUserInGame( req.user, game );
+        let found = funcs.checkIfUserIDInGame( req.user.id, game );
         if (found) {
           if (game.meta.status==='in-progress') {
             res.redirect('/play/'+req.body.gameid);
@@ -219,7 +219,7 @@ module.exports = function(app, passport) {
         res.redirect('/lobby');
       }
 
-      if (funcs.checkIfUserInGame( req.user, game ) || req.user.isAdmin) {
+      if (funcs.checkIfUserIDInGame( req.user.id, game ) || req.user.isAdmin) {
         game.getDataForUser( req.user._id, function(data) {
 
           res.render('play.ejs', {

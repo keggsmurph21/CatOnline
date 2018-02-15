@@ -1,5 +1,5 @@
 // public/resources/js/tools.js
-//var dateFormat = require('dateformat');
+var dateFormat = require('dateformat');
 
 // keep functions here that are not necessarily strictly game logic
 module.exports = {
@@ -17,14 +17,7 @@ module.exports = {
   },
 
   formatDate : function(datetime) {
-    let date1 = new Date(datetime);
-    let date2 = new Date();
-    console.log( date1, date2);
-    minutesDelta = (date2.getTime() - date1.getTime())/(1000*60);
-
-    if (minutesDelta)
-
-    return (minutesDelta); // in hours
+    return dateFormat(datetime, "mmm. dS, H:MM:ss tt")
   },
 
 

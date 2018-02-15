@@ -66,7 +66,7 @@ module.exports = function(sio, sessionStore) {
     games = tools.models.Game.find({}, function(err,games) {
       if (err) throw err;
 
-      funcs.prepareForLobby( req.session.user, games, function(games) {
+      funcs.prepareForLobby( req.session.userid, games, function(games) {
         console.log('User ' + req.session.userid + ' connected to ' + req.ref + ' (' + numUsersByPage[req.ref] + ' total)');
         console.log( req.session );
         socket.broadcast.to(req.ref).emit('new connection', {

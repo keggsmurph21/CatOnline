@@ -61,11 +61,16 @@ $(function() {
     $('tr.lobby.null').detach();
 
     for (let f=0; f<data.length; f++) {
-      let type = 'available';
-      for (let p=0; p<data[f].players.length; p++) {
-        let player = data[f].players[p];
-        if (player.name===username && player.id===userid) {
-          type = 'current';
+      let type;
+      if ( data[f].status==='in-progress' ) {
+        type = 'active';
+      } else {
+        type = 'available';
+        for (let p=0; p<data[f].players.length; p++) {
+          let player = data[f].players[p];
+          if (player.name===username && player.id===userid) {
+            type = 'current';
+          }
         }
       }
 
@@ -162,6 +167,7 @@ $(function() {
     let minrow = '';
 
     minrow += '<tr class="lobby min" id="min' + data._id + '">';
+    minrow +=   '<th><strong class="' + data.status + '" id="data' + data.status + '">' + data.status + '</strong></th>';
     minrow +=   '<th>' + data.scenario + '</th>';
     minrow +=   '<th>';
     minrow +=     '<span class="current-number" id="' + data._id + '">' + data.players.length + '</span>/';
