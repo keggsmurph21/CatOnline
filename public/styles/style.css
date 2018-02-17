@@ -89,6 +89,15 @@ span {
   display: none;
 }
 
+.null-container {
+  padding: 0.5em 0;
+}
+
+table a, .message a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
 /***
  INDEX
  ***/
@@ -181,6 +190,10 @@ ul.messages {
   word-wrap: break-word;
   padding: 0.5em;
   margin: 0;
+}
+
+li.admin {
+  padding: 0.5em 0;
 }
 
 li.admin span.body {
@@ -368,7 +381,7 @@ tr.lobby.max {
   text-align: left;
 }
 
-.lobby.null-container {
+.null-container {
   padding: 0.5em 0;
 }
 
@@ -406,6 +419,82 @@ strong.pending {
 }
 
 
+/***
+  ADMIN
+  ***/
+
+.admin.content {
+  flex-flow: row-reverse nowrap;
+}
+.admin.frame {
+  height: 100%;
+  padding: 2em 1em;
+  min-width: 650px;
+}
+
+
+.admin.container {
+  display: flex;
+  flex-flow: column;
+  padding-bottom: 1em;
+}
+.admin.container > p {
+  margin: 0;
+  padding-left: 0.5em;
+}
+
+
+table.admin {
+  font-size: 0.9em;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+tr.admin:first-child {
+  border-left: 1px solid #222;
+}
+tr.admin.header:first-child {
+  border-left: none;
+}
+
+tr.admin th {
+  background-color: #ddd;
+  color: #222;
+  border-bottom: 1px solid #222;
+  font-weight: 300;
+}
+tr.admin.header th {
+  background-color: #222;
+  color: #fff;
+  font-weight: 500;
+}
+tr.admin.header th:first-child {
+  border-radius: 5px 0 0;
+}
+tr.admin.header th:last-child {
+  border-radius: 0 5px 0 0;
+}
+
+.admin strong.true {
+  color: #0a0;
+}
+
+.admin strong.false {
+  color: #a00;
+}
+
+span.is-owner {
+  /*text-decoration: underline;*/
+}
+
+form.admin {
+  display: inline;
+}
+
+span.batch * {
+  display: inline;
+  margin: 0;
+}
 
 /***
  PLAY

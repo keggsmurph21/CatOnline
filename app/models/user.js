@@ -10,6 +10,12 @@ var UserSchema = mongoose.Schema({
   password : String,
   isSuperAdmin : Boolean,
   isAdmin : Boolean,
+  isMuted : Boolean,
+  flair: String,
+  activeGamesAsAuthor: Number,
+  activeGamesAsPlayer: Number,
+  maxActiveGamesAsAuthor: Number,
+  maxActiveGamesAsPlayer: Number
 });
 
 // methods
@@ -28,7 +34,18 @@ UserSchema.methods.getPublicData = function() {
     id:this._id,
     name:this.name,
     isAdmin:this.isAdmin,
-    isSuperAdmin:this.isSuperAdmin };
+    isSuperAdmin:this.isSuperAdmin,
+    isMuted:this.isMuted,
+    flair:this.flair };
+}
+
+UserSchema.methods.getExtendedPublicData = function() {
+  let data = this.getPublicData();
+  data.activeGamesAsAuthor = this.activeGamesAsAuthor;
+  data.activeGamesAsPlayer = this.activeGamesAsPlayer;
+  data.maxActiveGamesAsAuthor = this.maxActiveGamesAsAuthor;
+  data.maxActiveGamesAsPlayer = this.maxActiveGamesAsPlayer;
+  return data;
 }
 
 // create the model for users and expose it to our app

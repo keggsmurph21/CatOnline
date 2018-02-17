@@ -18,7 +18,7 @@ module.exports = function(passport) {
 
   // used to deserialize the user
   passport.deserializeUser( function(id,done) {
-    tools.models.User.findById(id, function(err, user) {
+    tools.User.findById(id, function(err, user) {
       done(err, user);
     });
   });
@@ -39,26 +39,41 @@ module.exports = function(passport) {
       // asynchronous
       // User.findOne won't fire unless data is sent back
       process.nextTick(function() {
+        if (!username.match(/^[a-zA-Z0-9\-_]{6,16}$/) || username==='') {
+          return done(null, false, req.flash( 'registerMessage', 'Username must be between 6 and 16 alphanumeric characters plus "_" or "-".' ));
+        }
+        if (!password.match(/^.{6,32}$/)) {
+          return done(null, false, req.flash( 'registerMessage', 'Password must be between 6 and 32 characters.' ));
+        } else if (!password.match(/^[a-zA-Z0-9~\!@#\$%\^&\*\(\)\-\=_\+\|,\.\<\>\?;\:'"/\\\[\]\{\}]+$/)) {
+          return done(null, false, req.flash( 'registerMessage', 'Password must not contain any "special" characters.' ));
+        }
+
         // find a user whose username is the same as the form's username
         // we are checking to see if the user trying to register already exists
-        tools.models.User.findOne( { name:username }, function(err,user) {
+        tools.User.findOne( { name:username }, function(err,user) {
           // if there are any errors, return the error
           if (err) { return done(err) }
 
           // check to see if there's already a user with that email
           if (user) {
-            return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
+            return done(null, false, req.flash('registerMessage', 'That username is already taken.'));
           } else {
 
             // if there is no user with the email
             // create the user
-            var user = new tools.models.User();
+            var user = new tools.User();
 
             // set the credentials
             user.name = username;
             user.password = user.generateHash(password);
             user.isSuperAdmin = false;
             user.isAdmin = false;
+            user.isMuted = false;
+            user.flair = '';
+            user.activeGamesAsAuthor = 0;
+            user.activeGamesAsPlayer = 0;
+            user.maxActiveGamesAsAuthor = 3;
+            user.maxActiveGamesAsPlayer = 5;
 
             // save user to the session
             req.session.user = user.getPublicData();
@@ -85,7 +100,7 @@ module.exports = function(passport) {
 
       // find a user whose username is the same as the form's username
       // we are checking to see if the user trying to register already exists
-      tools.models.User.findOne( { name:username }, function(err,user) {
+      tools.User.findOne( { name:username }, function(err,user) {
 
         // if there are any errors, return the error
         if (err) { return done(err) }
@@ -99,7 +114,6 @@ module.exports = function(passport) {
 
         // save user to the session
         req.session.user = user.getPublicData();
-        console.log('at login',req.session.user);
 
         return done(null, user);
 

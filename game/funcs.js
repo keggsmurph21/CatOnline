@@ -6,14 +6,17 @@ var tools = require('../app/tools.js');
 // define lots of game logic here
 module.exports = {
 
+  checkIsActive : function( game ) {
+    return [ 'pending', 'ready', 'in-progress' ].indexOf( game.meta.status ) > -1;
+  },
+
   checkIsFull : function( game ) {
     return ( game.meta.players.length === (game.settings.numHumans+game.settings.numCPUs) );
   },
 
-  serverCheckIfUserInGame : function( user, game ) {
+  checkIfUserInGame : function( user, game ) {
     for (let p=0; p<game.meta.players.length; p++) {
-      if (game.meta.players[p].id.toString() === user.id.toString()) {
-        console.log( 'server check if user in game', game.meta.players[p], user );
+      if ( module.exports.usersCheckEqual(game.meta.players[p], user) ) {
         return true;
       }
     }
@@ -21,9 +24,81 @@ module.exports = {
     return false;
   },
 
-  initGameStateNoPlayers : function( form, callback ) {
-    console.log('initializing game state for ' + form.scenario);
-    State = {
+  usersCheckEqual : function( u, v ) {
+    return ( u.id.toString()===v.id.toString() );
+  },
+
+  tryRemoveUserFromGame : function( agent, userid, gameid, onFailure, onSuccess ) {
+    console.log( 'try remove', agent, userid, gameid );
+    tools.User.findById( userid, function(err,user) {
+      if (err) return onFailure( err, null );
+      if (!user) return onFailure( 'Error: unable to find user.', null );
+      tools.Game.findById( gameid, function(err,game) {
+        if (err) return onFailure( err, null );
+        if (!game) return onFailure( null, 'Unable to leave: could not find game '+gameid );
+        if ( module.exports.checkIsActive(game) ) {
+          if ( module.exports.checkIfUserInGame( user, game ) ) {
+            if ( game.meta.status!=='in-progress' ) {
+              if ( !module.exports.usersCheckEqual( user, game.meta.author ) ) {
+                if ( module.exports.usersCheckEqual( user, agent ) || agent.isSuperAdmin || (!user.isAdmin && agent.isAdmin) ) {
+                  let newlist = [];
+                  for (let p=0; p<game.meta.players.length; p++) {
+                    if ( !module.exports.usersCheckEqual(game.meta.players[p], user) ) {
+                      newlist.push( game.meta.players[p] );
+                    }
+                  }
+                  game.meta.players = newlist;
+                  game.meta.status = ( module.exports.checkIsFull(game) ? 'ready' : 'pending' );
+                  game.meta.updated = new Date;
+                  game.save( function(err) {
+                    if (err) return onFailure( err, null );
+                    user.activeGamesAsPlayer -= 1;
+                    user.save( function(err) {
+                      if (err) return onFailure( err, null );
+
+                      return onSuccess( user.name+' left game '+game.id );
+
+                    });
+                  });
+                } else {
+                  return onFailure( null, "Unable to leave: only superadmins may perform this operation." )
+                }
+              } else {
+                return onFailure( null, "Unable to leave: this user is the author.  Try deleting instead." );
+              }
+            } else {
+              return onFailure( null, "Unable to leave: you can't leave a game once it starts!  Try quitting instead." );
+            }
+          } else {
+            return onFailure( null, "Unable to leave: you can't leave a game you haven't joined!" );
+          }
+        } else {
+          return onFailure( null, 'Unable to leave: game is not active.' );
+        }
+      });
+    });
+  },
+
+  initGameNoPlayers : function( user, form ) {
+    let game = new tools.Game();
+
+    game.meta = {
+      author: user,
+      players: [ user ],
+      active: true,
+      created: new Date,
+      publiclyViewable: (form.publiclyViewable === 'on'),
+      waitfor: null
+    };
+    game.settings = {
+      scenario: form.scenario,
+      victoryPointsGoal: form.victoryPointsGoal,
+      numHumans: form.numHumans,
+      numCPUs: form.numCPUs,
+      portStyle: form.portStyle,
+      tileStyle: form.tileStyle
+    };
+    game.state = {
       hidden : {
         dcDeck : []
       },
@@ -38,179 +113,182 @@ module.exports = {
       private: {},
     };
 
-    tools.models.Scenario.findOne( { name:form.scenario }, function(err, scenario) {
-      if (err) throw err;
+    let scenario = require( '../config/scenarios/' + form.scenario + '.json' );
 
-      // need to keep our database calls in order
-      aSync.waterfall([
+    // make the Dice
+    let Dice = new Classes.Dice();
+    game.state.public.dice = Dice.values;
 
-        // calls for Dice, Dev Cards, Hexes, Juncs, Roads, Conns
-        function( callback ) {
+    // make the Dev Cards
+    for (let devCard in scenario.devCards) {
+      for (let i=0; i<scenario.devCards[devCard].count; i++) {
+        game.state.hidden.dcDeck.push( devCard );
+      }
+    }
+    tools.shuffle( game.state.hidden.dcDeck );
 
-          // make the Dice
-          var Dice = new Classes.Dice();
-          State.public.dice = Dice.values;
-
-          // make the Dev Cards
-          aSync.eachOf( scenario.devCards, function( value, key ) {
-            for (let i=0; i<value.count; i++) {
-              State.hidden.dcDeck.push( key );
-            }
-          });
-          tools.shuffle( State.hidden.dcDeck );
-
-          // make the Hexes
-
-          // first do our database queries
-          var resources = [];
-          aSync.eachOf( scenario.resources, function( value, key ){
-            for (let i=0; i<value.count; i++) {
-              resources.push( key );
-            }
-          });
-
-          var diceValues = [];
-          aSync.each( scenario.diceData, function( value ) {
-            diceValues.push({
-              roll : value.roll,
-              dots : value.dots
-            });
-          });
-
-          // then work with the queried data
-          tools.shuffle(resources);
-          tools.shuffle(diceValues); // resource place strategy in form.tileStyle
-
-          for (let i=0; i<scenario.counts.hexes; i++) {
-
-            resource = resources.pop();
-            diceValue = ( resource === 'desert' ) ? { roll:0, dots:0 } : diceValues.pop()
-
-            hex = new Classes.Hex(i, resource, diceValue);
-            State.public.hexes.push( hex );
-
-          }
-
-          // make the Juncs
-          for (let i=0; i<scenario.counts.juncs; i++) {
-
-            junc = new Classes.Junc(i);
-            State.public.juncs.push( junc );
-
-          }
-
-          // make the Roads
-          for (let i=0; i<scenario.counts.roads; i++) {
-
-            road = new Classes.Road(i);
-            State.public.roads.push( road );
-
-          }
-
-          // make the Connections
-          for (let i=0; i<scenario.counts.conns; i++) {
-
-            conn = new Classes.Conn(i);
-            State.public.conns.push( conn );
-
-          }
-
-          callback(null, State);
-        },
-
-        // set the ports
-        function( State, callback ) {
-
-
-          // make the Ports
-
-          // first do our database queries
-          types = [];
-          aSync.each( scenario.ports.types, function( value ) {
-            types.push( value );
-          });
-          locations = [];
-          aSync.each( scenario.ports.locations, function( value ) {
-            locations.push( value );
-          });
-
-          // only shuffle our port types if the user wanted us to
-          if ( form.portStyle == 'random' ) {
-            tools.shuffle( types );
-          }
-
-          // instead of saving a port class, put all this data right on the Junc
-          for (let i=0; i<scenario.ports.types.length; i++) {
-            for (let j=0; j<scenario.ports.locations[i].juncs.length; j++) {
-              var jid = scenario.ports.locations[i].juncs[j];
-              State.public.juncs[jid].setPort( i, scenario.ports.types[i], scenario.ports.locations[i].orientation );
-            }
-          }
-
-          callback(null, State);
-        },
-
-        // set the edge data for Road and Conn guys
-        function( State, callback ) {
-
-          // save the ids (nums) of two juncs to each Road
-          aSync.eachOf( scenario.edgeData.roads, function( value, key ) {
-            State.public.roads[key].setVertices( value.u, value.v );
-            State.public.juncs[value.u].roads.push(key);
-            State.public.juncs[value.v].roads.push(key);
-          })
-
-          // save the id (num) of a hex and a junc to each conn
-          aSync.eachOf( scenario.edgeData.conns, function( value, key ) {
-            State.public.conns[key].setVertices( value.u, value.v );
-            State.public.juncs[value.u].conns.push(key);
-            State.public.hexes[value.v].conns.push(key);
-          })
-
-          callback(null, State);
-        }
-
-
-      ], function(err, State) {
-        if (err) throw err;
-
+    // make the Hexes
+    let resources = [], diceValues = [];
+    for (let resource in scenario.resources) {
+      for (let i=0; i<scenario.resources[resource].count; i++) {
+        resources.push( resource );
+      }
+    }
+    for (let i=0; i<scenario.diceData.length; i++) {
+      diceValues.push({
+        roll : scenario.diceData[i].roll,
+        dots : scenario.diceData[i].dots
       });
+    }
+    tools.shuffle(resources);
+    if (true/*form.tileStyle==='random'*/) {
+      tools.shuffle(diceValues);
+    }
+    for (let i=0; i<scenario.counts.hexes; i++) {
+      let resource = resources.pop();
+      let diceValue = ( resource==='desert' ? { roll:0, dots:0 } : diceValues.pop() );
+      let hex = new Classes.Hex(i, resource, diceValue);
+      game.state.public.hexes.push( hex );
+    }
 
-      // send it along!
-      callback( State );
+    // make the Juncs
+    for (let i=0; i<scenario.counts.juncs; i++) {
+      let junc = new Classes.Junc(i);
+      game.state.public.juncs.push( junc );
+    }
 
+    // make the Roads
+    for (let i=0; i<scenario.counts.roads; i++) {
+      let road = new Classes.Road(i);
+      game.state.public.roads.push( road );
+    }
+
+    // make the Connections
+    for (let i=0; i<scenario.counts.conns; i++) {
+      let conn = new Classes.Conn(i);
+      game.state.public.conns.push( conn );
+    }
+
+    // make the Ports (instead of saving a port class, put all this data right on the Junc)
+    if ( form.portStyle==='random' ) {
+      tools.shuffle( scenario.ports.types );
+    }
+    for (let i=0; i<scenario.ports.types.length; i++) {
+      for (let j=0; j<scenario.ports.locations[i].juncs.length; j++) {
+        let jid = scenario.ports.locations[i].juncs[j];
+        game.state.public.juncs[jid].setPort( i, scenario.ports.types[i], scenario.ports.locations[i].orientation );
+      }
+    }
+
+    // set the edge data for Roads
+    for (let i=0; i<scenario.edgeData.roads.length; i++) {
+      let edge = scenario.edgeData.roads[i];
+      game.state.public.roads[i].setVertices( edge.u, edge.v );
+      game.state.public.juncs[edge.u].roads.push(i);
+      game.state.public.juncs[edge.v].roads.push(i);
+    }
+
+    // set the edge data for Conns
+    for (let i=0; i<scenario.edgeData.conns.length; i++) {
+      let edge = scenario.edgeData.conns[i];
+      game.state.public.conns[i].setVertices( edge.u, edge.v );
+      game.state.public.juncs[edge.u].conns.push(i);
+      game.state.public.hexes[edge.v].conns.push(i);
+    }
+
+    game.meta.status = ( module.exports.checkIsFull(game) ? 'ready' : 'pending' );
+    game.meta.updated = new Date;
+
+    return game;
+
+  },
+
+  userGetGamesAsAuthor : function( user, callback ) {
+    tools.Game.find({ "meta.author.id" : user.id }, function(err,games) {
+      if (err) throw err;
+      callback(games);
     });
   },
 
-  // only pass relevant information to the lobby.ejs page for each game
-  prepareForLobby :  function( user, games, callback ) {
-    data = [];
-    for (let g=0; g<games.length; g++) {
-      datum = {
-        id       : games[g]._id,
-        scenario : games[g].settings.scenario,
-        numHumans: games[g].settings.numHumans,
-        numCPUs  : games[g].settings.numCPUs,
-        players  : games[g].meta.players,
-        author   : games[g].meta.author,
-        VPs      : games[g].settings.victoryPointsGoal,
-        turn     : games[g].state.public.turn,
-        status   : games[g].meta.status,
-        public   : games[g].meta.publiclyViewable,
-        waitfor  : games[g].meta.waitfor,
-        created  : tools.formatDate( games[g].meta.created ),
-        updated  : tools.formatDate( games[g].meta.updated ),
-        isFull   : module.exports.checkIsFull(games[g])
-      }
-
-      if (games[g].meta.active || user.isAdmin) {
-        data.push( datum );
-      }
-    }
-    callback(data);
+  userGetGamesAsPlayer : function( user, callback ) {
+    // for some reason IDs weren't working here so names are used instead
+    tools.Game.find({ "meta.players" : { $elemMatch: { "name":user.name }}}, function(err,games) {
+      if (err) throw err;
+      callback(games);
+    });
   },
 
-  prepareForSvg : function( data ) {
+  userPushChanges : function( user ) {
+    // update the meta.author
+    module.exports.userGetGamesAsAuthor( user, function(games) {
+      for (let g=0; g<games.length; g++) {
+        games[g].meta.author = user.getPublicData();
+        games[g].meta.updated = new Date;
+        games[g].save( function(err) { if (err) throw err; });
+      }
+    });
+
+    // update the meta.players
+    module.exports.userGetGamesAsPlayer( user, function(games) {
+      for (let g=0; g<games.length; g++) {
+        for (let p=0; p<games[g].meta.players.length; p++) {
+          if ( module.exports.usersCheckEqual(games[g].meta.players[p], user) ) {
+            games[g].meta.players[p] = user.getPublicData();
+          }
+        }
+        games[g].meta.updated = new Date;
+        games[g].save( function(err) { if (err) throw err; });
+      }
+    });
+  },
+
+  prepareUsersData : function( callback ) {
+    // only pass relevent information to the admin.ejs page for each user
+    tools.User.find({}, function(err,users) {
+      if (err) throw err;
+
+      let data = [];
+      for (let u=0; u<users.length; u++) {
+        data.push( users[u].getExtendedPublicData() );
+      }
+      callback(data);
+    });
+  },
+
+  prepareGamesData :  function( user, callback ) {
+    // only pass relevant information to the lobby.ejs page for each game
+    tools.Game.find({}, function(err,games) {
+      if (err) throw err;
+
+      let data = [];
+      for (let g=0; g<games.length; g++) {
+        datum = {
+          id       : games[g]._id,
+          scenario : games[g].settings.scenario,
+          numHumans: games[g].settings.numHumans,
+          numCPUs  : games[g].settings.numCPUs,
+          players  : games[g].meta.players,
+          author   : games[g].meta.author,
+          VPs      : games[g].settings.victoryPointsGoal,
+          turn     : games[g].state.public.turn,
+          status   : games[g].meta.status,
+          public   : games[g].meta.publiclyViewable,
+          waitfor  : games[g].meta.waitfor,
+          created  : tools.formatDate( games[g].meta.created ),
+          updated  : tools.formatDate( games[g].meta.updated ),
+          isFull   : module.exports.checkIsFull(games[g])
+        }
+
+        if ( module.exports.checkIsActive(games[g]) || user.isAdmin) {
+          data.push( datum );
+        }
+      }
+      callback(data);
+    });
+  },
+
+  prepareGamesForPlay : function( data ) {
+    // get the svg data
 
     guidefs = require('../config/gui/standard');
 

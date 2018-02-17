@@ -3,11 +3,11 @@
     <a href="/">CatOnline</a>
   </div>
   <div class="login-info-container">
-    <% if (typeof user === 'undefined') { %>
+    <% if (user) { %>
+      Logged in as <a href="/profile/<%= user.name %>"><%= user.name %></a> (<% if (user.isAdmin) { %><a href="/admin">admin</a>, <% } %><a href="/logout">logout</a>)
+    <% } else { %>
       <a href="/login">Login</a>
       <a href="/register">Register</a>
-    <% } else { %>
-      Logged in as <a href="/profile"><%= user.name %></a> (<a href="/logout">Logout</a>)
     <% } %>
   </div>
 </div>

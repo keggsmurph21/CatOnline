@@ -23,19 +23,8 @@
         info
       </div>
 
-      <div class="panel" id="messages">
-        <div class="messages public">
-          <ul class="messages">
-            <li class='message admin center'><span>Welcome to CatOnline chat!</span></li>
-          </ul>
-        </div>
-        <div class="messages status">
-          currently online: <span class="currently-online">0</span>
-        </div>
-        <div class="messages input">
-          <input class="messages" placeholder="type your message here ...">
-        </div>
-      </div>
+      <%- include( 'messages.ejs' ) %>
+      
     </div>
 
     <div class="frame" id="game">

@@ -20,11 +20,13 @@ module.exports = {
     return dateFormat(datetime, "mmm. dS, h:MM:ss tt")
   },
 
+  isValidID : function(id) {
+    // mongo IDs are always 24 alphanumeric chars
+    return (id.length===24 && id.match(/^[a-z0-9]+$/i));
+  },
 
-  models : {
-    User : require('./models/user'),
-    Scenario : require('./models/scenarios'),
-    Game : require('./models/game')
-  }
+  User : require('./models/user'),
+
+  Game : require('./models/game')
 
 }

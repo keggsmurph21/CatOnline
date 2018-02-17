@@ -1,0 +1,16 @@
+<div class="panel" id="messages">
+  <div class="messages public">
+    <ul class="messages">
+      <li class='message admin center'><strong>Welcome to CatOnline chat!</strong></li>
+      <% if (message.length) { %>
+        <li class='message admin'><%= message %></li>
+      <% } %>
+    </ul>
+  </div>
+  <div class="messages status">
+    currently online: <span class="currently-online">0</span>
+  </div>
+  <div class="messages input">
+    <input class="messages" placeholder="type your message here ...">
+  </div>
+</div>

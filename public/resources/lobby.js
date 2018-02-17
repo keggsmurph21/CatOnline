@@ -1,4 +1,316 @@
-$(function() {
+// functionality specific to /lobby
+
+// FUNCTIONS
+function checkIfUserInGame( user, game ) {
+  for (let p=0; p<game.players.length; p++) {
+    if ( usersCheckEqual(game.players[p], user) ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+function outputGameMinRowString( data, type ) {
+  let str = '';
+
+  if (type==='active') {
+    str += '<th>' + data.turn + ' (' + data.waitfor.name + ')</th>';
+  } else {
+    str += '<th><strong class="' + data.status + '" id="data' + data.status + '">' + data.status + '</strong></th>';
+  }
+  str +=   '<th>' + data.scenario + '</th>';
+  str +=   '<th>';
+  if (type==='active') {
+    str +=   (data.numHumans + data.numCPUs);
+  } else {
+    str +=   '<span class="current-number" id="' + data.id + '">' + data.players.length + '</span>/';
+    str +=   '<span class="required-number">'+ data.numHumans + '</span>';
+  }
+  str +=   '</th>';
+  str +=   '<th>' + formatUsername( data.author ) + '</th>';
+  str +=   '<th><span class="date-updated" id="date' + data.id + '">' + data.updated + '</span></th>';
+  str += '</tr>';
+
+  return str;
+}
+function outputGameMaxRowString( data, type ) {
+  let str = '';
+
+  str += '<th colspan="6">';
+  str +=   '<div class="lobby max-container">';
+  str +=     '<div class="lobby max info">';
+  str +=       '<p class="victory-points-info">';
+  str +=         '<strong>' + data.VPs + '&nbsp;';
+  str +=         'Victory Points</strong> required for victory';
+  str +=       '</p>';
+  str +=       '<div class="players-list" id="pl' + data.id + '">';
+  for (let p=0; p<data.numHumans; p++) {
+    str +=       '<p>';
+    str +=         '<span class="num">Player ' + (p+1) + ':&nbsp;&nbsp</span>';
+    str +=         formatUsername( data.players[p] );
+    str +=       '</p>';
+  }
+  str +=       '</div>';
+  str +=     '</div>';
+  str +=     '<div class="lobby max button">';
+  switch (type) {
+    case 'active':
+      str +=   '<button class="lobby play link" id="play' + data.id + '">Play</button>';
+      break;
+    case 'pending':
+      if ( usersCheckEqual(data.author, user) ) {
+        str += '<button class="lobby delete link" id="delete' + data.id + '">Delete</button>';
+        str += '<form action="/delete" method="POST" id="ld' + data.id + '" class="hidden-form">';
+        str +=   '<input type="hidden" name="gameid" value="' + data.id + '" />';
+        str += '</form>';
+      } else {
+        str += '<button class="lobby leave link" id="leave' + data.id + '">Leave</button>';
+        str += '<form action="/leave" method="POST" id="lf' + data.id + '" class="hidden-form">';
+        str +=   '<input type="hidden" name="gameid" value="' + data.id + '" />';
+        str += '</form>';
+      }
+      str +=   '<button class="lobby share link" id="share' + data.id + '">Share</button>';
+      str +=   '<button class="lobby launch link" id="launch'  + data.id + '" ' + (data.players.length===data.numHumans ? '' : 'disabled') + '>Launch</button>';
+      str +=   '<form action="/launch" method="POST" id="ll' + data.id + '" class="hidden-form">';
+      str +=     '<input type="hidden" name="gameid" value="' + data.id + '" />';
+      str +=   '</form>';
+      break;
+    case 'available':
+      str +=   '<button class="lobby join link" id="join' + data.id + '">Join</button>';
+      str +=   '<form action="/join" method="POST" id="jf' + data.id + '" class="hidden-form">';
+      str +=     '<input type="hidden" name="gameid" value="' + data.id + '" />';
+      str +=   '</form>';
+      break;
+  }
+  str +=     '</div>';
+  str +=   '</div>';
+  str += '</th>';
+
+  return str;
+}
+function updateTables(data) {
+  /***
+    take incoming data from a socket event and use it to populate our lobby tables
+    ***/
+
+  // remove the "no current games ..." displays
+  $('tr.lobby.null').detach();
+
+  // get a list of ids, eventually remove ones we don't match
+  let ids = [];
+
+  // iterate over each piece of incoming data
+  for (let f=0; f<data.length; f++) {
+
+    ids.push( data[f].id )
+    // decide which table it belongs in
+    let type;
+    if ( data[f].status==='in-progress' ) {
+      type = 'active';
+    } else {
+      type = 'available';
+      for (let p=0; p<data[f].players.length; p++) {
+        let player = data[f].players[p];
+        if ( usersCheckEqual(player, user) ) {
+          type = 'pending';
+        }
+      }
+    }
+    // some bools as helpers
+    let isVisible = (!data[f].isFull || checkIfUserInGame( user, data[f] ));
+    let hasChanged = $('span#date'+data[f].id ).html()!==data[f].updated.toString();
+    let isInTables = $('table.gamelist').has( 'tr#min' + data[f].id ).length > 0;
+
+    // decide if we need to remove (it's filled up), add, update, or nothing
+    if ( !isVisible ) {
+      removeTableRow( data[f] );
+    } else if ( !isInTables && isVisible ) {
+      addTableRow( data[f], type );
+    } else if ( hasChanged ) {
+      updateTableRow( data[f], type );
+    }
+
+  }
+
+  // now remove the ones that were deleted with /delete
+  let unmatchedids = [];
+  $('table.gamelist').find('tr.min').each( function(k,v) {
+    let id = $(v).prop('id').replace(/min/, '');
+    if (ids.indexOf(id)<0) unmatchedids.push( id );
+  });
+  for (let f=0; f<unmatchedids.length; f++) {
+    $('tr#min'+unmatchedids[f]).detach();
+    $('tr#max'+unmatchedids[f]).detach();
+  }
+
+  // check if we need to add the "no current games ..." displays
+  for (let f=0; f<3; f++) {
+    let type = ['active', 'pending', 'available'][f];
+    if ( $('table#' + type + '-games').find('tr').length===1 ) {
+      let table = $('table#' + type + '-games tr:last');
+      table.after( '<tr class="lobby null"><th colspan="10"><div class="lobby null-container">no current games ...</div></th></tr>' );
+    }
+  }
+
+  // add listeners to things that live inside the tables
+  $(".lobby.play.link").unbind().click( function(event) {
+    let id = event.target.id.replace( 'play', '' );
+    window.location.href=('/play/' + id); // GET
+  });
+  $( 'tr.lobby.min' ).unbind().click( function(event) {
+    handleClickListitem(event);
+  });
+  $('.lobby.delete.link').unbind().click( function(event) {
+    let id = event.target.id.replace( 'delete', '');
+    $('#ld'+id).submit(); // POST
+  })
+  $('.lobby.share.link').unbind().click( function(event) {
+    let id = event.target.id.replace( 'share', '' );
+    let input = $('#private-code-input');
+    input.val(id);
+    input.select()
+    document.execCommand('copy');
+    msginput.val( 'Hi, come @(join my game!,' + input.val() + ')' );
+    msginput.focus();
+    input.val('');
+  });
+  $('.lobby.leave.link').unbind().click( function(event) {
+    let id = event.target.id.replace( 'leave', '' );
+    $('#lf'+id).submit(); // POST
+  });
+  $(".lobby.launch.link").unbind().click( function(event) {
+    let id = event.target.id.replace( 'launch', '' );
+    $('#ll'+id).submit(); // POST
+  });
+  $(".lobby.join.link").unbind().click( function(event) {
+    let id = event.target.id.replace( 'join', '' );
+    $('#jf'+id).submit(); // POST
+  });
+
+  // open up the hashed object
+  if (window.location.hash.length) {
+    let id = window.location.hash.replace(/#/, 'min');
+    handleClickListitem(null,id);
+    window.location.hash = '';
+  }
+}
+function removeTableRow(data) {
+  $('tr#min'+data.id).detach();
+  $('tr#max'+data.id).detach();
+}
+function updateTableRow(data, type) {
+
+  $('#min' + data.id).html( outputGameMinRowString(data,type) );
+  $('#max' + data.id).html( outputGameMaxRowString(data,type) );
+
+}
+function addTableRow(data, type) {
+
+  let row, table = $('table#' + type + '-games tr:last');
+
+  row  = '<tr class="lobby max" id="max' + data.id + '">';
+  row +=   outputGameMaxRowString(data, type);
+  row += '</tr>';
+  table.after( row );
+
+  row  = '<tr class="lobby min" id="min' + data.id + '">';
+  row +=   outputGameMinRowString(data, type);
+  row += '</tr>';
+  table.after( row );
+
+}
+function handleClickListitem(event, id) {
+
+  // either get the id from a click or a direct pass
+  // (fragment identifiers are handled in this way)
+  id = (event) ? (event.target.parentNode.id || event.target.parentNode.parentNode.id) : id;
+
+  min = $( '#' + id.replace(/max/, 'min') );
+  if (id !== expandedid) {
+    min.children()
+      .css( 'border-bottom-style', 'none' )
+      .css( 'background-color', '#eee' );
+  } else {
+    min.children()
+      .css( 'border-bottom-style', 'solid' )
+      .css( 'background-color', '#ddd' );
+  }
+  min.siblings().filter('.min').children()
+    .css( 'border-bottom-style', 'solid' )
+    .css( 'background-color', '#ddd' );
+
+  max =  $( '#' + id.replace(/min/, 'max') );
+  if (id !== expandedid) {
+    max.css( 'display', 'table-row' )
+      .children().css( 'background-color', '#eee' );
+  } else {
+    max.css( 'display', 'none' )
+      .children().css( 'background-color', '#ddd' );
+  }
+  max.siblings().filter( '.max' )
+    .css( 'display', 'none' )
+    .children().css( 'background-color', '#ddd' );
+
+  if (id.indexOf('min') > -1) {
+    expandedid = (id !== expandedid ? id : null);
+  }
+
+}
+
+// GLOBALS
+var expandedid, msginput, ngsbutton, ngsdiv,
+  minWidthForWideView = 1200,
+  maxWidthForNarrView = 1000;
+
+// ON READY
+$( function() {
+
+  // handle the /newgame form items
+  ngsbutton = $('button#new-game-show');
+  ngsdiv = $('div.new-game#show-hide');
+  ngsbutton.click( function(event) {
+    event.preventDefault();
+    ngsdiv.toggle();
+    if (ngsdiv.css( 'display' )==='none') {
+      ngsbutton.html( 'Host' );
+    } else {
+      ngsbutton.html( 'Cancel' );
+    }
+  });
+
+  // Keyboard/window events
+  $(window).keydown( function(event) {
+    if (event.which === 13) { // ENTER
+      if (msginput.is(':focus')) {
+        sendChatMessage();
+      }
+    }
+  });
+
+  // Socket events
+  socket.on('on connection', function(data) {
+    updateTables(data.games);
+  });
+  socket.on('new connection', function(data) {
+    updateTables(data.games);
+  });
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*$(function() {*/
   /*
   var FADE_TIME = 150; // ms
   var TYPING_TIMER_LENGTH = 400; // ms
@@ -21,7 +333,7 @@ $(function() {
   var typing = false;
   var lastTypingTime;
   var $currentInput;*/
-
+  /*
   var username, userid;
   var messagesUL = $('ul.messages');
   var messagesDiv = $('div.messages.public');
@@ -270,7 +582,7 @@ $(function() {
       expandedid = (id !== expandedid ? id : null);
     }
 
-  }
+  }*/
 
   /*
   function addParticipantsMessage (data) {
@@ -346,7 +658,7 @@ $(function() {
 
     addMessageElement($messageDiv, options);
   }
-  */
+  *//*
   function addChatMessage(data, options={}) {
     let msgText = '<li class="';
     msgText += 'message ' + (options.class || '') + ' ' + data.username + '">';
@@ -411,19 +723,19 @@ $(function() {
     if (message) {
       messagesInput.val('');
       addChatMessage({ body:message, username:username });
-      /*addChatMessage({
+      *//*addChatMessage({
         username: username,
         message: message
       });*/
       // tell server to execute 'new message' and send along one parameter
-      socket.emit('new message', message);
+      /*socket.emit('new message', message);
     }
   }
 
   // Prevents input from having injected markup
   function cleanInput (input) {
     return $('<div/>').text(input).html();
-  }
+  }*/
 
   /*
   // Adds the visual chat typing message
@@ -552,7 +864,7 @@ $(function() {
   */
 
   // Keyboard events
-
+  /*
   $(window).keydown( function(event) {
     // When the client hits ENTER on their keyboard
     if (event.which === 13) {
@@ -587,7 +899,7 @@ $(function() {
 
   socket.on('new message', function(data) {
     addChatMessage({ body:data.message, username:data.username });
-  })
+  })*/
 
   /*
   // Whenever the server emits 'login', log the login message
@@ -644,4 +956,4 @@ $(function() {
     log('attempt to reconnect has failed');
   });
   */
-});
+/*});*/
