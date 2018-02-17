@@ -57,5 +57,9 @@ typings/
 # dotenv environment variables file
 .env
 
+# don't want to track database files anymore ... fixed the issue that
+# was making the empty db's crash on startup
+data
+
 # useless crap
 .DS_Store
