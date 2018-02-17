@@ -1,6 +1,7 @@
 // server.js
 
 // setup
+var tools         = require('./app/tools.js');
 var express       = require('express');
 var app           = express();
 var port          = process.env.PORT || 3000;
@@ -22,9 +23,8 @@ var configDB      = require('./config/database.js');
 var sessionStore   = new express.session.MemoryStore();
 
 // configuration
-mongoose.connect(configDB.url, function(err) {
-  if (err) console.log(err);
-});
+mongoose.connect(configDB.url, function(err) { if (err) throw err; });
+configDB.checkStatus( tools, 'password' );
 
 require('./config/passport.js')(passport);
 

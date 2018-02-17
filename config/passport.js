@@ -39,11 +39,11 @@ module.exports = function(passport) {
       // asynchronous
       // User.findOne won't fire unless data is sent back
       process.nextTick(function() {
-        if (!username.match(/^[a-zA-Z0-9\-_]{6,16}$/) || username==='') {
-          return done(null, false, req.flash( 'registerMessage', 'Username must be between 6 and 16 alphanumeric characters plus "_" or "-".' ));
+        if (!username.match(/^[a-zA-Z0-9\-_]{5,16}$/) || username==='') {
+          return done(null, false, req.flash( 'registerMessage', 'Username must be between 5 and 16 alphanumeric characters plus "_" or "-".' ));
         }
-        if (!password.match(/^.{6,32}$/)) {
-          return done(null, false, req.flash( 'registerMessage', 'Password must be between 6 and 32 characters.' ));
+        if (!password.match(/^.{8,32}$/)) {
+          return done(null, false, req.flash( 'registerMessage', 'Password must be between 8 and 32 characters.' ));
         } else if (!password.match(/^[a-zA-Z0-9~\!@#\$%\^&\*\(\)\-\=_\+\|,\.\<\>\?;\:'"/\\\[\]\{\}]+$/)) {
           return done(null, false, req.flash( 'registerMessage', 'Password must not contain any "special" characters.' ));
         }
@@ -74,6 +74,7 @@ module.exports = function(passport) {
             user.activeGamesAsPlayer = 0;
             user.maxActiveGamesAsAuthor = 3;
             user.maxActiveGamesAsPlayer = 5;
+            user.allowResetPassword = false;
 
             // save user to the session
             req.session.user = user.getPublicData();

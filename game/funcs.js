@@ -258,10 +258,12 @@ module.exports = {
   prepareGamesData :  function( user, callback ) {
     // only pass relevant information to the lobby.ejs page for each game
     tools.Game.find({}, function(err,games) {
+      console.log( 'found '+games.length+' games' );
       if (err) throw err;
 
       let data = [];
       for (let g=0; g<games.length; g++) {
+        console.log( games[g]._id );
         datum = {
           id       : games[g]._id,
           scenario : games[g].settings.scenario,

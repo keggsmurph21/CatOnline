@@ -33,6 +33,7 @@
             <th>isAdmin</th>
             <th>isMuted</th>
             <th>flair</th>
+            <th>password reset</th>
           </tr>
         </table>
         <span class="batch user">
@@ -186,6 +187,13 @@
       str += '</form>';
     }
     str += '</th>';
+    str += '<th><form class="admin" method="post" action="/admin/toggle-password-reset"><strong class="';
+    if ( data.allowResetPassword ) {
+      str += 'true">enabled';
+    } else {
+      str += 'false">disabled';
+    }
+    str += '<button type="submit">toggle</button></strong></form></th>';
 
     return str;
   }
@@ -235,6 +243,8 @@
 
     // iterate over each incoming game
     for (let g=0; g<games.length; g++) {
+
+      console.log(games[g].id);
 
       ids.push( games[g].id );
       let hasChanged = $('#' + games[g].id + ' span.date' ).html()!==games[g].updated.toString();

@@ -15,7 +15,8 @@ var UserSchema = mongoose.Schema({
   activeGamesAsAuthor: Number,
   activeGamesAsPlayer: Number,
   maxActiveGamesAsAuthor: Number,
-  maxActiveGamesAsPlayer: Number
+  maxActiveGamesAsPlayer: Number,
+  allowResetPassword: Boolean
 });
 
 // methods
@@ -45,6 +46,7 @@ UserSchema.methods.getExtendedPublicData = function() {
   data.activeGamesAsPlayer = this.activeGamesAsPlayer;
   data.maxActiveGamesAsAuthor = this.maxActiveGamesAsAuthor;
   data.maxActiveGamesAsPlayer = this.maxActiveGamesAsPlayer;
+  data.allowResetPassword = this.allowResetPassword;
   return data;
 }
 
