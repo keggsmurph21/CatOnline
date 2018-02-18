@@ -8,7 +8,7 @@ var config= require('../config/new-game-form.json');
 module.exports = function(app, passport) {
 
   // LOBBY PAGE
-  app.get('/lobby', isLoggedIn, function(req,res) {
+  app.get('/lobby', tools.isLoggedIn, function(req,res) {
     res.render('lobby.ejs', {
       message: req.flash('lobbyMessage'),
       user: req.user,
@@ -18,7 +18,7 @@ module.exports = function(app, passport) {
   });
 
   // JOIN PAGE
-  app.post('/join', isLoggedIn, function(req,res) {
+  app.post('/join', tools.isLoggedIn, function(req,res) {
     tools.User.findById( req.user.id, function(err,user) {
       if (err) throw err;
       if (!user) throw 'Error: unable to find user.';
@@ -30,9 +30,9 @@ module.exports = function(app, passport) {
             req.flash( 'lobbyMessage', 'Unable to find game ' + req.body.gameid );
             res.redirect( '/lobby' );
           } else if ( funcs.checkIsActive(game) ) {
-            if (!funcs.checkIfUserInGame(req.user, game) && !funcs.checkIsFull(game)) {
+            if (!funcs.checkIfUserInGame(req.user, game) && !game.checkIsFull()) {
               game.meta.players.push( req.user );
-              game.meta.status = ( funcs.checkIsFull(game) ? 'ready' : 'pending' );
+              game.meta.status = ( game.checkIsFull() ? 'ready' : 'pending' );
               game.meta.updated = new Date;
               game.save( function(err) {
                 if (err) throw err;
@@ -41,6 +41,7 @@ module.exports = function(app, passport) {
                   if (err) throw err;
 
                   // SUCCESS
+                  tools.log( 'user '+user.id+' ('+user.name+') joined game '+game.id );
                   req.flash('lobbyMessage', 'You have joined a game.');
                   res.redirect('/lobby#'+req.body.gameid);
 
@@ -63,22 +64,19 @@ module.exports = function(app, passport) {
   });
 
   // LEAVE PAGE
-  app.post('/leave', isLoggedIn, function(req,res) {
-    funcs.tryRemoveUserFromGame(
-      req.user, req.user.id, req.body.gameid,
-      function(err, message) {
+  app.post('/leave', tools.isLoggedIn, function(req,res) {
+    funcs.tryKickUserFromGame( req.user, req.user.id, req.body.gameid,
+      function(err, success, message) {
         if (err) throw err;
+        tools.log( 'user '+user.id+' ('+user.name+') left game '+game.id );
         req.flash( 'lobbyMessage', message );
-        res.redirect( '/lobby' ); },
-      function(message) {
-        req.flash( 'lobbyMessage', message );
-        res.redirect( '/lobby/#'+req.body.gameid );
+        res.redirect( '/lobby' );
       }
     );
   });
 
   // LAUNCH PAGE
-  app.post('/launch', isLoggedIn, function(req,res) {
+  app.post('/launch', tools.isLoggedIn, function(req,res) {
     tools.Game.findById(req.body.gameid, function(err,game) {
       if (err) throw err;
       if (!game) {
@@ -95,6 +93,7 @@ module.exports = function(app, passport) {
             game.meta.updated = new Date;
             game.save( function(err) {
               if (err) throw err;
+              tools.log( 'user '+user.id+' ('+user.name+') launched game '+game.id );
               res.redirect('/play/'+req.body.gameid);
             });
 
@@ -112,7 +111,7 @@ module.exports = function(app, passport) {
   });
 
   // DELETE PAGE
-  app.post('/delete', isLoggedIn, function(req,res) {
+  app.post('/delete', tools.isLoggedIn, function(req,res) {
     tools.User.findById( req.user.id, function(err,user) {
       if (err) throw err;
       if (!user) throw 'Error: unable to find user.';
@@ -138,6 +137,7 @@ module.exports = function(app, passport) {
           }
           game.remove( function(err,game) {
             if (err) throw err;
+            tools.log( 'user '+user.id+' ('+user.name+') deleted game '+game.id );
             req.flash('lobbyMessage', 'Deleted a game.');
             res.redirect('/lobby#'+req.body.gameid);
           });
@@ -150,7 +150,7 @@ module.exports = function(app, passport) {
   });
 
   // NEWGAME PAGES
-  app.post('/newgame', isLoggedIn, function(req,res) {
+  app.post('/newgame', tools.isLoggedIn, function(req,res) {
     tools.User.findById( req.user.id, function(err,user) {
       if (err) throw err;
       if (!user) throw 'ERROR: unable to find user.';
@@ -167,6 +167,7 @@ module.exports = function(app, passport) {
               if (err) throw err;
 
               // SUCCESS
+              tools.log( 'user '+user.id+' ('+user.name+') initialized game '+game.id );
               req.flash('lobbyMessage', 'Your game has been created.');
               res.redirect('/lobby#'+req.body.gameid);
 
@@ -184,7 +185,7 @@ module.exports = function(app, passport) {
   });
 
   // PLAY PAGES
-  app.get('/play/:gameid', isLoggedIn, function(req,res) {
+  app.get('/play/:gameid', tools.isLoggedIn, function(req,res) {
 
     if ( tools.isValidID(req.params.gameid) ) {
       tools.Game.findById( req.params.gameid, function(err,game) {
@@ -221,261 +222,15 @@ module.exports = function(app, passport) {
   });
 
   // ADMIN PAGES
-  app.get('/admin', isLoggedIn, function(req,res) {
-    if (req.user.isAdmin) {
-      res.render('admin.ejs', {
-        user: req.user,
-        message: req.flash( 'adminMessage' )
-      });
-    } else {
-      // throw a 403 here
-      req.flash( 'lobbyMessage', 'Unable to access admin pages: forbidden.' );
-      res.redirect( '/lobby' );
-    }
+  app.get('/admin', tools.isAdmin, function(req,res) {
+    res.render('admin.ejs', {
+      user: req.user,
+      message: req.flash( 'adminMessage' )
+    });
   });
-  app.post('/admin/promote', isLoggedIn, function(req,res) {
-    if (req.user.isAdmin) {
-      if (req.user.isSuperAdmin) {
-        let id = req.body.userid;
-        if ( tools.isValidID(id) ) {
-          tools.User.findById(id, function(err,user) {
-            if (err) throw err;
-            if (!user) {
-              req.flash( 'adminMessage', 'Unable to find user '+id );
-              res.redirect( '/admin' );
-            } else if (user.isAdmin) {
-              req.flash( 'adminMessage', 'User '+user.name+' is already an admin.' );
-              res.redirect( '/admin' );
-            }
 
-            user.isAdmin = true;
-            user.isMuted = false;
-            user.save( function(err) {
-              if (err) throw err;
-
-              // SUCCESS
-              funcs.userPushChanges( user );
-              req.flash( 'adminMessage', 'Successfully promoted '+user.name+' to admin.' );
-              res.redirect( '/admin' );
-
-            });
-          });
-        } else {
-          req.flash( 'adminMessage', 'Invalid user id '+id );
-          res.redirect( '/admin' );
-        }
-      } else {
-        // throw a 403 here
-        req.flash( 'adminMessage', 'Unable to access superadmin pages: forbidden.' );
-        res.redirect( '/admin' );
-      }
-    } else {
-      // throw a 403 here
-      req.flash( 'lobbyMessage', 'Unable to access admin pages: forbidden.' );
-      res.redirect( '/lobby' );
-    }
-  });
-  app.post('/admin/demote', isLoggedIn, function(req,res) {
-    if (req.user.isAdmin) {
-      if (req.user.isSuperAdmin) {
-        let id = req.body.userid;
-        if ( tools.isValidID(id) ) {
-          tools.User.findById(id, function(err,user) {
-            if (err) throw err;
-            if (!user) {
-              req.flash( 'adminMessage', 'Unable to find user '+id );
-              res.redirect( '/admin' );
-            } else if (user.isSuperAdmin) {
-              req.flash( 'adminMessage', 'Superadmins cannot be demoted.' );
-              res.redirect( '/admin' );
-            } else if (!user.isAdmin) {
-              req.flash( 'adminMessage', 'User '+user.name+' is not an admin.' );
-              res.redirect( '/admin' );
-            }
-            user.isAdmin = false;
-            user.save( function(err) {
-              if (err) throw err;
-
-              // SUCCESS
-              funcs.userPushChanges( user );
-              req.flash( 'adminMessage', 'Successfully demoted '+user.name+' to peon.' );
-              res.redirect( '/admin' );
-
-            });
-          });
-        } else {
-          req.flash( 'adminMessage', 'Invalid user id '+id );
-          res.redirect( '/admin' );
-        }
-      } else {
-        // throw a 403 here
-        req.flash( 'adminMessage', 'Unable to access superadmin pages: forbidden.' );
-        res.redirect( '/admin' );
-      }
-    } else {
-      // throw a 403 here
-      req.flash( 'lobbyMessage', 'Unable to access admin pages: forbidden.' );
-      res.redirect( '/lobby' );
-    }
-  });
-  app.post('/admin/mute', isLoggedIn, function(req,res) {
-    if (req.user.isAdmin) {
-      let id = req.body.userid;
-      if ( tools.isValidID(id) ) {
-        tools.User.findById(id, function(err,user) {
-          if (err) throw err;
-          if (!user) {
-            req.flash( 'adminMessage', 'Unable to find user '+id );
-            res.redirect( '/admin' );
-          } else if (user.isSuperAdmin) {
-            req.flash( 'adminMessage', 'Superadmins cannot be muted.' );
-            res.redirect( '/admin' );
-          } else if (user.isAdmin && !req.user.isSuperAdmin) {
-            req.flash( 'adminMessage', 'Only superadmins can mute admins.' );
-            res.redirect( '/admin' );
-          } else if (user.isMuted) {
-            req.flash( 'adminMessage', user.name+' is already muted.' );
-            res.redirect( '/admin' );
-          }
-
-          user.isMuted = true;
-          user.save( function(err) {
-            if (err) throw err;
-
-            // SUCCESS
-            funcs.userPushChanges( user );
-            req.flash( 'adminMessage', 'Muted '+user.name+'.' );
-            res.redirect( '/admin' );
-
-          });
-        });
-      } else {
-        req.flash( 'adminMessage', 'Invalid user id '+id );
-        res.redirect( '/admin' );
-      }
-    } else {
-      // throw a 403 here
-      req.flash( 'lobbyMessage', 'Unable to access admin pages: forbidden.' );
-      res.redirect( '/lobby' );
-    }
-  });
-  app.post('/admin/unmute', isLoggedIn, function(req,res) {
-    if (req.user.isAdmin) {
-      let id = req.body.userid;
-      if ( tools.isValidID(id) ) {
-        tools.User.findById(id, function(err,user) {
-          if (err) throw err;
-          if (!user) {
-            req.flash( 'adminMessage', 'Unable to find user '+id );
-            res.redirect( '/admin' );
-          } else if (user.isSuperAdmin) {
-            req.flash( 'adminMessage', 'Superadmins are never muted.' );
-            res.redirect( '/admin' );
-          } else if (user.isAdmin && !req.user.isSuperAdmin) {
-            req.flash( 'adminMessage', 'Only superadmins can unmute admins.' );
-            res.redirect( '/admin' );
-          } else if (!user.isMuted) {
-            req.flash( 'adminMessage', user.name+' is not muted.' );
-            res.redirect( '/admin' );
-          }
-
-          user.isMuted = false;
-          user.save( function(err) {
-            if (err) throw err;
-
-            // SUCCESS
-            funcs.userPushChanges( user );
-            req.flash( 'adminMessage', 'Unmuted '+user.name+'.' );
-            res.redirect( '/admin' );
-
-          });
-        });
-      } else {
-        req.flash( 'adminMessage', 'Invalid user id '+id );
-        res.redirect( '/admin' );
-      }
-    } else {
-      // throw a 403 here
-      req.flash( 'lobbyMessage', 'Unable to access admin pages: forbidden.' );
-      res.redirect( '/lobby' );
-    }
-  });
-  app.post('/admin/flair', isLoggedIn, function(req,res) {
-    if (req.user.isAdmin) {
-      let id = req.body.userid;
-      if ( tools.isValidID(id) ) {
-        tools.User.findById(id, function(err,user) {
-          if (err) throw err;
-          let flair = req.body.flair;
-
-          if (!user) {
-            req.flash( 'adminMessage', 'Unable to find user '+id );
-            res.redirect( '/admin' );
-          } else if (flair===user.flair) {
-            req.flash( 'adminMessage', 'No changes to be made!' );
-            res.redirect( '/admin' );
-          } else if (user.isSuperAdmin && !funcs.usersCheckEqual(user,req.user)) {
-            req.flash( 'adminMessage', 'Superadmin flair can only be edited by that superadmin.' );
-            res.redirect( '/admin' );
-          } else if (user.isAdmin && !(user.isSuperAdmin || funcs.usersCheckEqual(user,req.user)) ) {
-            req.flash( 'adminMessage', 'Admin flair can only be edited by that admin or superadmins.' );
-            res.redirect( '/admin' );
-          } else if ((flair.match(/[⚡️,👑,🔇]./) || []).length) {
-            req.flash( 'adminMessage', 'Sorry, but you can\'t use that flair!' );
-            res.redirect( '/admin' );
-          } else {
-            user.flair = flair;
-            user.save( function(err) {
-              if (err) throw err;
-
-              // SUCCESS
-              funcs.userPushChanges( user );
-              req.flash( 'adminMessage', 'Successfully promoted '+user.name+' to admin.' );
-              res.redirect( '/admin' );
-
-            });
-          }
-        });
-      } else {
-        req.flash( 'adminMessage', 'Invalid user id '+id );
-        res.redirect( '/admin' );
-      }
-    } else {
-      // throw a 403 here
-      req.flash( 'lobbyMessage', 'Unable to access admin pages: forbidden.' );
-      res.redirect( '/lobby' );
-    }
-  });
-  app.post('/admin/batch/users', isLoggedIn, function(req,res) {
-    console.log( req.body );
-  });
-  app.post('/admin/kick', isLoggedIn, function(req,res) {
-    if (req.user.isAdmin) {
-      for (let kickid in req.body) {
-        if (req.body[kickid]==='on') {
-          funcs.tryRemoveUserFromGame(
-            req.user, kickid.replace(/user/, ''), req.body.gameid,
-            function(err, message) {
-              if (err) throw err;
-              console.log( message ); },
-            function(message) {
-              console.log( message );
-            }
-          );
-        }
-      }
-      res.redirect('/admin');
-    } else {
-      // throw a 403 here
-      req.flash( 'lobbyMessage', 'Unable to access admin pages: forbidden.' );
-      res.redirect( '/lobby' );
-    }
-  });
-  app.post('/admin/batch/games', isLoggedIn, function(req,res) {
-    console.log( req.body );
-  });
   // LOGIN PAGES
-  app.get('/login', notLoggedIn, function(req,res) {
+  app.get('/login', tools.notLoggedIn, function(req,res) {
     res.render('login.ejs', {
       message: req.flash('loginMessage'),
       user: req.user
@@ -488,7 +243,7 @@ module.exports = function(app, passport) {
   }));
 
   // REGISTER PAGES
-  app.get('/register', notLoggedIn, function(req,res) {
+  app.get('/register', tools.notLoggedIn, function(req,res) {
     res.render('register.ejs', {
       message: req.flash('registerMessage'),
       user: req.user
@@ -507,10 +262,10 @@ module.exports = function(app, passport) {
   });
 
   // PROFILE PAGES
-  app.get('/profile', isLoggedIn, function(req,res) {
+  app.get('/profile', tools.isLoggedIn, function(req,res) {
     res.redirect( '/profile/' + req.user.name );
   });
-  app.get('/profile/:username', isLoggedIn, function(req,res) {
+  app.get('/profile/:username', tools.isLoggedIn, function(req,res) {
     tools.User.findOne({ name:req.params.username }, function(err,user) {
       if (err) throw err;
       if (!user) {
@@ -541,27 +296,3 @@ module.exports = function(app, passport) {
     });
   });
 };
-
-// route middleware to make sure user is logged in
-function isLoggedIn(req,res,next) {
-
-  if (req.isAuthenticated()) {
-    req.user = req.user.getPublicData();
-    return next();
-  }
-
-  req.flash('loginMessage', 'You must be logged in to view this page!');
-  res.redirect('/login');
-
-}
-
-// route middleware to disallow login page to those already logged in
-function notLoggedIn(req,res,next) {
-
-  if (!req.isAuthenticated()) {
-    return next();
-  }
-
-  req.flash('lobbyMessage', "You're already logged in!");
-  res.redirect('/lobby');
-}

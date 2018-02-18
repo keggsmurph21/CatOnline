@@ -424,12 +424,10 @@ strong.pending {
   ***/
 
 .admin.content {
-  flex-flow: row-reverse nowrap;
+  flex-flow: column nowrap;
 }
 .admin.frame {
-  height: 100%;
   padding: 2em 1em;
-  min-width: 650px;
 }
 
 
@@ -448,6 +446,7 @@ table.admin {
   font-size: 0.9em;
   width: 100%;
   border-collapse: collapse;
+  line-height: 1.5em;
 }
 
 tr.admin:first-child {
@@ -494,6 +493,24 @@ form.admin {
 span.batch * {
   display: inline;
   margin: 0;
+}
+
+#error-console {
+  background-color: #ddd;
+  width: 100%;
+  display: flex;
+  flex-flow: column nowrap;
+  padding: 10px;
+  border-top: 2px solid #000;
+}
+
+#error-console .panel {
+  border: #222 solid 1px;
+  flex-grow: 1;
+  display: flex;
+  flex-flow: column nowrap;
+  overflow: auto;
+  margin: 0px;
 }
 
 /***

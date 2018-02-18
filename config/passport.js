@@ -48,6 +48,8 @@ module.exports = function(passport) {
           return done(null, false, req.flash( 'registerMessage', 'Password must not contain any "special" characters.' ));
         }
 
+        username = username.toLowerCase();
+
         // find a user whose username is the same as the form's username
         // we are checking to see if the user trying to register already exists
         tools.User.findOne( { name:username }, function(err,user) {
@@ -81,6 +83,7 @@ module.exports = function(passport) {
 
             // save the user
             user.save( function(err) {
+              tools.log( 'user '+user.id+' ('+user.name+') registered' );
               if (err) throw err;
               return done(null, user)
             });
@@ -115,7 +118,6 @@ module.exports = function(passport) {
 
         // save user to the session
         req.session.user = user.getPublicData();
-
         return done(null, user);
 
       });

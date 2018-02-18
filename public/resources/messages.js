@@ -74,7 +74,7 @@ function addAdminChatMessage(data) {
     'mute'    : '🔇Oh no, you\'ve been muted by $$! Your messages won\'t be visible to anyone except admins.🔇',
     'unmute'  : 'Hoorah! You\'ve been unmuted by $$.',
     'admin'   : 'Hoorah! You\'ve been promoted to admin by $$!',
-    'unadmin' : 'Oh no, you\'ve been demoted to peon by $$!',
+    'unadmin' : 'Oh no, you\'ve been demoted to user by $$!',
     'flair'   : 'Your flair has been changed by $$.'
   }
   let body = bodies[data.key];
@@ -109,6 +109,15 @@ $( function() {
   // focus message input
   msginput = $('input.messages');
   msginput.focus();
+
+  // Keyboard/window events
+  $(window).keydown( function(event) {
+    if (event.which === 13) { // ENTER
+      if (msginput.is(':focus')) {
+        sendChatMessage();
+      }
+    }
+  });
 
   // Socket events
   socket.on('on connection', function(data) {

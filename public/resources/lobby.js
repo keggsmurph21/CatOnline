@@ -278,15 +278,6 @@ $( function() {
     }
   });
 
-  // Keyboard/window events
-  $(window).keydown( function(event) {
-    if (event.which === 13) { // ENTER
-      if (msginput.is(':focus')) {
-        sendChatMessage();
-      }
-    }
-  });
-
   // Socket events
   socket.on('on connection', function(data) {
     updateTables(data.games);

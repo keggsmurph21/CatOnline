@@ -14,14 +14,7 @@
   <div class="admin content">
     <div class="admin frame">
 
-      <div class="admin container" id="user-info">
-        <p>Privileges: <strong><%= user.isSuperAdmin ? 'superadmin' : 'admin' %></strong></p>
-        <% if (message.length) { %>
-          <p class="admin alert"><%= message %></p>
-        <% } %>
-      </div>
-
-      <form class="admin container" id="users-cont" method="post" action="/admin/batch/users">
+      <form class="admin container" id="users-cont">
         <p>Users</p>
         <table class="admin userlist">
           <tr class="admin header">
@@ -40,15 +33,16 @@
           <p>Batch actions:</p>
           <span>
             <% if (user.isSuperAdmin) { %>
-              <button name="action" value="delete-users" type="submit">Delete users</button>
-              <button name="action" value="delete-authored" type="submit">Delete authored games</button>
+              <button type="button" class="admin batch" name="users-delete">Delete users</button>
+              <button type="button" class="admin batch" name="users-delete-authored">Delete authored games</button>
             <% } %>
-            <button name="action" value="kick" type="submit">Kick from all games</button>
+            <button type="button" class="admin batch" name="users-kick">Kick from all games</button>
+            <button type="button" class="admin batch" name="users-refresh-counts">Refresh game counts</button>
           </span>
         </span>
       </form>
 
-      <form class="admin container" id="games-cont" method="post" action="/admin/batch/games">
+      <form class="admin container" id="games-cont">
         <p>Games</p>
         <table class="admin gamelist">
           <tr class="admin header">
@@ -66,14 +60,28 @@
           <p>Batch actions:</p>
           <span>
             <% if (user.isSuperAdmin) { %>
-              <button name="action" value="delete-games" type="submit">Delete games</button>
+              <button type="button" class="admin batch" name="games-delete">Delete games</button>
             <% } %>
-            <button name="action" value="kick" type="submit">Kick users</button>
-            <button name="action" value="make-public" type="submit">Make public</button>
-            <button name="action" value="make-private" type="submit">Make private</button>
+            <button type="button" class="admin kick" name="games-kick">Kick users</button>
+            <button type="button" class="admin batch" name="games-make-public">Make public</button>
+            <button type="button" class="admin batch" name="games-make-private">Make private</button>
           </span>
         </span>
       </form>
+
+    </div>
+    <div class="admin frame" id="error-console">
+
+      <div class="panel messages public">
+        <ul class="messages">
+          <li class='message center'><strong>
+              CatOnline <%= user.isSuperAdmin ? 'superadmin' : 'admin' %> console
+          </strong></li>
+          <% if (message.length) { %>
+            <li class="message alert"><%= message %></li>
+          <% } %>
+        </ul>
+      </div>
 
     </div>
   </div>
@@ -86,18 +94,94 @@
   <!--<script src='/resources/admin.js'> </script>-->
   <script>
   // FUNCTIONS
-  function outputPlayersListSpanString(data) {
-    let str = '', playerCount = 0, kickable = data.status!=='in-progress', kickCount = 0;
+  function logToConsole(data) {
+    let str = '<li class="message ';
 
-    str += ( kickable ? '<form class="admin" id="kick-form-' + data.id + '" method="post" action="admin/kick">' : '' );
-    str += ( kickable ? '<input type="hidden" name="gameid" value="' + data.id + '" />' : '' );
+    if (data.action==='ERROR') {
+
+      str += 'error">';
+      str += '<span class="timestamp">' + getTimeStr() + '</span>';
+      str += (data.user ? formatUsername(data.user) + ' ' : '' );
+      str += (data.request ? '<strong>' + data.request + '</strong> ' : '' );
+      str += (data.action ? '<strong>&rarr; ' + data.action + ' </strong> ' : '' );
+      str += data.message
+
+    } else {
+
+      str += 'log">';
+      str += '<span class="timestamp">' + getTimeStr() + '</span>';
+      str += (data.user ? formatUsername(data.user) + ' ' : '' );
+      str += (data.request ? '<strong>' + data.request + '</strong> ' : '' );
+      str += (data.action ? '<strong>&rarr; ' + data.action + ' </strong> ' : '' );
+      let count = 0;
+      for (let u=0; u<data.users.length; u++) {
+        if (count) { str += ', '; }
+        else { str += 'users: '; }
+        str += formatUsername(data.users[u]);
+        count += 1;
+      }
+      count = 0;
+      for (let g=0; g<data.games.length; g++) {
+        if (count) { str += ', '; }
+        else { str += '; games: '; }
+        str += '<strong>' + data.games[g].id + '</strong>';
+        count += 1
+      }
+    }
+
+    str += '</li>';
+    $('ul li:last').after('<li>'+str+'</li>');
+    let scroll = $('div.panel.messages.public');
+    scroll.scrollTop( scroll[0].scrollHeight );
+  }
+  function sendAdminAction(data) {
+    socket.emit('admin action', data);
+  }
+  function bindButtons() {
+    $( 'button.update' ).unbind().click( function(event) {
+      let data = { action:$(event.target).prop( 'name' ) };
+      $(event.target).siblings().each( function(key,value) {
+        data[ $(value).prop( 'name' ) ] = $(value).val();
+      });
+      sendAdminAction(data);
+    });
+    $( 'button.batch' ).unbind().click( function(event) {
+      let data = { action:$(event.target).prop( 'name' ), selected:[] };
+      $(event.target).closest( 'form' ).find( 'input.batch' ).each( function(key,value) {
+        if ($(value).is( ':checked' ))
+          data.selected.push( $(value).prop( 'name' ) );
+      });
+      sendAdminAction(data);
+    });
+    $( 'button.kick' ).unbind().click( function(event) {
+      let data = { action:'batch-kick', gameids:[], gameidDashUserids:[] };
+      let form = $(event.target).closest( 'form' );
+      form.find( 'input.batch' ).each( function(key,value) {
+        if ( $(value).is( ':checked' ) )
+          data.gameids.push( $(value).prop( 'name' ) );
+      });
+      form.find( 'input.kick' ).each( function(key,value) {
+        if ( $(value).is( ':checked' ) )
+          data.gameidDashUserids.push( $(value).prop( 'name' ) );
+      });
+      sendAdminAction(data);
+    });
+    $( 'tr' ).click( function(event) {
+      let target = $(event.target);
+      if (target.is('input')) return;
+      let cb = $( '#cb' + target.closest('tr').prop('id') );
+      cb.prop( 'checked', !cb.prop('checked') );
+    })
+  }
+  function outputPlayersListSpanString(data) {
+    let str = '', count = 0;
+
 
     for (let p=0; p< data.numHumans; p++) {
-      if (playerCount) str += '<strong>, </strong>';
+      if (count) str += '<strong>, </strong>';
       if (data.players[p]) {
-        if ( kickable && (!data.players[p].isAdmin || user.isSuperAdmin) && !usersCheckEqual(data.players[p],data.author) ) {
-          str += '<input type="checkbox" name="user' + data.players[p].id + '" />';
-          kickCount += 1;
+        if ( data.status!=='in-progress' && (!data.players[p].isAdmin || user.isSuperAdmin) && !usersCheckEqual(data.players[p],data.author) ) {
+          str += '<input type="checkbox" class="kick" name="' + data.id + '-' + data.players[p].id + '" />';
         }
         if ( usersCheckEqual(data.players[p], data.author) ) {
           str += '<span class="is-owner">';
@@ -109,16 +193,13 @@
       } else {
         str += '<span class="empty">?</span>';
       }
-      playerCount += 1;
+      count += 1;
     }
     for (let p=0; p< data.numCPUs; p++) {
-      if (playerCount) str += ', ';
+      if (count) str += ', ';
       str += '<span class="cpu">CPU</span>';
-      playerCount += 1;
+      count += 1;
     }
-
-    str += ( kickable && kickCount ? '&nbsp;<button type="submit">Kick</button>' : '' );
-    str += ( kickable ? '</form>' : '' );
 
     return str;
   }
@@ -128,7 +209,7 @@
     let exceededAsAuthor = data.activeGamesAsAuthor > data.maxActiveGamesAsAuthor && !data.isAdmin;
     let exceededAsPlayer = data.activeGamesAsPlayer > data.maxActiveGamesAsPlayer && !data.isAdmin;
 
-    str += '<th><input type="checkbox" name="user' + data.id + '" /></th>';
+    str += '<th><input type="checkbox" class="batch" name="' + data.id + '" id="cb' + data.id + '" /></th>';
     str += '<th>' + formatUsername(data) + '</th>';
     str += '<th>';
     str +=   (exceededAsAuthor ? '<strong class="false">' : '') ;
@@ -150,12 +231,12 @@
       if (data.isAdmin) {
         str += '<form class="admin" method="post" action="/admin/demote">';
         str +=   '<input type="hidden" name="userid" value="' + data.id + '" />';
-        str +=   '&nbsp;<button type="submit" class="admin">demote</button>';
+        str +=   '&nbsp;<button type="button" class="admin update" name="demote">demote</button>';
         str += '</form>';
       } else {
         str += '<form class="admin" method="post" action="/admin/promote">';
         str +=   '<input type="hidden" name="userid" value="' + data.id + '" />';
-        str +=   '&nbsp;<button type="submit" class="admin">promote</button>';
+        str +=   '&nbsp;<button type="button" class="admin update" name="promote">promote</button>';
         str += '</form>';
       }
     }
@@ -163,27 +244,27 @@
     str += '<th>';
     str +=   '<strong class="isMuted ' + data.isMuted + '">' + data.isMuted + '</strong>';
     if (!data.isSuperAdmin && (user.isSuperAdmin || !data.isAdmin)) {
-      // superadmins can un-/mute nonsuperadmins, admins can un-/mute peons
+      // superadmins can un-/mute nonsuperadmins, admins can un-/mute users
       if (data.isMuted) {
         str += '<form class="admin" method="post" action="/admin/unmute">';
         str +=   '<input type="hidden" name="userid" value="' + data.id + '" />';
-        str +=   '&nbsp;<button type="submit" class="admin">unmute</button>';
+        str +=   '&nbsp;<button type="button" class="admin update" name="unmute">unmute</button>';
         str += '</form>';
       } else {
         str += '<form class="admin" method="post" action="/admin/mute">';
         str +=   '<input type="hidden" name="userid" value="' + data.id + '" />';
-        str +=   '&nbsp;<button type="submit" class="admin">mute</button>';
+        str +=   '&nbsp;<button type="button" class="admin update" name="mute">mute</button>';
         str += '</form>';
       }
     }
     str += '</th>';
     str += '<th>';
     if ( (!data.isSuperAdmin && (user.isSuperAdmin || !data.isAdmin)) || usersCheckEqual(user,data) ) {
-      // superadmins can nonsuperadmin flair, admins can change peon flair, everyone can change their own flair
+      // superadmins can nonsuperadmin flair, admins can change user flair, everyone can change their own flair
       str += '<form class="admin" method="post" action="/admin/flair">';
       str +=   '<input class="lr" type="text" name="flair" style="width:8ch;" maxlength="8" value="' + data.flair + '" />';
       str +=   '<input type="hidden" name="userid" value="' + data.id + '" />';
-      str +=   '&nbsp;<button type="submit" class="admin">set</button>';
+      str +=   '&nbsp;<button type="button" class="admin update" name="set-flair">set</button>';
       str += '</form>';
     }
     str += '</th>';
@@ -193,14 +274,20 @@
     } else {
       str += 'false">disabled';
     }
-    str += '<button type="submit">toggle</button></strong></form></th>';
+    str += '<form class="admin">';
+    str +=   '<input type="hidden" name="enabled" value="' + data.allowResetPassword + '" />';
+    if ( user.isSuperAdmin ) {
+      str += '<input type="hidden" name="userid" value="' + data.id + '" />';
+      str += '<button type="button" class="admin update" name="toggle-password-reset">toggle</button></strong></form></th>';
+    }
+    str += '</form>';
 
     return str;
   }
   function outputGameRowString(data) {
     let str = '';
 
-    str += '<th><input type="checkbox" name="game' + data.id + '"></th>';
+    str += '<th><input type="checkbox" class="batch" name="' + data.id + '" id="cb' + data.id + '" ></th>';
     str += '<th><strong class="status ' + data.status + '">' + data.status + '</strong></th>';
     str += '<th><strong class="' + (data.turn>0) + '">' + data.turn + '</strong></th>';
     str += '<th><strong class="' + data.public + '">' + data.public + '</strong></th>';
@@ -244,8 +331,6 @@
     // iterate over each incoming game
     for (let g=0; g<games.length; g++) {
 
-      console.log(games[g].id);
-
       ids.push( games[g].id );
       let hasChanged = $('#' + games[g].id + ' span.date' ).html()!==games[g].updated.toString();
       let isInTables = $('table.gamelist').has( '#' + games[g].id ).length > 0;
@@ -277,51 +362,23 @@
         table.after( '<tr class="admin null"><th colspan="10"><div class="admin null-container">no current ' + type + 's ...</div></th></tr>' );
       }
     }
-    /*
-      // add listeners to things that live inside the tables
-      $(".lobby.play.link").unbind().click( function(event) {
-        let id = event.target.id.replace( 'play', '' );
-        window.location.href=('/play/' + id); // GET
-      });
-      $( 'tr.lobby.min' ).unbind().click( function(event) {
-        handleClickListitem(event);
-      });
-      $('.lobby.delete.link').unbind().click( function(event) {
-        let id = event.target.id.replace( 'delete', '');
-        $('#ld'+id).submit(); // POST
-      })
-      $('.lobby.share.link').unbind().click( function(event) {
-        let id = event.target.id.replace( 'share', '' );
-        let input = $('#private-code-input');
-        input.val(id);
-        input.select()
-        document.execCommand('copy');
-        msginput.val( 'Hi, come @(join my game!,' + input.val() + ')' );
-        msginput.focus();
-        input.val('');
-      });
-      $('.lobby.leave.link').unbind().click( function(event) {
-        let id = event.target.id.replace( 'leave', '' );
-        $('#lf'+id).submit(); // POST
-      });
-      $(".lobby.launch.link").unbind().click( function(event) {
-        let id = event.target.id.replace( 'launch', '' );
-        $('#ll'+id).submit(); // POST
-      });
-      $(".lobby.join.link").unbind().click( function(event) {
-        let id = event.target.id.replace( 'join', '' );
-        $('#jf'+id).submit(); // POST
-      });*/
 
+    bindButtons();
+
+  }
+  function removeTableRow(id) {
+    $('#'+id).detach();
   }
   function updateUserTableRow(data) {
 
     $('#' + data.id).html( outputUserRowString(data) );
+    bindButtons();
 
   }
   function updateGameTableRow(data) {
 
     $('#' + data.id).html( outputGameRowString(data) );
+    bindButtons();
 
   }
   function addUserTableRow(data) {
@@ -358,6 +415,38 @@
     });
     socket.on('new connection', function(data) {
       updateTables(data.games, data.users);
+    });
+    socket.on('admin callback', function(data) {
+      console.log(data);
+      switch (data.action) {
+        case ('ERROR'): break;
+        case ('ADD'):
+          break;
+        case ('UPDATE'):
+          for (let u=0; u<data.users.length; u++) {
+            updateUserTableRow( data.users[u] );
+          }
+          for (let g=0; g<data.games.length; g++) {
+            updateGameTableRow( data.games[g] );
+          }
+          break;
+        case ('REMOVE'):
+          for (let u=0; u<data.users.length; u++) {
+            removeTableRow( data.users[u].id );
+          }
+          for (let g=0; g<data.games.length; g++) {
+            removeTableRow( data.games[g].id );
+          }
+          break;
+        default:
+          data = {
+            action  : 'ERROR',
+            request : 'MALFORMED SERVER RESPONSE',
+            message : '<br />'+JSON.stringify(data)
+          };
+      }
+      $('input[type=checkbox]').prop( 'checked', false );
+      logToConsole(data);
     });
 
   });

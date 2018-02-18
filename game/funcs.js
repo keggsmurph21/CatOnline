@@ -9,11 +9,6 @@ module.exports = {
   checkIsActive : function( game ) {
     return [ 'pending', 'ready', 'in-progress' ].indexOf( game.meta.status ) > -1;
   },
-
-  checkIsFull : function( game ) {
-    return ( game.meta.players.length === (game.settings.numHumans+game.settings.numCPUs) );
-  },
-
   checkIfUserInGame : function( user, game ) {
     for (let p=0; p<game.meta.players.length; p++) {
       if ( module.exports.usersCheckEqual(game.meta.players[p], user) ) {
@@ -23,62 +18,9 @@ module.exports = {
 
     return false;
   },
-
   usersCheckEqual : function( u, v ) {
     return ( u.id.toString()===v.id.toString() );
   },
-
-  tryRemoveUserFromGame : function( agent, userid, gameid, onFailure, onSuccess ) {
-    console.log( 'try remove', agent, userid, gameid );
-    tools.User.findById( userid, function(err,user) {
-      if (err) return onFailure( err, null );
-      if (!user) return onFailure( 'Error: unable to find user.', null );
-      tools.Game.findById( gameid, function(err,game) {
-        if (err) return onFailure( err, null );
-        if (!game) return onFailure( null, 'Unable to leave: could not find game '+gameid );
-        if ( module.exports.checkIsActive(game) ) {
-          if ( module.exports.checkIfUserInGame( user, game ) ) {
-            if ( game.meta.status!=='in-progress' ) {
-              if ( !module.exports.usersCheckEqual( user, game.meta.author ) ) {
-                if ( module.exports.usersCheckEqual( user, agent ) || agent.isSuperAdmin || (!user.isAdmin && agent.isAdmin) ) {
-                  let newlist = [];
-                  for (let p=0; p<game.meta.players.length; p++) {
-                    if ( !module.exports.usersCheckEqual(game.meta.players[p], user) ) {
-                      newlist.push( game.meta.players[p] );
-                    }
-                  }
-                  game.meta.players = newlist;
-                  game.meta.status = ( module.exports.checkIsFull(game) ? 'ready' : 'pending' );
-                  game.meta.updated = new Date;
-                  game.save( function(err) {
-                    if (err) return onFailure( err, null );
-                    user.activeGamesAsPlayer -= 1;
-                    user.save( function(err) {
-                      if (err) return onFailure( err, null );
-
-                      return onSuccess( user.name+' left game '+game.id );
-
-                    });
-                  });
-                } else {
-                  return onFailure( null, "Unable to leave: only superadmins may perform this operation." )
-                }
-              } else {
-                return onFailure( null, "Unable to leave: this user is the author.  Try deleting instead." );
-              }
-            } else {
-              return onFailure( null, "Unable to leave: you can't leave a game once it starts!  Try quitting instead." );
-            }
-          } else {
-            return onFailure( null, "Unable to leave: you can't leave a game you haven't joined!" );
-          }
-        } else {
-          return onFailure( null, 'Unable to leave: game is not active.' );
-        }
-      });
-    });
-  },
-
   initGameNoPlayers : function( user, form ) {
     let game = new tools.Game();
 
@@ -196,40 +138,36 @@ module.exports = {
       game.state.public.hexes[edge.v].conns.push(i);
     }
 
-    game.meta.status = ( module.exports.checkIsFull(game) ? 'ready' : 'pending' );
+    game.meta.status = ( game.checkIsFull() ? 'ready' : 'pending' );
     game.meta.updated = new Date;
 
     return game;
 
   },
-
   userGetGamesAsAuthor : function( user, callback ) {
     tools.Game.find({ "meta.author.id" : user.id }, function(err,games) {
-      if (err) throw err;
-      callback(games);
+      callback(err,games);
     });
   },
-
   userGetGamesAsPlayer : function( user, callback ) {
     // for some reason IDs weren't working here so names are used instead
     tools.Game.find({ "meta.players" : { $elemMatch: { "name":user.name }}}, function(err,games) {
-      if (err) throw err;
-      callback(games);
+      callback(err,games);
     });
   },
-
-  userPushChanges : function( user ) {
+  userPushChanges : function( user, callback ) {
     // update the meta.author
-    module.exports.userGetGamesAsAuthor( user, function(games) {
+    module.exports.userGetGamesAsAuthor( user, function(err,games) {
+      if (err) callback(err);
       for (let g=0; g<games.length; g++) {
         games[g].meta.author = user.getPublicData();
         games[g].meta.updated = new Date;
         games[g].save( function(err) { if (err) throw err; });
       }
     });
-
     // update the meta.players
-    module.exports.userGetGamesAsPlayer( user, function(games) {
+    module.exports.userGetGamesAsPlayer( user, function(err,games) {
+      if (err) callback(err);
       for (let g=0; g<games.length; g++) {
         for (let p=0; p<games[g].meta.players.length; p++) {
           if ( module.exports.usersCheckEqual(games[g].meta.players[p], user) ) {
@@ -237,11 +175,11 @@ module.exports = {
           }
         }
         games[g].meta.updated = new Date;
-        games[g].save( function(err) { if (err) throw err; });
+        games[g].save( function(err) { if (err) throw err; console.log('save player'); });
       }
+      callback(null,games);
     });
   },
-
   prepareUsersData : function( callback ) {
     // only pass relevent information to the admin.ejs page for each user
     tools.User.find({}, function(err,users) {
@@ -254,7 +192,6 @@ module.exports = {
       callback(data);
     });
   },
-
   prepareGamesData :  function( user, callback ) {
     // only pass relevant information to the lobby.ejs page for each game
     tools.Game.find({}, function(err,games) {
@@ -263,32 +200,13 @@ module.exports = {
 
       let data = [];
       for (let g=0; g<games.length; g++) {
-        console.log( games[g]._id );
-        datum = {
-          id       : games[g]._id,
-          scenario : games[g].settings.scenario,
-          numHumans: games[g].settings.numHumans,
-          numCPUs  : games[g].settings.numCPUs,
-          players  : games[g].meta.players,
-          author   : games[g].meta.author,
-          VPs      : games[g].settings.victoryPointsGoal,
-          turn     : games[g].state.public.turn,
-          status   : games[g].meta.status,
-          public   : games[g].meta.publiclyViewable,
-          waitfor  : games[g].meta.waitfor,
-          created  : tools.formatDate( games[g].meta.created ),
-          updated  : tools.formatDate( games[g].meta.updated ),
-          isFull   : module.exports.checkIsFull(games[g])
-        }
-
         if ( module.exports.checkIsActive(games[g]) || user.isAdmin) {
-          data.push( datum );
+          data.push( games[g].getPublicData() );
         }
       }
       callback(data);
     });
   },
-
   prepareGamesForPlay : function( data ) {
     // get the svg data
 
@@ -399,7 +317,6 @@ module.exports = {
 
     return svgData;
   },
-
   tileAnchorToPointsStr : function( coords ) {
     const translations = [ [0,0], [1,-1], [2,0], [2,1], [1,2], [0,1] ];
     let str = '';
@@ -409,7 +326,6 @@ module.exports = {
     }
     return str;
   },
-
   roadAnchorToPathStr : function( coords, dir ) {
     var [x1,y1] = module.exports.anchorToPoints( coords );
     switch (dir) {
@@ -429,7 +345,6 @@ module.exports = {
     var [x2,y2] = module.exports.anchorToPoints([ coords[0]+dx, coords[1]+dy ])
     return 'M '+x1+' '+y1+' L '+x2+' '+y2;
   },
-
   portAnchorToPathStr : function( key ) {
     let [x1,y1] = key; // note: key has len 3
     let x2, y2, x3, y3;
@@ -464,7 +379,6 @@ module.exports = {
     [x3,y3] = module.exports.anchorToPoints([ x3,y3 ]);
     return 'M '+x1+' '+y1+' L '+x2+' '+y2+' L '+x3+' '+y3+' L '+x1+' '+y1;
   },
-
   anchorToPoints : function( coords, scale=1.5 ) {
     return [ coords[0]*scale, coords[1]*Math.sqrt(3)/2*scale ];
   },

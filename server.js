@@ -50,6 +50,7 @@ app.use(express.static(__dirname + '/public'));
 // launch server
 var server = http.createServer(app).listen(port, function() {
   console.log( 'Express server listening on port ' + port );
+  tools.log( 'Express server listening on port '+port );
 })
 
 // setup sockets
