@@ -2,7 +2,7 @@
 // store classes here in one place for use by various game logic guys
 
 // some helper functions
-var tools = require('../app/tools.js');
+var funcs = require('../app/funcs.js');
 
 // Dice class
 class Dice {
@@ -13,8 +13,8 @@ class Dice {
 
   roll() {
     this.values = [
-      tools.getRandomInt(1,6),
-      tools.getRandomInt(1,6)
+      funcs.getRandomInt(1,6),
+      funcs.getRandomInt(1,6)
     ]
     return this.values[0] + this.values[1];
   }

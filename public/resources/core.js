@@ -70,3 +70,12 @@ function isValidID(id) {
 function usersCheckEqual( u, v ) {
   return ( u.id.toString()===v.id.toString() );
 }
+function checkIfUserInGame(user,game) {
+  for (let p=0; p<game.meta.players.length; p++) {
+    if ( usersCheckEqual(game.meta.players[p], user) ) {
+      return true;
+    }
+  }
+
+  return false;
+}

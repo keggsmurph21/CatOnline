@@ -266,63 +266,79 @@ a.chat-link {
   padding-bottom: 1em;
 }
 
-.lobby.container#host-new-game {
-  align-items: flex-end;
-  padding-bottom: 0;
-}
-
-form.lobby {
+.lobby form {
   width: 100%;
 }
 
-button#new-game-show {
+
+#host-new-game {
+  /*align-items: flex-end;
+  padding-bottom: 0;*/
+}
+
+#host-new-game button.show-hide {
   float: right;
 }
 
-button#new-game-submit {
-  margin-bottom: 0.5em;
-}
-
-div.lobby#show-hide {
-  display: none;
-  width: 100%;
-  margin-bottom: 1em;
-  background-color: #ddd;
-  border: 1px solid #222;
-  display: flex;
-  flex-flow: column;
-  justify-content: center;
+#host-new-game div {
   align-items: center;
 }
 
-div.lobby#config-container {
-  display: flex;
-  flex-flow: row;
-  display: space-between;
+#host-new-game div.label {
+  border-radius: 5px 5px 0 0;
+  background-color: #222;
+  color: #fff;
   width: 100%;
+  padding-left: 1em;
+  margin-top: 0.25em;
+  line-height: 1.5em;
 }
 
-div.lobby.subcontainer {
+#host-new-game div.config-and-button-container {
+  flex-flow: column;
+  display: flex;
+  border-bottom: 1px #222 solid;
+  background: #ddd;
+  padding: 0.5em 0;
+}
+
+#host-new-game div.config-container {
+  display: flex;
+  flex-flow: row;
+  width: 100%;
+  margin-bottom: 0.5em;
+  align-items: baseline;
+}
+
+#host-new-game div.subcontainer {
   flex-grow: 1;
-  margin: 0.5em;
   display: flex;
   flex-flow: column nowrap;
   justify-content: space-between;
+  padding: 0 0.5em;
 }
 
-span.lobby.setting {
+#host-new-game span.setting {
   width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin: 0.25em 0;
 }
 
-input.lobby {
+#host-new-game input {
   width: 4em;
   height:2em;
   text-align: center;
 }
 
-.lobby.container > p {
+form.post-buttons {
+  display: flex;
+  flex-flow: column;
+  width: auto;
+}
+
+.lobby .container > p {
   margin: 0;
   padding-left: 0.5em;
 }
@@ -512,6 +528,14 @@ span.batch * {
   overflow: auto;
   margin: 0px;
 }
+
+#admin-lobby-portal {
+  position: absolute;
+  right: 0;
+  margin: 0.5em 1.5em 0 0;
+}
+
+
 
 /***
  PLAY

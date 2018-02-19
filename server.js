@@ -1,7 +1,7 @@
 // server.js
 
 // setup
-var tools         = require('./app/tools.js');
+var funcs         = require('./app/funcs.js');
 var express       = require('express');
 var app           = express();
 var port          = process.env.PORT || 3000;
@@ -24,7 +24,7 @@ var sessionStore   = new express.session.MemoryStore();
 
 // configuration
 mongoose.connect(configDB.url, function(err) { if (err) throw err; });
-configDB.checkStatus( tools, 'password' );
+configDB.checkStatus( funcs, 'password' );
 
 require('./config/passport.js')(passport);
 
@@ -50,7 +50,7 @@ app.use(express.static(__dirname + '/public'));
 // launch server
 var server = http.createServer(app).listen(port, function() {
   console.log( 'Express server listening on port ' + port );
-  tools.log( 'Express server listening on port '+port );
+  funcs.log( 'Express server listening on port '+port );
 })
 
 // setup sockets

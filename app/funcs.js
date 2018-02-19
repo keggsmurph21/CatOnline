@@ -1,4 +1,4 @@
-// public/resources/js/tools.js
+// public/resources/js/funcs.js
 // keep functions here that are not necessarily strictly game logic
 
 // setup logs
@@ -21,39 +21,63 @@ module.exports = {
     // mongo IDs are always 24 alphanumeric chars
     return (id.length===24 && id.match(/^[a-z0-9]+$/i));
   },
-  requireUserById : function(id, next) {
-    // success: next( null|false, user )
-    // failure: next( true, err|message )
-    if ( module.exports.isValidID(id) ) {
-      module.exports.User.findById(id, function(err,user) {
-        if (err) return next(true, err);
-        if (!user) return next(true, 'Unable to find user '+id);
-        return next(false, user); // Success
-      });
-    } else {
-      return next(true, 'Invalid user id '+id);
-    }
-  },
-  saveAndCatch : function(object, next) {
+  saveAndCatch : function(Model, next) {
     try {
-      object.save( function(err) {
+      Model.save( function(err) {
         next(err);
       });
     } catch(err) {
       next(err);
     }
   },
-  requireGameById : function(id, next) {
-    // success: next( null|false, user )
-    // failure: next( true, err|message )
+  checkIsActive : function( game ) {
+    return [ 'pending', 'ready', 'in-progress' ].indexOf( game.meta.status ) > -1;
+  },
+  checkIfUserInGame : function( user, game ) {
+    for (let p=0; p<game.meta.players.length; p++) {
+      if ( module.exports.usersCheckEqual(game.meta.players[p], user) ) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+  usersCheckEqual : function( u, v ) {
+    return ( u.id.toString()===v.id.toString() );
+  },
+  iteratePlayers : function(game, next) {
+    for (let p=0; p<game.meta.players.length; p++) {
+      module.exports.requireUserById( game.meta.players[p].id, function(err,player) {
+        next(err, player);
+      });
+    }
+  },
+  requireUserById : function(id, next) {
+    // success: next( null, user )
+    // failure: next( err|message )
+    // note: fails on database error AND null result
     if ( module.exports.isValidID(id) ) {
-      module.exports.Game.findById(id, function(err,game) {
-        if (err) return next(true, err);
-        if (!game) return next(true, 'Unable to find game '+id);
-        return next(false, game); // Success
+      module.exports.User.findById(id, function(err,user) {
+        if (err) return next('require: '+err);
+        if (!user) return next('require: Unable to find user '+id);
+        return next(null, user); // Success
       });
     } else {
-      return next(true, 'Invalid game id '+id);
+      return next('require: Invalid user id '+id);
+    }
+  },
+  requireGameById : function(id, next) {
+    // success: next( null, user )
+    // failure: next( err|message )
+    // note: fails on database error AND null result
+    if ( module.exports.isValidID(id) ) {
+      module.exports.Game.findById(id, function(err,game) {
+        if (err) return next('require: '+err);
+        if (!game) return next('require: Unable to find game '+id);
+        return next(null, game); // Success
+      });
+    } else {
+      return next('require: Invalid game id '+id);
     }
   },
   isLoggedIn : function(req,res,next) {

@@ -205,60 +205,31 @@ function outputGameRowString(data) {
 }
 function updateTables(games, users) {
   /***
-    take incoming data from a socket event and use it to populate our lobby tables
+    take incoming data from socket connection and use it to populate our lobby tables
     ***/
 
   // remove the "no current games ..." displays
   $('tr.admin.null').detach();
 
-  // get a list of ids, eventually remove ones we don't match
-  let ids = [];
-
   // iterate over each incoming user
   for (let u=0; u<users.length; u++) {
-
-    ids.push( users[u].id );
-    let hasChanged = (
-      $('#' + users[u].id + ' span.isSuperAdmin').html()!==users[u].isSuperAdmin.toString() ||
-      $('#' + users[u].id + ' span.isAdmin').html()!==users[u].isAdmin.toString() ||
-      $('#' + users[u].id + ' span.isMuted').html()!==users[u].isMuted.toString() );
-    let isInTables = $('table.userlist').has( '#' + users[u].id ).length > 0;
-
-    // decide if we need to add, update, or nothing
-    if ( !isInTables ) {
+    // and add it to the table if it's not there
+    if (!$('table.userlist').has( '#' + users[u].id ).length)
       addUserTableRow( users[u] );
-    } else if ( hasChanged ) {
-      updateUserTableRow( users[u] );
-    }
-
   }
 
   // iterate over each incoming game
   for (let g=0; g<games.length; g++) {
-
-    ids.push( games[g].id );
-    let hasChanged = $('#' + games[g].id + ' span.date' ).html()!==games[g].updated.toString();
-    let isInTables = $('table.gamelist').has( '#' + games[g].id ).length > 0;
-
-    // decide if we need to add, update, or nothing
-    if ( !isInTables ) {
+    // and add it to the table if it's not there
+    if (!$('table.gamelist').has( '#' + games[g].id ).length)
       addGameTableRow( games[g] );
-    } else if ( hasChanged ) {
-      updateGameTableRow( games[g] );
-    }
-
   }
 
-  // now remove the ones that were deleted with /delete
-  let unmatchedids = [];
-  $('table.gamelist').find('.game').each( function(k,v) {
-    let id = $(v).prop('id');
-    if (ids.indexOf(id)<0) unmatchedids.push( id );
-  });
-  for (let i=0; i<unmatchedids.length; i++) {
-    $('#'+unmatchedids[i]).detach();
-  }
+  bindButtons();
+  checkIfEmptyTables();
 
+}
+function checkIfEmptyTables() {
   // check if we need to add the "no current games ..." displays
   for (let i=0; i<2; i++) {
     let type = ['game', 'user'][i];
@@ -267,9 +238,6 @@ function updateTables(games, users) {
       table.after( '<tr class="admin null"><th colspan="10"><div class="admin null-container">no current ' + type + 's ...</div></th></tr>' );
     }
   }
-
-  bindButtons();
-
 }
 function removeTableRow(id) {
   $('#'+id).detach();
@@ -319,7 +287,7 @@ $( function() {
     updateTables(data.games, data.users);
   });
   socket.on('new connection', function(data) {
-    updateTables(data.games, data.users);
+    //updateTables(data.games, data.users);
   });
   socket.on('admin callback', function(data) {
     switch (data.action) {

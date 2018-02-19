@@ -1,14 +1,14 @@
 // load stuff
 var aSync = require('async');
-var tools = require('./tools.js');
-var funcs = require('../game/funcs.js');
+var funcs = require('./funcs.js');
+var logic = require('../game/logic.js');
 var config= require('../config/new-game-form.json');
 
 // app/routes.js
 module.exports = function(app, passport) {
 
   // LOBBY PAGE
-  app.get('/lobby', tools.isLoggedIn, function(req,res) {
+  app.get('/lobby', funcs.isLoggedIn, function(req,res) {
     res.render('lobby.ejs', {
       message: req.flash('lobbyMessage'),
       user: req.user,
@@ -18,19 +18,19 @@ module.exports = function(app, passport) {
   });
 
   // JOIN PAGE
-  app.post('/join', tools.isLoggedIn, function(req,res) {
-    tools.User.findById( req.user.id, function(err,user) {
+  /*app.post('/join', funcs.isLoggedIn, function(req,res) {
+    funcs.User.findById( req.user.id, function(err,user) {
       if (err) throw err;
       if (!user) throw 'Error: unable to find user.';
       let data = user.getExtendedPublicData();
       if (data.activeGamesAsPlayer < data.maxActiveGamesAsPlayer || user.isAdmin) {
-        tools.Game.findById(req.body.gameid, function(err,game) {
+        funcs.Game.findById(req.body.gameid, function(err,game) {
           if (err) throw err;
           if (!game) {
             req.flash( 'lobbyMessage', 'Unable to find game ' + req.body.gameid );
             res.redirect( '/lobby' );
-          } else if ( funcs.checkIsActive(game) ) {
-            if (!funcs.checkIfUserInGame(req.user, game) && !game.checkIsFull()) {
+          } else if ( DEFUNCTS.checkIsActive(game) ) {
+            if (!DEFUNCTS.checkIfUserInGame(req.user, game) && !game.checkIsFull()) {
               game.meta.players.push( req.user );
               game.meta.status = ( game.checkIsFull() ? 'ready' : 'pending' );
               game.meta.updated = new Date;
@@ -41,7 +41,7 @@ module.exports = function(app, passport) {
                   if (err) throw err;
 
                   // SUCCESS
-                  tools.log( 'user '+user.id+' ('+user.name+') joined game '+game.id );
+                  funcs.log( 'user '+user.id+' ('+user.name+') joined game '+game.id );
                   req.flash('lobbyMessage', 'You have joined a game.');
                   res.redirect('/lobby#'+req.body.gameid);
 
@@ -61,30 +61,30 @@ module.exports = function(app, passport) {
         res.redirect('/lobby');
       }
     });
-  });
+  });*/
 
   // LEAVE PAGE
-  app.post('/leave', tools.isLoggedIn, function(req,res) {
-    funcs.tryKickUserFromGame( req.user, req.user.id, req.body.gameid,
+  /*app.post('/leave', funcs.isLoggedIn, function(req,res) {
+    DEFUNCTS.tryKickUserFromGame( req.user, req.user.id, req.body.gameid,
       function(err, success, message) {
         if (err) throw err;
-        tools.log( 'user '+user.id+' ('+user.name+') left game '+game.id );
+        funcs.log( 'user '+user.id+' ('+user.name+') left game '+game.id );
         req.flash( 'lobbyMessage', message );
         res.redirect( '/lobby' );
       }
     );
-  });
+  });*/
 
   // LAUNCH PAGE
-  app.post('/launch', tools.isLoggedIn, function(req,res) {
-    tools.Game.findById(req.body.gameid, function(err,game) {
+  /*app.post('/launch', funcs.isLoggedIn, function(req,res) {
+    funcs.Game.findById(req.body.gameid, function(err,game) {
       if (err) throw err;
       if (!game) {
         req.flash( 'lobbyMessage', 'Unable to find game ' + req.body.gameid );
         res.redirect( '/lobby' );
       } else {
 
-        if ( funcs.checkIfUserInGame( req.user, game ) ) {
+        if ( DEFUNCTS.checkIfUserInGame( req.user, game ) ) {
           if (game.meta.status==='in-progress') {
             res.redirect('/play/'+req.body.gameid);
           } else if (game.meta.status==='ready') {
@@ -93,7 +93,7 @@ module.exports = function(app, passport) {
             game.meta.updated = new Date;
             game.save( function(err) {
               if (err) throw err;
-              tools.log( 'user '+user.id+' ('+user.name+') launched game '+game.id );
+              funcs.log( 'user '+user.id+' ('+user.name+') launched game '+game.id );
               res.redirect('/play/'+req.body.gameid);
             });
 
@@ -108,27 +108,27 @@ module.exports = function(app, passport) {
 
       }
     });
-  });
+  });*/
 
   // DELETE PAGE
-  app.post('/delete', tools.isLoggedIn, function(req,res) {
-    tools.User.findById( req.user.id, function(err,user) {
+  /*app.post('/delete', funcs.isLoggedIn, function(req,res) {
+    funcs.User.findById( req.user.id, function(err,user) {
       if (err) throw err;
       if (!user) throw 'Error: unable to find user.';
-      tools.Game.findById(req.body.gameid, function(err,game) {
+      funcs.Game.findById(req.body.gameid, function(err,game) {
         if (err) throw err;
         if (!game) {
           req.flash( 'lobbyMessage', 'Unable to find game ' + req.body.gameid );
           res.redirect( '/lobby' );
-        } else if ( funcs.usersCheckEqual(game.meta.author, req.user) || req.user.isSuperAdmin ) {
-          tools.User.findById( game.meta.author.id, function(err,user) {
+        } else if ( DEFUNCTS.usersCheckEqual(game.meta.author, req.user) || req.user.isSuperAdmin ) {
+          funcs.User.findById( game.meta.author.id, function(err,user) {
             if (err) throw err;
             if (!user) throw 'Error: unable to find user.';
             user.activeGamesAsAuthor -= 1;
             user.save( function(err) { if (err) throw err; });
           });
           for (let p=0; p<game.meta.players.length; p++) {
-            tools.User.findById( game.meta.players[p].id, function(err,user) {
+            funcs.User.findById( game.meta.players[p].id, function(err,user) {
               if (err) throw err;
               if (!user) throw 'Error: unable to find user.';
               user.activeGamesAsPlayer -= 1;
@@ -137,7 +137,7 @@ module.exports = function(app, passport) {
           }
           game.remove( function(err,game) {
             if (err) throw err;
-            tools.log( 'user '+user.id+' ('+user.name+') deleted game '+game.id );
+            funcs.log( 'user '+user.id+' ('+user.name+') deleted game '+game.id );
             req.flash('lobbyMessage', 'Deleted a game.');
             res.redirect('/lobby#'+req.body.gameid);
           });
@@ -147,18 +147,18 @@ module.exports = function(app, passport) {
         }
       });
     });
-  });
+  });*/
 
   // NEWGAME PAGES
-  app.post('/newgame', tools.isLoggedIn, function(req,res) {
-    tools.User.findById( req.user.id, function(err,user) {
+  /*app.post('/newgame', funcs.isLoggedIn, function(req,res) {
+    funcs.User.findById( req.user.id, function(err,user) {
       if (err) throw err;
       if (!user) throw 'ERROR: unable to find user.';
       let data = user.getExtendedPublicData();
       if ( data.activeGamesAsAuthor < data.maxActiveGamesAsAuthor || req.user.isAdmin ) {
         if ( data.activeGamesAsPlayer < data.maxActiveGamesAsPlayer || req.user.isAdmin ) {
 
-          let game = funcs.initGameNoPlayers( req.user, req.body );
+          let game = DEFUNCTS.initGameNoPlayers( req.user, req.body );
           game.save( function(err) {
             if (err) throw err;
             user.activeGamesAsAuthor += 1;
@@ -167,7 +167,7 @@ module.exports = function(app, passport) {
               if (err) throw err;
 
               // SUCCESS
-              tools.log( 'user '+user.id+' ('+user.name+') initialized game '+game.id );
+              funcs.log( 'user '+user.id+' ('+user.name+') initialized game '+game.id );
               req.flash('lobbyMessage', 'Your game has been created.');
               res.redirect('/lobby#'+req.body.gameid);
 
@@ -182,13 +182,13 @@ module.exports = function(app, passport) {
         res.redirect('/lobby');
       }
     });
-  });
+  });*/
 
   // PLAY PAGES
-  app.get('/play/:gameid', tools.isLoggedIn, function(req,res) {
+  app.get('/play/:gameid', funcs.isLoggedIn, function(req,res) {
 
-    if ( tools.isValidID(req.params.gameid) ) {
-      tools.Game.findById( req.params.gameid, function(err,game) {
+    if ( funcs.isValidID(req.params.gameid) ) {
+      funcs.Game.findById( req.params.gameid, function(err,game) {
 
         if (err) throw err;
 
@@ -203,7 +203,7 @@ module.exports = function(app, passport) {
             res.render('play.ejs', {
               message: req.flash('playMessage'),
               user: req.user,
-              svg: funcs.prepareGamesForPlay( data ),
+              svg: logic.prepareDataForSVG( data ),
               data: data
             });
 
@@ -222,7 +222,7 @@ module.exports = function(app, passport) {
   });
 
   // ADMIN PAGES
-  app.get('/admin', tools.isAdmin, function(req,res) {
+  app.get('/admin', funcs.isAdmin, function(req,res) {
     res.render('admin.ejs', {
       user: req.user,
       message: req.flash( 'adminMessage' )
@@ -230,7 +230,7 @@ module.exports = function(app, passport) {
   });
 
   // LOGIN PAGES
-  app.get('/login', tools.notLoggedIn, function(req,res) {
+  app.get('/login', funcs.notLoggedIn, function(req,res) {
     res.render('login.ejs', {
       message: req.flash('loginMessage'),
       user: req.user
@@ -243,7 +243,7 @@ module.exports = function(app, passport) {
   }));
 
   // REGISTER PAGES
-  app.get('/register', tools.notLoggedIn, function(req,res) {
+  app.get('/register', funcs.notLoggedIn, function(req,res) {
     res.render('register.ejs', {
       message: req.flash('registerMessage'),
       user: req.user
@@ -262,11 +262,11 @@ module.exports = function(app, passport) {
   });
 
   // PROFILE PAGES
-  app.get('/profile', tools.isLoggedIn, function(req,res) {
+  app.get('/profile', funcs.isLoggedIn, function(req,res) {
     res.redirect( '/profile/' + req.user.name );
   });
-  app.get('/profile/:username', tools.isLoggedIn, function(req,res) {
-    tools.User.findOne({ name:req.params.username }, function(err,user) {
+  app.get('/profile/:username', funcs.isLoggedIn, function(req,res) {
+    funcs.User.findOne({ name:req.params.username }, function(err,user) {
       if (err) throw err;
       if (!user) {
         req.flash( 'lobbyMessage', 'Unable to find user ' + req.params.username );

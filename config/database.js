@@ -3,13 +3,13 @@ module.exports = {
 
   'url' : 'mongodb://mongo:27017/catonline-db',
 
-  checkStatus : function(tools, defaultSuperAdminPassword) {
-    tools.User.count({}, function(err, count) {
+  checkStatus : function(funcs, defaultSuperAdminPassword) {
+    funcs.User.count({}, function(err, count) {
       if (err) throw err;
       if (!count) {
 
         // create a new model to be our superuser
-        var user = new tools.User();
+        var user = new funcs.User();
 
         // set the credentials
         user.name = 'superadmin';

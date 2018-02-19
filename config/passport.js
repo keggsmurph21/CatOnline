@@ -2,7 +2,7 @@
 
 // load stuff
 var LocalStrategy = require('passport-local').Strategy;
-var tools = require('../app/tools.js')
+var funcs = require('../app/funcs.js')
 
 // expose this function to our app using module.exports
 module.exports = function(passport) {
@@ -18,7 +18,7 @@ module.exports = function(passport) {
 
   // used to deserialize the user
   passport.deserializeUser( function(id,done) {
-    tools.User.findById(id, function(err, user) {
+    funcs.User.findById(id, function(err, user) {
       done(err, user);
     });
   });
@@ -52,7 +52,7 @@ module.exports = function(passport) {
 
         // find a user whose username is the same as the form's username
         // we are checking to see if the user trying to register already exists
-        tools.User.findOne( { name:username }, function(err,user) {
+        funcs.User.findOne( { name:username }, function(err,user) {
           // if there are any errors, return the error
           if (err) { return done(err) }
 
@@ -63,7 +63,7 @@ module.exports = function(passport) {
 
             // if there is no user with the email
             // create the user
-            var user = new tools.User();
+            var user = new funcs.User();
 
             // set the credentials
             user.name = username;
@@ -83,7 +83,7 @@ module.exports = function(passport) {
 
             // save the user
             user.save( function(err) {
-              tools.log( 'user '+user.id+' ('+user.name+') registered' );
+              funcs.log( 'user '+user.id+' ('+user.name+') registered' );
               if (err) throw err;
               return done(null, user)
             });
@@ -104,7 +104,7 @@ module.exports = function(passport) {
 
       // find a user whose username is the same as the form's username
       // we are checking to see if the user trying to register already exists
-      tools.User.findOne( { name:username }, function(err,user) {
+      funcs.User.findOne( { name:username }, function(err,user) {
 
         // if there are any errors, return the error
         if (err) { return done(err) }
