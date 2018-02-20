@@ -6,7 +6,8 @@
          "conditions": "or g01 g02",
          "isPriority": true,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "01000": {
          "name": "roll",
@@ -14,7 +15,8 @@
          "conditions": "neq p02",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "03000": {
          "name": "trade bank",
@@ -22,7 +24,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "03010": {
          "name": "trade offer",
@@ -30,7 +33,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "04000": {
          "name": "play vp",
@@ -38,7 +42,8 @@
          "conditions": "eq p21.vp",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "04070": {
          "name": "play knight",
@@ -46,7 +51,8 @@
          "conditions": "eq p21.knight",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "04080": {
          "name": "play yop",
@@ -54,7 +60,8 @@
          "conditions": "eq p21.yop",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "04090": {
          "name": "play monopoly",
@@ -62,7 +69,8 @@
          "conditions": "eq p21.monopoly",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "05010": {
          "name": "build dc",
@@ -70,7 +78,8 @@
          "conditions": "eq p02 eq p23.dc",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "05070": {
          "name": "build city",
@@ -78,7 +87,8 @@
          "conditions": "eq p02 in p22.city",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "05080": {
          "name": "build road",
@@ -86,7 +96,8 @@
          "conditions": "eq p02 in p22.road",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "05090": {
          "name": "build settlement",
@@ -94,7 +105,8 @@
          "conditions": "eq p02 in p22.settlement",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "06060": {
          "name": "turn end",
@@ -102,7 +114,8 @@
          "conditions": "eq p02",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "settle": {
@@ -112,7 +125,8 @@
          "conditions": "eq g01",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "00021": {
          "name": "second collect",
@@ -120,7 +134,8 @@
          "conditions": "eq g02",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "05192": {
          "name": "build end",
@@ -128,7 +143,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "15293": {
          "name": "end game",
@@ -136,7 +152,8 @@
          "conditions": "eq g00",
          "isPriority": true,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "collect resources (single)": {
@@ -146,7 +163,8 @@
          "conditions": "eq g02",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "pave": {
@@ -156,7 +174,8 @@
          "conditions": "or g01 g02",
          "isPriority": true,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "05182": {
          "name": "build end",
@@ -164,7 +183,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "15283": {
          "name": "end game",
@@ -172,7 +192,8 @@
          "conditions": "eq g00",
          "isPriority": true,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "init": {
@@ -182,7 +203,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "roll": {
@@ -192,7 +214,8 @@
          "conditions": "neq g07",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "01020": {
          "name": "roll robber",
@@ -200,7 +223,8 @@
          "conditions": "and p00 p01",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "11311": {
          "name": "roll discard",
@@ -208,7 +232,8 @@
          "conditions": "eq p11",
          "isPriority": true,
          "isMulti": true,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "discard": {
@@ -218,7 +243,8 @@
          "conditions": "eq p00",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "11312": {
          "name": "roll discard",
@@ -226,7 +252,8 @@
          "conditions": "eq p11",
          "isPriority": true,
          "isMulti": true,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "collect resources (all)": {
@@ -236,7 +263,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "move robber": {
@@ -246,7 +274,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "steal from player": {
@@ -256,7 +285,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "trade with bank": {
@@ -266,7 +296,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "accept trade": {
@@ -276,7 +307,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "offer trade": {
@@ -286,7 +318,8 @@
          "conditions": "eq p10",
          "isPriority": false,
          "isMulti": true,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "03434": {
          "name": "trade cancel",
@@ -294,7 +327,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": true
+         "isCancel": true,
+         "label": ""
       }
    },
    "play knight": {
@@ -304,7 +338,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "14272": {
          "name": "end game",
@@ -312,7 +347,8 @@
          "conditions": "eq g00",
          "isPriority": true,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "04474": {
          "name": "play cancel",
@@ -320,7 +356,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": true
+         "isCancel": true,
+         "label": ""
       }
    },
    "play yop": {
@@ -330,7 +367,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "04484": {
          "name": "play cancel",
@@ -338,7 +376,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": true
+         "isCancel": true,
+         "label": ""
       }
    },
    "play monopoly": {
@@ -348,7 +387,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "04494": {
          "name": "play cancel",
@@ -356,7 +396,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": true
+         "isCancel": true,
+         "label": ""
       }
    },
    "play vp": {
@@ -366,7 +407,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "14202": {
          "name": "end game",
@@ -374,7 +416,8 @@
          "conditions": "eq g00",
          "isPriority": true,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "choose 2 resources": {
@@ -384,7 +427,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "choose resource type": {
@@ -394,7 +438,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "buy dc": {
@@ -404,7 +449,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "15213": {
          "name": "end game",
@@ -412,7 +458,8 @@
          "conditions": "eq g00",
          "isPriority": true,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "fortify": {
@@ -422,7 +469,8 @@
          "conditions": "",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       },
       "15273": {
          "name": "end game",
@@ -430,7 +478,8 @@
          "conditions": "eq g00",
          "isPriority": true,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    },
    "end turn": {
@@ -440,7 +489,8 @@
          "conditions": "eq p00",
          "isPriority": false,
          "isMulti": false,
-         "isCancel": false
+         "isCancel": false,
+         "label": ""
       }
    }
 }
