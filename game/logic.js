@@ -141,9 +141,8 @@ module.exports = {
         game.meta = {
           author: user.getPublicData(),
           players: [ user.getPublicData() ],
-          active: true,
           created: new Date,
-          publiclyViewable: data.publiclyViewable,
+          isPublic: data.isPublic,
           waitfor: null
         };
         game.settings = {

@@ -63,3 +63,6 @@ data
 
 # useless crap
 .DS_Store
+
+# temp files
+tmp

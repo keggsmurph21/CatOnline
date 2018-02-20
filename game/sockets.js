@@ -134,7 +134,7 @@ function prepareGamesData(agent, next) {
 
     let data = [];
     for (let g=0; g<games.length; g++) {
-      if ( funcs.checkIsActive(games[g]) || agent.isAdmin) {
+      if ( game.checkIsActive() || agent.isAdmin) {
         data.push( games[g].getPublicData() );
       }
     }
@@ -221,7 +221,7 @@ function _DeleteGame(agent, game, next) {
   });
 }
 function _JoinUserToGame(agent, user, game, next) {
-  if ( !funcs.checkIsActive(game) )
+  if ( !game.checkIsActive()
     return next('Unable to join: game is not active.');
   if ( funcs.checkIfUserInGame(user,game) )
     return next('Unable to join: you have already joined!' );
@@ -247,7 +247,7 @@ function _JoinUserToGame(agent, user, game, next) {
 function _KickUserFromGame(agent, user, game, next) {
   // takes a user (Model) and a game (Model) and attempts to kick the
   // user from that game
-  if ( !funcs.checkIsActive(game) )
+  if ( !game.checkIsActive()
     return next('Unable to leave: game is not active.' );
   if ( !funcs.checkIfUserInGame(user,game) )
     return next("Unable to leave: you can't leave a game you haven't joined!" );
@@ -518,7 +518,7 @@ function tryMakeGamesPublic(agent, data, next) {
   for (let s=0; s<data.selected.length; s++) {
     funcs.requireGameById( data.selected[s], function(err,game) {
       if (err) { next(err); } else {
-        game.meta.publiclyViewable = true;
+        game.meta.isPublic = true;
         funcs.saveAndCatch( game, function(err) {
           if (err) { next(err); } else {
             next(null, { action:'UPDATE', udata:[], gdata:[game] });
@@ -536,7 +536,7 @@ function tryMakeGamesPrivate(agent, data, next) {
   for (let s=0; s<data.selected.length; s++) {
     funcs.requireGameById( data.selected[s], function(err,game) {
       if (err) { next(err); } else {
-        game.meta.publiclyViewable = false;
+        game.meta.isPublic = false;
         funcs.saveAndCatch( game, function(err) {
           if (err) { next(err); } else {
             next(null, { action:'UPDATE', udata:[], gdata:[game] });
@@ -691,7 +691,7 @@ function tryShare(agent, data, next) {
     if (err) return next(err);
     funcs.requireGameById( data.args.gameid, function(err,game) {
       if (err) return next(err);
-      if (!game.meta.active)
+      if (!game.checkIsActive())
         return next( 'Cannot share game: it is not active.' );
       if (game.meta.status==='in-progress')
         return next( 'Cannot share game: it is already in progress.' );

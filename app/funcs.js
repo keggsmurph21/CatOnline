@@ -30,9 +30,6 @@ module.exports = {
       next(err);
     }
   },
-  checkIsActive : function( game ) {
-    return [ 'pending', 'ready', 'in-progress' ].indexOf( game.meta.status ) > -1;
-  },
   checkIfUserInGame : function( user, game ) {
     for (let p=0; p<game.meta.players.length; p++) {
       if ( module.exports.usersCheckEqual(game.meta.players[p], user) ) {
