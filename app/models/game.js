@@ -18,10 +18,10 @@ var GameSchema = mongoose.Schema({
       flair : String },
     created: Date,
     updated: Date,
-    isPublic: Boolean,
     status: String,
     settings : {
       scenario: String,
+      isPublic: Boolean,
       victoryPointsGoal: Number,
       numHumans: Number,
       numCPUs: Number,
@@ -33,10 +33,10 @@ var GameSchema = mongoose.Schema({
   // only some of this data should persist
   state: {
     // global state-values
-    turn: Number
-    node: Number,
-    adjs: [ Number ],
-    edges: [ Object ],
+    turn: Number,
+    vertex: Number,
+    adjacents: [ Number ],
+    //edges: [ Object ],
     history: [ Object ],
     isFirstTurn: Boolean,
     isSecondTurn: Boolean,
@@ -46,6 +46,7 @@ var GameSchema = mongoose.Schema({
       forWho: [ String ],
       forWhat: String
     },
+    currentPlayerID: Number, // only keep this one for the server
     // player-specific state-values
     players: [ {
       // user.getPublicData() fields
@@ -56,7 +57,7 @@ var GameSchema = mongoose.Schema({
       isMuted : Boolean,
       flair : String,
       // flags
-      isCurrentPlayer : Boolean,
+      //isCurrentPlayer : Boolean, // send this as a flag
       isGameWaitingFor : Boolean,
       hasRolled : Boolean,
       canAcceptTrade : Boolean,
@@ -64,14 +65,14 @@ var GameSchema = mongoose.Schema({
       // values
       bankTradeRates: Object, // { $RES : Number }
       canPlayDC: Object,      // { $DC : Boolean }
-      canBuild: Object        // { $BUILD : [ Number ] }
+      canBuild: Object,       // { $BUILD : [ Number ] }
       canBuy: Object,         // { $DC+ : Boolean }
-      // not sure if this is the best place for this data
-      resources: [ String ],
-      playedDCs: [ String ],
-      unplayedDCs: [ String ]
+      // not sure if this is the best place for this data -> keep in the graph ?
+      //resources: [ String ],
+      //playedDCs: [ String ],
+      //unplayedDCs: [ String ]
      } ]
-  }
+  },
 
   // none of this data should persist after the game is completed/exited
   graph : Object
@@ -111,7 +112,7 @@ GameSchema.methods.getPublicData = function() {
 }
 
 GameSchema.methods.checkIsFull = function() {
-  return ( this.meta.players.length === (this.settings.numHumans+this.settings.numCPUs) );
+  return ( this.state.players.length === (this.settings.numHumans+this.settings.numCPUs) );
 }
 
 GameSchema.methods.checkIsActive = function() {

@@ -22,11 +22,11 @@ class Dice {
 
 // Hex class
 class Hex {
-  constructor(num, resource, diceValue) {
+  constructor(num, resource, dicevalue) {
     this.num = num;
     this.resource = resource;
-    this.roll = diceValue.roll;
-    this.dots = diceValue.dots;
+    this.roll = dicevalue.roll;
+    this.dots = dicevalue.dots;
     this.conns = [];
     return this;
   }

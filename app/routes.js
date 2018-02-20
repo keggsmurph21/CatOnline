@@ -1,8 +1,8 @@
 // load stuff
 var aSync = require('async');
 var funcs = require('./funcs.js');
-var logic = require('../game/logic.js');
-var config= require('../config/new-game-form.json');
+var config = require('../config/catan.js');
+//var config= require('../config/new-game-form.json');
 
 // app/routes.js
 module.exports = function(app, passport) {
@@ -13,7 +13,7 @@ module.exports = function(app, passport) {
       message: req.flash('lobbyMessage'),
       user: req.user,
       //games: data,
-      config: config
+      config: config.getNewGameForm()
     });
   });
 
@@ -203,7 +203,7 @@ module.exports = function(app, passport) {
             res.render('play.ejs', {
               message: req.flash('playMessage'),
               user: req.user,
-              svg: logic.prepareDataForSVG( data ),
+              svg: config.prepareDataForSVG( data ),
               data: data
             });
 

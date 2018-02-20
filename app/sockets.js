@@ -1,6 +1,6 @@
 // game/sockets.js
 var funcs = require('../app/funcs.js');
-var logic = require('./logic.js');
+var config = require('../config/catan.js');
 //var DEFUNCTS = require('./DEFUNCTS.js');
 
 // socket helper functions
@@ -173,7 +173,7 @@ function _DeleteUser(agent, user, next) {
   }
 }
 function _CreateNewGame(agent, author, data, next) {
-  logic.initGameNoPlayers( author, data, function(err,game) {
+  config.initGameNoPlayers( author, data, function(err,game) {
     if (err) return next(err);
     funcs.saveAndCatch(game, function(err) {
       if (err) return next(err);
@@ -221,7 +221,7 @@ function _DeleteGame(agent, game, next) {
   });
 }
 function _JoinUserToGame(agent, user, game, next) {
-  if ( !game.checkIsActive()
+  if ( !game.checkIsActive() )
     return next('Unable to join: game is not active.');
   if ( funcs.checkIfUserInGame(user,game) )
     return next('Unable to join: you have already joined!' );
@@ -247,7 +247,7 @@ function _JoinUserToGame(agent, user, game, next) {
 function _KickUserFromGame(agent, user, game, next) {
   // takes a user (Model) and a game (Model) and attempts to kick the
   // user from that game
-  if ( !game.checkIsActive()
+  if ( !game.checkIsActive() )
     return next('Unable to leave: game is not active.' );
   if ( !funcs.checkIfUserInGame(user,game) )
     return next("Unable to leave: you can't leave a game you haven't joined!" );

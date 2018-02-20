@@ -58,4 +58,4 @@ var sio = io.listen(server);
 sio.use(sioCookieParser());
 
 // handle socket requests
-require('./game/sockets.js')(sio, sessionStore);
+require('./app/sockets.js')(sio, sessionStore);
