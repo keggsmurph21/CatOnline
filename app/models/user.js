@@ -50,5 +50,9 @@ UserSchema.methods.getExtendedPublicData = function() {
   return data;
 }
 
+UserSchema.methods.resetPassword = function() {
+  
+}
+
 // create the model for users and expose it to our app
 module.exports = mongoose.model('User', UserSchema, 'users');
