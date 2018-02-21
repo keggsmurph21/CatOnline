@@ -75,7 +75,7 @@ function userPushChanges(user, next) {
   userGetGamesAsAuthor( user, function(err,games) {
     if (err) next(err);
     for (let g=0; g<games.length; g++) {
-      games[g].meta.author = user.getPublicData();
+      games[g].meta.author = user.getLobbyData();
       games[g].meta.updated = new Date;
       games[g].save( function(err) { if (err) next(err); });
     }
@@ -86,7 +86,7 @@ function userPushChanges(user, next) {
     for (let g=0; g<games.length; g++) {
       for (let p=0; p<games[g].meta.players.length; p++) {
         if ( funcs.usersCheckEqual(games[g].meta.players[p], user) ) {
-          games[g].meta.players[p] = user.getPublicData();
+          games[g].meta.players[p] = user.getLobbyData();
         }
       }
       games[g].meta.updated = new Date;
@@ -122,7 +122,7 @@ function prepareUsersData(next) {
 
     let data = [];
     for (let u=0; u<users.length; u++) {
-      data.push( users[u].getExtendedPublicData() );
+      data.push( users[u].getExtendedLobbyData() );
     }
     next(null,data);
   });
@@ -134,8 +134,8 @@ function prepareGamesData(agent, next) {
 
     let data = [];
     for (let g=0; g<games.length; g++) {
-      if ( game.checkIsActive() || agent.isAdmin) {
-        data.push( games[g].getPublicData() );
+      if ( games[g].checkIsActive() || agent.isAdmin) {
+        data.push( games[g].getLobbyData() );
       }
     }
     next(null,data);
@@ -173,7 +173,7 @@ function _DeleteUser(agent, user, next) {
   }
 }
 function _CreateNewGame(agent, author, data, next) {
-  config.initGameNoPlayers( author, data, function(err,game) {
+  config.getNewGame(author, data, function(err,game) {
     if (err) return next(err);
     funcs.saveAndCatch(game, function(err) {
       if (err) return next(err);
@@ -227,10 +227,10 @@ function _JoinUserToGame(agent, user, game, next) {
     return next('Unable to join: you have already joined!' );
   if ( game.checkIsFull() )
     return next('Unable to join: game is full.' );
-  if ( game.meta.status==='in-progress' )
+  if ( game.state.status==='in-progress' )
     return next('Unable to join: you can\'t join a game once it starts!' );
-  game.meta.players.push( user.getPublicData() );
-  game.meta.status = ( game.checkIsFull() ? 'ready' : 'pending' );
+  game.state.players.push( config.getNewPlayerData(user,game) );
+  game.state.status = ( game.checkIsFull() ? 'ready' : 'pending' );
   game.meta.updated = new Date;
   funcs.saveAndCatch(game, function(err) {
     if (err) return next(err);
@@ -251,20 +251,20 @@ function _KickUserFromGame(agent, user, game, next) {
     return next('Unable to leave: game is not active.' );
   if ( !funcs.checkIfUserInGame(user,game) )
     return next("Unable to leave: you can't leave a game you haven't joined!" );
-  if ( game.meta.status==='in-progress' )
+  if ( game.state.status==='in-progress' )
     return next("Unable to leave: you can't leave a game once it starts!  Try quitting instead." );
   if ( funcs.usersCheckEqual( user, game.meta.author ) )
     return next("Unable to leave: this user is the author.  Try deleting instead." );
   if ( !funcs.usersCheckEqual( user, agent ) && !agent.isSuperAdmin && user.isAdmin )
     return next("Unable to leave: only superadmins may perform this operation." )
   let newlist = [];
-  for (let p=0; p<game.meta.players.length; p++) {
-    if ( !funcs.usersCheckEqual(game.meta.players[p], user) ) {
-      newlist.push( game.meta.players[p] );
+  for (let p=0; p<game.state.players.length; p++) {
+    if ( !funcs.usersCheckEqual(game.state.players[p].lobbyData, user) ) {
+      newlist.push( game.state.players[p] );
     }
   }
-  game.meta.players = newlist;
-  game.meta.status = ( game.checkIsFull() ? 'ready' : 'pending' );
+  game.state.players = newlist;
+  game.state.status = ( game.checkIsFull() ? 'ready' : 'pending' );
   game.meta.updated = new Date;
   funcs.saveAndCatch(game, function(err) {
     if (err) return next(err);
@@ -281,11 +281,11 @@ function _KickUserFromGame(agent, user, game, next) {
 function _LaunchGame(agent, user, game, next) {
   if (!funcs.checkIfUserInGame(user, game) && !agent.isAdmin)
     return next( 'You can\'t launch a game you haven\'t joined!' );
-  if (game.meta.status==='in-progress')
+  if (game.state.status==='in-progress')
     return next(null, { action:'PLAY', url:game._id }); // redirect to /play
-  if (game.meta.status!=='ready')
+  if (game.state.status!=='ready')
     return next( 'Unable to launch until enough players have joined.' );
-  game.meta.status = 'in-progress';
+  game.state.status = 'in-progress';
   game.meta.updated = new Date;
   funcs.saveAndCatch( game, function(err) {
     if (err) return next(err);
@@ -518,7 +518,7 @@ function tryMakeGamesPublic(agent, data, next) {
   for (let s=0; s<data.selected.length; s++) {
     funcs.requireGameById( data.selected[s], function(err,game) {
       if (err) { next(err); } else {
-        game.meta.isPublic = true;
+        game.meta.settings.isPublic = true;
         funcs.saveAndCatch( game, function(err) {
           if (err) { next(err); } else {
             next(null, { action:'UPDATE', udata:[], gdata:[game] });
@@ -536,7 +536,7 @@ function tryMakeGamesPrivate(agent, data, next) {
   for (let s=0; s<data.selected.length; s++) {
     funcs.requireGameById( data.selected[s], function(err,game) {
       if (err) { next(err); } else {
-        game.meta.isPublic = false;
+        game.meta.settings.isPublic = false;
         funcs.saveAndCatch( game, function(err) {
           if (err) { next(err); } else {
             next(null, { action:'UPDATE', udata:[], gdata:[game] });
@@ -615,9 +615,9 @@ function adminCallback(err, data, socket, agent, request) {
 
     let udata=[], gdata=[];
     for (let u=0; u<data.udata.length; u++) {
-      udata.push( data.udata[u].getExtendedPublicData() ); }
+      udata.push( data.udata[u].getExtendedLobbyData() ); }
     for (let g=0; g<data.gdata.length; g++) {
-      gdata.push( data.gdata[g].getPublicData() ); }
+      gdata.push( data.gdata[g].getLobbyData() ); }
     response = {
       user   : agent,
       request: request,
@@ -693,7 +693,7 @@ function tryShare(agent, data, next) {
       if (err) return next(err);
       if (!game.checkIsActive())
         return next( 'Cannot share game: it is not active.' );
-      if (game.meta.status==='in-progress')
+      if (game.state.status==='in-progress')
         return next( 'Cannot share game: it is already in progress.' );
       if (game.checkIsFull())
         return next( 'Cannot share game: it is already full.' );
@@ -725,9 +725,9 @@ function lobbyCallback(err, data, socket, agent, request) {
 
     let udata=[], gdata=[];
     for (let u=0; u<data.udata.length; u++) {
-      udata.push( data.udata[u].getExtendedPublicData() ); }
+      udata.push( data.udata[u].getExtendedLobbyData() ); }
     for (let g=0; g<data.gdata.length; g++) {
-      gdata.push( data.gdata[g].getPublicData() ); }
+      gdata.push( data.gdata[g].getLobbyData() ); }
     response = {
       user   : agent,
       request: request,

@@ -26,6 +26,7 @@
     "nodemon": "^1.14.11",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
+    "sleep": "^5.1.1",
     "socket.io": "^2.0.4",
     "socket.io-cookie-parser": "^1.0.0"
   },

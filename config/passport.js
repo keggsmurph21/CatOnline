@@ -79,7 +79,7 @@ module.exports = function(passport) {
             user.allowResetPassword = false;
 
             // save user to the session
-            req.session.user = user.getPublicData();
+            req.session.user = user.getLobbyData();
 
             // save the user
             user.save( function(err) {
@@ -117,7 +117,7 @@ module.exports = function(passport) {
         }
 
         // save user to the session
-        req.session.user = user.getPublicData();
+        req.session.user = user.getLobbyData();
         return done(null, user);
 
       });

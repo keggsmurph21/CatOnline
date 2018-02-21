@@ -72,45 +72,24 @@
         </form>
 
       </div>
-      <div class="lobby container" id="active-games-cont">
-        <p>In-progress games</p>
-        <table class="lobby gamelist" id="active-games">
-          <tr class="lobby header">
-            <th>Turn</th>
-            <th>Scenario</th>
-            <th>Players</th>
-            <!--<th>CPUs</th>-->
-            <th>Owner</th>
-            <th>Modified</th>
-          </tr>
-        </table>
-      </div>
-      <div class="lobby container" id="pending-games-cont">
-        <p>Pending games</p>
-        <table class="lobby gamelist" id="pending-games">
-          <tr class="lobby header">
-            <th>Status</th>
-            <th>Scenario</th>
-            <th>Humans</th>
-            <!--<th>CPUs</th>-->
-            <th>Owner</th>
-            <th>Modified</th>
-          </tr>
-        </table>
-      </div>
-      <div class="lobby container" id="available-games-cont">
-        <p>Available games</p>
-        <table class="lobby gamelist" id="available-games">
-          <tr class="lobby header">
-            <th>Status</th>
-            <th>Scenario</th>
-            <th>Humans</th>
-            <!--<th>CPUs</th>-->
-            <th>Owner</th>
-            <th>Modified</th>
-          </tr>
-        </table>
-      </div>
+      <%
+      let tables=['active','pending','available'];
+      for (let t=0; t< tables.length; t++) { %>
+        <div class="lobby container" id="<%= tables[t] %>-games-cont">
+          <p>In-progress games</p>
+          <table class="lobby gamelist <%= tables[t] %>" id="<%= tables[t] %>-games">
+            <tr class="lobby header">
+              <th class="turn">Turn</th>
+              <th class="status">Status</th>
+              <th class="scenario">Scenario</th>
+              <th class="players">Players</th>
+              <th class="humans">Humans</th>
+              <th class="owner">Owner</th>
+              <th class="modified">Modified</th>
+            </tr>
+          </table>
+        </div>
+      <% } %>
       <div class="lobby container" id="private-code">
         <p>Enter a private code</p>
         <span>
@@ -197,21 +176,15 @@
       });
     }
     function outputGameMinRowString( data, type ) {
+      console.log(data);
       let str = '';
 
-      if (type==='active') {
-        str += '<th>' + data.turn + ' (' + data.waitfor.name + ')</th>';
-      } else {
-        str += '<th><strong class="' + data.status + '">' + data.status + '</strong></th>';
-      }
-      str +=   '<th>' + data.scenario + '</th>';
+      str +=   '<th><strong>' + data.turn + '</strong> (' + ( data.waiting.length ? data.waiting.map(u=>formatUsername(u)).join(', ') : 'N/A' ) + ') </th>';
+      str +=   '<th><strong class="' + data.status + '">' + data.status + '</strong></th>';
+      str +=   '<th>' + data.settings.scenario + '</th>';
       str +=   '<th>';
-      if (type==='active') {
-        str +=   (data.numHumans + data.numCPUs);
-      } else {
-        str +=   '<span class="current-number">' + data.players.length + '</span>/';
-        str +=   '<span class="required-number">'+ data.numHumans + '</span>';
-      }
+      str +=     '<span class="players">' + (data.settings.numHumans + data.settings.numCPUs) + '</span>';
+      str +=     '<span class="humans">' + data.players.length + '/' + data.settings.numHumans + '</span>';
       str +=   '</th>';
       str +=   '<th>' + formatUsername( data.author ) + '</th>';
       str +=   '<th><span class="date-updated">' + data.updated + '</span></th>';
@@ -313,6 +286,7 @@
       } else {
         for (let p=0; p<data.players.length; p++) {
           let player = data.players[p];
+          console.log(data.players);
           if ( usersCheckEqual(player, user) ) {
             return 'pending';
           }

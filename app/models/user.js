@@ -30,7 +30,7 @@ UserSchema.methods.validPassword = function(password) {
   return bcrypt.compareSync( password, this.password );
 };
 
-UserSchema.methods.getPublicData = function() {
+UserSchema.methods.getLobbyData = function() {
   return {
     id:this._id,
     name:this.name,
@@ -40,8 +40,8 @@ UserSchema.methods.getPublicData = function() {
     flair:this.flair };
 }
 
-UserSchema.methods.getExtendedPublicData = function() {
-  let data = this.getPublicData();
+UserSchema.methods.getExtendedLobbyData = function() {
+  let data = this.getLobbyData();
   data.activeGamesAsAuthor = this.activeGamesAsAuthor;
   data.activeGamesAsPlayer = this.activeGamesAsPlayer;
   data.maxActiveGamesAsAuthor = this.maxActiveGamesAsAuthor;

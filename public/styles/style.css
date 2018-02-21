@@ -363,6 +363,17 @@ table.lobby {
   border-collapse: collapse;
 }
 
+.active .humans {
+  display: none;
+}
+.pending .players {
+  display: none;
+}
+.available .players {
+  display: none;
+}
+
+
 tr.lobby:first-child {
   border-left: 1px solid #222;
 }

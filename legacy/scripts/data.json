@@ -1,0 +1,496 @@
+{
+   590: {
+      15093: {
+         name: 'end game',
+         isMulti: false,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g00; },
+         target: 999
+      },
+      21: {
+         name: 'second collect',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g02; },
+         target: 21
+      },
+      5092: {
+         name: 'build end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      },
+      12: {
+         name: 'first pave',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g01; },
+         target: 580
+      }
+   },
+   600: {
+      3000: {
+         name: 'trade bank',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 300
+      },
+      6060: {
+         name: 'turn end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p02; },
+         target: 666
+      },
+      5010: {
+         name: 'build dc',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p02 in p23.dc; },
+         target: 510
+      },
+      5070: {
+         name: 'build city',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p02 in p22.city; },
+         target: 570
+      },
+      1000: {
+         name: 'roll',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return !p02; },
+         target: 100
+      },
+      4080: {
+         name: 'play yop',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p21.yop; },
+         target: 480
+      },
+      4090: {
+         name: 'play monopoly',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p21.monopoly; },
+         target: 490
+      },
+      5090: {
+         name: 'build settlement',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p02 in p22.settlement; },
+         target: 590
+      },
+      4000: {
+         name: 'play vp',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p21.vp; },
+         target: 400
+      },
+      10000: {
+         name: 'init settle',
+         isMulti: false,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g01 || g02; },
+         target: 590
+      },
+      5080: {
+         name: 'build road',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p02 in p22.road; },
+         target: 580
+      },
+      3010: {
+         name: 'trade offer',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 310
+      },
+      4070: {
+         name: 'play knight',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p21.knight; },
+         target: 470
+      }
+   },
+   666: {
+      6000: {
+         name: 'turn new',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p00; },
+         target: 600
+      }
+   },
+   311: {
+      3031: {
+         name: 'trade end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   },
+   570: {
+      5072: {
+         name: 'build end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      },
+      15073: {
+         name: 'end game',
+         isMulti: false,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g00; },
+         target: 999
+      }
+   },
+   490: {
+      4494: {
+         name: 'play cancel',
+         isMulti: false,
+         isPriority: false,
+         isCancel: true,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      },
+      4091: {
+         name: 'play monopoly',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 491
+      }
+   },
+   491: {
+      4092: {
+         name: 'play end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   },
+   101: {
+      1002: {
+         name: 'roll end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   },
+   21: {
+      22: {
+         name: 'second pave',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g02; },
+         target: 580
+      }
+   },
+   : {
+      : {
+         name: 'init game',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   },
+   400: {
+      4001: {
+         name: 'play end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      },
+      14002: {
+         name: 'end game',
+         isMulti: false,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g00; },
+         target: 999
+      }
+   },
+   480: {
+      4081: {
+         name: 'play yop',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 481
+      },
+      4484: {
+         name: 'play cancel',
+         isMulti: false,
+         isPriority: false,
+         isCancel: true,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   },
+   310: {
+      3330: {
+         name: 'trade accept',
+         isMulti: true,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p10; },
+         target: 311
+      },
+      3434: {
+         name: 'trade cancel',
+         isMulti: false,
+         isPriority: false,
+         isCancel: true,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   },
+   580: {
+      5082: {
+         name: 'build end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      },
+      10060: {
+         name: 'init end',
+         isMulti: false,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g01 || g02; },
+         target: 666
+      },
+      15083: {
+         name: 'end game',
+         isMulti: false,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g00; },
+         target: 999
+      }
+   },
+   300: {
+      3001: {
+         name: 'trade end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   },
+   102: {
+      11312: {
+         name: 'roll discard',
+         isMulti: true,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p11; },
+         target: 102
+      },
+      1013: {
+         name: 'roll robber',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p00; },
+         target: 220
+      }
+   },
+   100: {
+      1020: {
+         name: 'roll robber',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p00 && p01; },
+         target: 220
+      },
+      11311: {
+         name: 'roll discard',
+         isMulti: true,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return p11; },
+         target: 102
+      },
+      1001: {
+         name: 'roll collect',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return !g07; },
+         target: 101
+      }
+   },
+   224: {
+      2001: {
+         name: 'roll end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   },
+   481: {
+      4082: {
+         name: 'play end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   },
+   220: {
+      2000: {
+         name: 'roll steal',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 224
+      }
+   },
+   470: {
+      4474: {
+         name: 'play cancel',
+         isMulti: false,
+         isPriority: false,
+         isCancel: true,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      },
+      4071: {
+         name: 'play knight',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 220
+      },
+      14072: {
+         name: 'end game',
+         isMulti: false,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g00; },
+         target: 999
+      }
+   },
+   510: {
+      15013: {
+         name: 'end game',
+         isMulti: false,
+         isPriority: true,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return g00; },
+         target: 999
+      },
+      5012: {
+         name: 'build end',
+         isMulti: false,
+         isPriority: false,
+         isCancel: false,
+         label: '',
+         conditions: function (flags) { return true; },
+         target: 600
+      }
+   }
+}

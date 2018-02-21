@@ -18,7 +18,6 @@ var GameSchema = mongoose.Schema({
       flair : String },
     created: Date,
     updated: Date,
-    status: String,
     settings : {
       scenario: String,
       isPublic: Boolean,
@@ -32,11 +31,12 @@ var GameSchema = mongoose.Schema({
 
   // only some of this data should persist
   state: {
+
     // global state-values
+    status: String,
     turn: Number,
     vertex: Number,
     adjacents: [ Number ],
-    //edges: [ Object ],
     history: [ Object ],
     isFirstTurn: Boolean,
     isSecondTurn: Boolean,
@@ -46,31 +46,43 @@ var GameSchema = mongoose.Schema({
       forWho: [ String ],
       forWhat: String
     },
-    currentPlayerID: Number, // only keep this one for the server
+    currentPlayerID: Number,
+
     // player-specific state-values
     players: [ {
-      // user.getPublicData() fields
-      id : String,
-      name : String,
-      isAdmin : Boolean,
-      isSuperAdmin : Boolean,
-      isMuted : Boolean,
-      flair : String,
-      // flags
-      //isCurrentPlayer : Boolean, // send this as a flag
+
+      // user.getLobbyData() fields
+      lobbyData : {
+        id : String,
+        name : String,
+        isAdmin : Boolean,
+        isSuperAdmin : Boolean,
+        isMuted : Boolean,
+        flair : String },
+
+      // flags&values
+      isHuman: Boolean,
       isGameWaitingFor : Boolean,
       hasRolled : Boolean,
       canAcceptTrade : Boolean,
       hasHeavyPurse : Boolean,
-      // values
       bankTradeRates: Object, // { $RES : Number }
       canPlayDC: Object,      // { $DC : Boolean }
       canBuild: Object,       // { $BUILD : [ Number ] }
       canBuy: Object,         // { $DC+ : Boolean }
-      // not sure if this is the best place for this data -> keep in the graph ?
-      //resources: [ String ],
-      //playedDCs: [ String ],
-      //unplayedDCs: [ String ]
+
+      // other data
+      unplayedDCs: Object,    // { $DC : Number }
+      playedDCs: Object,      // { $DC : Number }
+      playedKnights: Number,
+      hasLargestArmy: Boolean,
+      resources: Object,      // { $RES : Number }
+      settlements: [ Number ],
+      roads: [ Number ],
+      hasLongestRoad: Boolean,
+      publicScore: Number,
+      privateScore: Number
+
      } ]
   },
 
@@ -81,48 +93,50 @@ var GameSchema = mongoose.Schema({
   usePushEach: true
 });
 
-GameSchema.methods.getDataForUser = function(user,callback) {
+GameSchema.methods.getLobbyData = function() {
   data = {
-    meta : this.meta,
-    sett : this.settings,
-    publ : this.state.public,
-    priv : [0,1,2,3]
-  };
-
-  callback(data);
-}
-
-GameSchema.methods.getPublicData = function() {
-  return {
     id       : this._id,
-    scenario : this.settings.scenario,
-    numHumans: this.settings.numHumans,
-    numCPUs  : this.settings.numCPUs,
-    players  : this.meta.players,
     author   : this.meta.author,
-    VPs      : this.settings.victoryPointsGoal,
-    turn     : this.state.public.turn,
-    status   : this.meta.status,
-    public   : this.meta.isPublic,
-    waitfor  : this.meta.waitfor,
-    created  : this.formatDate( this.meta.created ),
+    settings : this.meta.settings,
+    players  : [],
+    turn     : this.state.turn,
+    status   : this.state.status,
+    waiting  : this.state.waiting.forWho,
     updated  : this.formatDate( this.meta.updated ),
-    isFull   : this.checkIsFull()
-  }
+    isFull   : this.checkIsFull() };
+  for (let i=0; i<this.state.players.length; i++) {
+    console.log('in get lobby data loop');
+    console.log(this.state.players[i].lobbyData);
+    if (this.state.players[i].lobbyData.id)
+      data.players.push(this.state.players[i].lobbyData);
+  };
+  return data;
 }
+GameSchema.methods.getPublicGameData = function() {
+  return {
+    /*data = { // copied from earlier /play implementation
+      meta : this.meta,
+      sett : this.settings,
+      publ : this.state.public,
+      priv : [0,1,2,3]
+    }*/
+  };
+}
+GameSchema.methods.getPrivateGameData = function(playerid) {
+  // takes an integer (not a userid) and returns the private data for that player
+  return {
 
+  };
+}
 GameSchema.methods.checkIsFull = function() {
-  return ( this.state.players.length === (this.settings.numHumans+this.settings.numCPUs) );
+  return ( this.state.players.length === (this.meta.settings.numHumans+this.meta.settings.numCPUs) );
 }
-
 GameSchema.methods.checkIsActive = function() {
-  return [ 'pending', 'ready', 'in-progress' ].indexOf( this.meta.status ) > -1;
+  return [ 'pending', 'ready', 'in-progress' ].indexOf( this.state.status ) > -1;
 }
-
 GameSchema.methods.formatDate = function( datetime ) {
   return dateformat(datetime, "mmm. dS, h:MM:ss tt")
 }
-
 GameSchema.methods.setAdjacentGameStates = function() {
 
 }

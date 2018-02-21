@@ -31,8 +31,8 @@ module.exports = {
     }
   },
   checkIfUserInGame : function( user, game ) {
-    for (let p=0; p<game.meta.players.length; p++) {
-      if ( module.exports.usersCheckEqual(game.meta.players[p], user) ) {
+    for (let p=0; p<game.state.players.length; p++) {
+      if ( module.exports.usersCheckEqual(game.state.players[p].lobbyData, user) ) {
         return true;
       }
     }
@@ -43,8 +43,8 @@ module.exports = {
     return ( u.id.toString()===v.id.toString() );
   },
   iteratePlayers : function(game, next) {
-    for (let p=0; p<game.meta.players.length; p++) {
-      module.exports.requireUserById( game.meta.players[p].id, function(err,player) {
+    for (let p=0; p<game.state.players.length; p++) {
+      module.exports.requireUserById( game.state.players[p].lobbyData.id, function(err,player) {
         next(err, player);
       });
     }
@@ -81,7 +81,7 @@ module.exports = {
     // route middleware to make sure user is logged in
 
     if (req.isAuthenticated()) {
-      req.user = req.user.getPublicData();
+      req.user = req.user.getLobbyData();
       return next();
     }
 

@@ -22,7 +22,7 @@ module.exports = function(app, passport) {
     funcs.User.findById( req.user.id, function(err,user) {
       if (err) throw err;
       if (!user) throw 'Error: unable to find user.';
-      let data = user.getExtendedPublicData();
+      let data = user.getExtendedLobbyData();
       if (data.activeGamesAsPlayer < data.maxActiveGamesAsPlayer || user.isAdmin) {
         funcs.Game.findById(req.body.gameid, function(err,game) {
           if (err) throw err;
@@ -154,11 +154,11 @@ module.exports = function(app, passport) {
     funcs.User.findById( req.user.id, function(err,user) {
       if (err) throw err;
       if (!user) throw 'ERROR: unable to find user.';
-      let data = user.getExtendedPublicData();
+      let data = user.getExtendedLobbyData();
       if ( data.activeGamesAsAuthor < data.maxActiveGamesAsAuthor || req.user.isAdmin ) {
         if ( data.activeGamesAsPlayer < data.maxActiveGamesAsPlayer || req.user.isAdmin ) {
 
-          let game = DEFUNCTS.initGameNoPlayers( req.user, req.body );
+          let game = DEFUNCTS.getNewGame( req.user, req.body );
           game.save( function(err) {
             if (err) throw err;
             user.activeGamesAsAuthor += 1;

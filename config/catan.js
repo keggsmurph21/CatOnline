@@ -71,7 +71,7 @@ function anchorToPoints( coords, scale=1.5 ) {
   return [ coords[0]*scale, coords[1]*Math.sqrt(3)/2*scale ];
 }
 
-// game logic helper functions
+// helper function generate/validate new game forms
 function populateNewGameForm() {
   _NEW_GAME_FORM.strings.scenario.options = Object.keys( _SCENARIOS );
 }
@@ -120,113 +120,47 @@ function validateNewGameParams(data, next) {
   return next(null,validated);
 
 }
-function initGameGraph(settings) {
-  let scenario = _SCENARIOS[settings.scenario];
-  let graph = buildGameGraph(scenario);
-  console.log(graph);
-  return randomizeGameGraph(scenario, graph, settings);
+
+// helper functions to build the state & board graphs
+function initGameState(user, settings) {
+  let state = _SCENARIOS[settings.scenario].defaultGlobalState;
+  state.status = ( settings.numHumans+settings.numCPUs===1 ? 'ready' : 'pending' );
+  state.players = [ buildInitialPlayerState(user, settings, true) ];
+  return state;
 }
-function randomizeGameGraph(scenario, graph, settings) {
-
-  // shuffle the resources (and also the dicevalues?)
-  console.log('1');
-  let resources = [], dicevalues = [];
-  for (let resource in scenario.resources) {
-    for (let i=0; i<scenario.resources[resource].count; i++) {
-      resources.push( resource );
-    }
-  }
-  console.log('2');
-  for (let i=0; i<scenario.dice.length; i++) {
-    dicevalues.push({
-      roll : scenario.dice[i].roll,
-      dots : scenario.dice[i].dots
-    });
-  }
-  console.log('3');
-  funcs.shuffle(resources);
-  console.log('4');
-  if (settings.tileStyle==='random') {
-    console.log('5');
-    funcs.shuffle(dicevalues);
-    console.log('6');
-  }
-  console.log('7');
-  console.log('graph public');
-  console.log(graph.public);
-  for (let i=0; i<graph.public.hexes.length; i++) {
-    console.log('inside the loop');
-    let resource = resources.pop();
-    graph.public.hexes[i].resource = resource;
-    if ( resource==='desert' ) {
-      graph.public.hexes[i].roll = 0;
-      graph.public.hexes[i].dots = 0;
-    } else {
-      let dicevalue = dicevalues.pop();
-      graph.public.hexes[i].roll = dicevalue.roll;
-      graph.public.hexes[i].dots = dicevalue.dots;
-    }
-  }
-  console.log('8');
-  if (!checkIsGameGraphLegal(graph)) {
-    console.log('illegal game graph, reshuffling');
-    return randomizeGameGraph(scenario, graph, settings);
-  }
-
-  // shuffle dev cards
-  console.log('9');
-  funcs.shuffle( graph.hidden.dcDeck );
-  console.log('10');
-
-  let ports = scenario.gameGraph.vertices.ports.types.splice(0);
-  if ( settings.portStyle==='random' ) {
-    console.log('11');
-    funcs.shuffle( ports );
-    console.log('12');
-  }
-  for (let i=0; i<graph.public.juncs.length; i++) {
-    if (graph.public.juncs[i].port !== null) {
-      graph.public.juncs[i].port.type = ports.pop();
-    }
-  }
-  console.log('13');
-
-  return graph;
-
+function initGameBoard(settings) {
+  let board, scenario = _SCENARIOS[settings.scenario];
+  board = buildGameBoard(scenario);
+  board = randomizeGameBoard(scenario, board, settings);
+  return board;
 }
-function checkIsGameGraphLegal(graph) {
-  return true;
-}
-function buildGameGraph(scenario) {
+function buildGameBoard(scenario) {
 
-  let graph = {
-    hidden : {
-      dcDeck : []
-    },
-    public : {
-      dice   : { values:null, roll:function() {
-        return [ funcs.getRandomInt(1,6), funcs.getRandomInt(1,6) ] } },
-      hexes  : [],
-      juncs  : [],
-      roads  : [],
-      conns  : [],
-    },
-    private: {},
+  let board = {
+    dcdeck : [],
+    dice   : {
+      values: null,
+      roll: function() {
+        return [ funcs.getRandomInt(1,6), funcs.getRandomInt(1,6) ] }},
+    hexes  : [],
+    juncs  : [],
+    roads  : [],
+    conns  : []
   };
 
   // make the Dice
-  graph.public.dice.values = [0,0];
+  board.dice.values = [0,0];
 
   // make the Dev Cards
   for (let dc in scenario.playObjects.dcs) {
     for (let i=0; i<scenario.playObjects.dcs[dc].count; i++) {
-      graph.hidden.dcDeck.push( dc );
+      board.dcdeck.push( dc );
     }
   }
 
   // make the Hexes
-  for (let i=0; i<scenario.gameGraph.vertices.hexes; i++) {
-    graph.public.hexes.push({
+  for (let i=0; i<scenario.gameBoard.vertices.hexes; i++) {
+    board.hexes.push({
       num: i,
       resource: null,
       roll: null,
@@ -236,8 +170,8 @@ function buildGameGraph(scenario) {
   }
 
   // make the Juncs
-  for (let i=0; i<scenario.gameGraph.vertices.juncs; i++) {
-    graph.public.juncs.push({
+  for (let i=0; i<scenario.gameBoard.vertices.juncs; i++) {
+    board.juncs.push({
       num : i,
       port : null,
       roads : [],
@@ -247,8 +181,8 @@ function buildGameGraph(scenario) {
   }
 
   // make the Roads
-  for (let i=0; i<scenario.gameGraph.edges.roads.length; i++) {
-    graph.public.roads.push({
+  for (let i=0; i<scenario.gameBoard.edges.roads.length; i++) {
+    board.roads.push({
       num : i,
       juncs : [],
       owner : null,
@@ -256,8 +190,8 @@ function buildGameGraph(scenario) {
   }
 
   // make the Connections
-  for (let i=0; i<scenario.gameGraph.edges.conns.length; i++) {
-    graph.public.conns.push({
+  for (let i=0; i<scenario.gameBoard.edges.conns.length; i++) {
+    board.conns.push({
       num : i,
       junc : null,
       hex : null,
@@ -266,10 +200,10 @@ function buildGameGraph(scenario) {
   }
 
   // put the ports on the juncs
-  for (let i=0; i<scenario.gameGraph.vertices.ports.locations.length; i++) {
-    let port = scenario.gameGraph.vertices.ports.locations[i];
+  for (let i=0; i<scenario.gameBoard.vertices.ports.locations.length; i++) {
+    let port = scenario.gameBoard.vertices.ports.locations[i];
     for (let j=0; j<port.juncs.length; j++) {
-      graph.public.juncs[ port.juncs[j] ].port = {
+      board.juncs[ port.juncs[j] ].port = {
         num : i,
         type : null,
         orientation : port.orientation
@@ -278,23 +212,139 @@ function buildGameGraph(scenario) {
   }
 
   // set the edge data for Roads
-  for (let i=0; i<scenario.gameGraph.edges.roads.length; i++) {
-    let edge = scenario.gameGraph.edges.roads[i];
-    graph.public.roads[i].juncs = [ edge.u, edge.v ];
-    graph.public.juncs[edge.u].roads.push(i);
-    graph.public.juncs[edge.v].roads.push(i);
+  for (let i=0; i<scenario.gameBoard.edges.roads.length; i++) {
+    let edge = scenario.gameBoard.edges.roads[i];
+    board.roads[i].juncs = [ edge.u, edge.v ];
+    board.juncs[edge.u].roads.push(i);
+    board.juncs[edge.v].roads.push(i);
   }
 
   // set the edge data for Conns
-  for (let i=0; i<scenario.gameGraph.edges.conns.length; i++) {
-    let edge = scenario.gameGraph.edges.conns[i];
-    graph.public.conns[i].junc = edge.u;
-    graph.public.conns[i].hex  = edge.v;
-    graph.public.juncs[edge.u].conns.push(i);
-    graph.public.hexes[edge.v].conns.push(i);
+  for (let i=0; i<scenario.gameBoard.edges.conns.length; i++) {
+    let edge = scenario.gameBoard.edges.conns[i];
+    board.conns[i].junc = edge.u;
+    board.conns[i].hex  = edge.v;
+    board.juncs[edge.u].conns.push(i);
+    board.hexes[edge.v].conns.push(i);
   }
 
-  return graph;
+  return board;
+}
+function checkIsGameBoardLegal(board) {
+  return true;
+}
+function randomizeGameBoard(scenario, board, settings) {
+
+  // shuffle the resources (and also the dicevalues?)
+  let resources = [], dicevalues = [];
+  for (let resource in scenario.resources) {
+    for (let i=0; i<scenario.resources[resource].count; i++) {
+      resources.push( resource );
+    }
+  }
+  for (let i=0; i<scenario.dice.length; i++) {
+    dicevalues.push({
+      roll : scenario.dice[i].roll,
+      dots : scenario.dice[i].dots
+    });
+  }
+  funcs.shuffle(resources);
+  if (settings.tileStyle==='random') {
+    funcs.shuffle(dicevalues);
+  }
+  for (let i=0; i<board.hexes.length; i++) {
+    let resource = resources.pop();
+    board.hexes[i].resource = resource;
+    if ( resource==='desert' ) {
+      board.hexes[i].roll = 0;
+      board.hexes[i].dots = 0;
+    } else {
+      let dicevalue = dicevalues.pop();
+      board.hexes[i].roll = dicevalue.roll;
+      board.hexes[i].dots = dicevalue.dots;
+    }
+  }
+  if (!checkIsGameBoardLegal(board)) {
+    console.log('illegal game board, reshuffling');
+    return randomizeGameBoard(scenario, board, settings);
+  }
+
+  // shuffle dev cards
+  funcs.shuffle( board.dcdeck );
+
+  let ports = scenario.gameBoard.vertices.ports.types.splice(0);
+  if ( settings.portStyle==='random' ) {
+    funcs.shuffle( ports );
+  }
+  for (let i=0; i<board.juncs.length; i++) {
+    if (board.juncs[i].port !== null) {
+      board.juncs[i].port.type = ports.pop();
+    }
+  }
+
+  return board;
+
+}
+function saveInitialGameBoardToState(game) {
+  let hexes = [], ports = [], dcdeck = game.board.dcdeck.splice(0);
+  for (let i=0; i<game.board.hexes.length; i++) {
+    let hex = game.board.hexes[i];
+    hexes.push({ resource:hex.resource, roll:hex.roll });
+  }
+  for (let i=0; i<game.board.juncs.length; i++) {
+    let junc = game.board.juncs[i];
+    if (junc.port)
+      ports.push({ type:game.board.juncs[i].port.type });
+  }
+  game.state.initialGameConditions = { hexes:hexes, ports:ports, dcdeck:dcdeck };
+}
+
+function buildInitialPlayerState(user, settings, isHuman=true) {
+  let scenario = _SCENARIOS[settings.scenario],
+    playerState = scenario.defaultPlayerState,
+    bankTradeRates={}, canPlayDC={}, canBuild={},
+    canBuy={}, unplayedDCs={}, playedDCs={}, resources={};
+
+  for (let resource in scenario.resources) {
+    bankTradeRates[resource] = playerState.bankTradeRates;
+    resources[resource] = playerState.resources;
+  }
+  for (let dc in scenario.playObjects.dcs) {
+    canPlayDC[dc] = playerState.canPlayDC;
+    unplayedDCs[dc] = playerState.unplayedDCs;
+    playedDCs[dc] = playerState.playedDCs;
+  }
+  for (let build in scenario.buildObjects) {
+    canBuild[build] = playerState.canBuild;
+  }
+  for (let buy in scenario.buyObjects) {
+    canBuy[buy] = playerState.canBuy;
+  }
+
+  playerState.isHuman = isHuman;
+  playerState.bankTradeRates = bankTradeRates;
+  playerState.canPlayDC = canPlayDC;
+  playerState.canBuild = canBuild;
+  playerState.canBuy = canBuy;
+  playerState.unplayedDCs = unplayedDCs;
+  playerState.playedDCs = playedDCs;
+  playerState.resources = resources;
+
+  if (isHuman) {
+    playerState.isHuman = true;
+    playerState.lobbyData = user.getLobbyData();
+  } else {
+    throw Error( 'adding CPUs is not yet implemented' );
+  }
+
+  return playerState;
+}
+
+function getAdjacentGameStates(_v, flags) {
+  for (let _e in _STATE_GRAPH[_v]) {
+    let edge = _STATE_GRAPH[_v][_e];
+    console.log(edge.name);
+  }
 }
 
 var _SCENARIOS = {
@@ -413,7 +463,15 @@ var _SCENARIOS = {
       { roll:3, dots:2 },
       { roll:11, dots:2 }
     ],
-    gameGraph: {
+    gameState: {
+      vertices: [
+
+      ],
+      edges: [
+
+      ]
+    },
+    gameBoard: {
       vertices: {
         hexes: 19,
         juncs: 54,
@@ -1222,15 +1280,8 @@ var _SCENARIOS = {
         ]
       }
     },
-    stateGraph: {
-      vertices: [
-
-      ],
-      edges: [
-
-      ]
-    },
     defaultGlobalState: {
+      status: null,
       turn: 0,
       vertex: 0,
       adjacents: [],
@@ -1243,26 +1294,46 @@ var _SCENARIOS = {
         forWho: [],
         forWhat: null
       },
-      currentPlayerID: null
+      currentPlayerID: null,
+      initialGameConditions : null,
+      players: []
     },
     defaultPlayerState: {
-      // user.getPublicData() fields
-      id : null,
-      name : null,
-      isAdmin : null,
-      isSuperAdmin : null,
-      isMuted : null,
-      flair : null,
-      // flags
+
+      // user.getLobbyData() fields
+      lobbyData: null,/*{
+        id : null,
+        name : null,
+        isAdmin : null,
+        isSuperAdmin : null,
+        isMuted : null,
+        flair : null },*/
+
+      // actual state data that should be sent to the client on change
+      isHuman: null,
       isGameWaitingFor : false,
       hasRolled : false,
       canAcceptTrade : false,
       hasHeavyPurse : false,
-      // NOTE: these need to be built into objects
-      bankTradeRates: 4,
-      canPlayDC: false,
-      canBuild: false,
-      canBuy: false,
+      bankTradeRates: 4, // build
+      canPlayDC: false,  // build
+      canBuild: false,   // build
+      canBuy: false,     // build
+
+      // fields that would probably logically make more
+      // sense in the board graph, and can be built from that;
+      // should not persist after endgame
+      unplayedDCs: 0,     // build
+      playedDCs: 0,      // build
+      playedKnights: 0,
+      hasLargestArmy: false,
+      resources: 0,       // build
+      settlements: [],
+      roads: [],
+      hasLongestRoad: false,
+      publicScore: 0,
+      privateScore: 0,
+
     }
   }
 }
@@ -1414,10 +1485,511 @@ var _GUIS = {
         2
       ]
     }
+  },
+  pythonAPI: {
+
   }
 }
 var _STATE_GRAPH = {
+  vertices: {
 
+  },
+  edges: {
+       590: {
+          15093: {
+             name: 'end game',
+             isMulti: false,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isGameOver; },
+             target: 999
+          },
+          21: {
+             name: 'second collect',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isSecondTurn; },
+             target: 21
+          },
+          5092: {
+             name: 'build end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          },
+          12: {
+             name: 'first pave',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isFirstTurn; },
+             target: 580
+          }
+       },
+       600: {
+          3000: {
+             name: 'trade bank',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.hasRolled; },
+             target: 300
+          },
+          6060: {
+             name: 'turn end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.hasRolled; },
+             target: 666
+          },
+          5010: {
+             name: 'build dc',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.hasRolled && flags.user.canBuy.dc; },
+             target: 510
+          },
+          5070: {
+             name: 'build city',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.hasRolled && flags.user.canBuild.city; },
+             target: 570
+          },
+          1000: {
+             name: 'roll',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return !flags.user.hasRolled; },
+             target: 100
+          },
+          4080: {
+             name: 'play yop',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.canPlayDC.yop; },
+             target: 480
+          },
+          4090: {
+             name: 'play monopoly',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.canPlayDC.monopoly; },
+             target: 490
+          },
+          5090: {
+             name: 'build settlement',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.hasRolled && flags.user.canBuild.settlement; },
+             target: 590
+          },
+          4000: {
+             name: 'play vp',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.canPlayDC.vp; },
+             target: 400
+          },
+          10000: {
+             name: 'init settle',
+             isMulti: false,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isFirstTurn || flags.isSecondTurn; },
+             target: 590
+          },
+          5080: {
+             name: 'build road',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.hasRolled && flags.user.canBuild.road; },
+             target: 580
+          },
+          3010: {
+             name: 'trade offer',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 310
+          },
+          4070: {
+             name: 'play knight',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.canPlayDC.knight; },
+             target: 470
+          }
+       },
+       666: {
+          6000: {
+             name: 'turn new',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.isCurrentPlayer; },
+             target: 600
+          }
+       },
+       311: {
+          3031: {
+             name: 'trade end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       },
+       570: {
+          5072: {
+             name: 'build end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          },
+          15073: {
+             name: 'end game',
+             isMulti: false,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isGameOver; },
+             target: 999
+          }
+       },
+       490: {
+          4494: {
+             name: 'play cancel',
+             isMulti: false,
+             isPriority: false,
+             isCancel: true,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          },
+          4091: {
+             name: 'play monopoly',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 491
+          }
+       },
+       491: {
+          4092: {
+             name: 'play end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       },
+       101: {
+          1002: {
+             name: 'roll end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       },
+       21: {
+          22: {
+             name: 'second pave',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isSecondTurn; },
+             target: 580
+          }
+       },
+       0: {
+          0: {
+             name: 'init game',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       },
+       400: {
+          4001: {
+             name: 'play end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          },
+          14002: {
+             name: 'end game',
+             isMulti: false,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isGameOver; },
+             target: 999
+          }
+       },
+       480: {
+          4081: {
+             name: 'play yop',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 481
+          },
+          4484: {
+             name: 'play cancel',
+             isMulti: false,
+             isPriority: false,
+             isCancel: true,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       },
+       310: {
+          3330: {
+             name: 'trade accept',
+             isMulti: true,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.canAcceptTrade; },
+             target: 311
+          },
+          3434: {
+             name: 'trade cancel',
+             isMulti: false,
+             isPriority: false,
+             isCancel: true,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       },
+       580: {
+          5082: {
+             name: 'build end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          },
+          10060: {
+             name: 'init end',
+             isMulti: false,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isFirstTurn || flags.isSecondTurn; },
+             target: 666
+          },
+          15083: {
+             name: 'end game',
+             isMulti: false,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isGameOver; },
+             target: 999
+          }
+       },
+       300: {
+          3001: {
+             name: 'trade end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       },
+       102: {
+          11312: {
+             name: 'roll discard',
+             isMulti: true,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.hasHeavyPurse; },
+             target: 102
+          },
+          1013: {
+             name: 'roll robber',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.isCurrentPlayer; },
+             target: 220
+          }
+       },
+       100: {
+          1020: {
+             name: 'roll robber',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.isCurrentPlayer && flags.user.isWaitingFor; },
+             target: 220
+          },
+          11311: {
+             name: 'roll discard',
+             isMulti: true,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.user.hasHeavyPurse; },
+             target: 102
+          },
+          1001: {
+             name: 'roll collect',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return !flags.isRollSeven; },
+             target: 101
+          }
+       },
+       224: {
+          2001: {
+             name: 'roll end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       },
+       481: {
+          4082: {
+             name: 'play end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       },
+       220: {
+          2000: {
+             name: 'roll steal',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 224
+          }
+       },
+       470: {
+          4474: {
+             name: 'play cancel',
+             isMulti: false,
+             isPriority: false,
+             isCancel: true,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          },
+          4071: {
+             name: 'play knight',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 220
+          },
+          14072: {
+             name: 'end game',
+             isMulti: false,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isGameOver; },
+             target: 999
+          }
+       },
+       510: {
+          15013: {
+             name: 'end game',
+             isMulti: false,
+             isPriority: true,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return flags.isGameOver; },
+             target: 999
+          },
+          5012: {
+             name: 'build end',
+             isMulti: false,
+             isPriority: false,
+             isCancel: false,
+             label: '',
+             evaluate: function (flags) { return true; },
+             target: 600
+          }
+       }
+  }
 }
 var _NEW_GAME_FORM = {
   strings : {
@@ -1473,9 +2045,8 @@ var _NEW_GAME_FORM = {
 
 populateNewGameForm();
 
-// define lots of game logic here
+// expose some functionality to the environment
 module.exports = {
-
 
   // output the necessary objects to make the host-new-game
   getNewGameForm : function() {
@@ -1485,30 +2056,24 @@ module.exports = {
 
 
   // build the meta, settings, and state
-  initGameNoPlayers : function(user, settings, next) {
+  getNewGame : function(user, settings, next) {
 
     try {
       validateNewGameParams(settings, function(err,settings) {
         if (err) return next(err);
 
         let game = new funcs.Game();
-        game.state = _SCENARIOS[settings.scenario].defaultGlobalState;
-        game.graph = initGameGraph(settings);
-        require('fs').writeFileSync( './tmp/game.json', JSON.stringify(game), 'utf8', function(err) {
-          if (err) next(err);
-          console.log('file saved');
-        })
-
+        game.state = initGameState(user, settings);
+        game.board = initGameBoard(settings);
         game.meta = {
-          author: user.getPublicData(),
-          // players: [ user.getPublicData() ],
+          author: user.getLobbyData(),
           created: new Date,
           updated: new Date,
-          status : ( game.checkIsFull() ? 'ready' : 'pending' ),
           settings: settings
         };
 
-        return next(null,game);
+        saveInitialGameBoardToState(game);
+        next(null, game);
 
       });
     } catch(err) {
@@ -1516,8 +2081,9 @@ module.exports = {
     }
   },
 
-
-
+  getNewPlayerData : function(user, game) {
+    return buildInitialPlayerState(user, game.meta.settings, true);
+  },
 
   // SVG-based GUI functions
   prepareDataForSVG : function(data, next) {
