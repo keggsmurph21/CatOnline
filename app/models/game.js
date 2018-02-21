@@ -35,8 +35,7 @@ var GameSchema = mongoose.Schema({
     // global state-values
     status: String,
     turn: Number,
-    vertex: Number,
-    adjacents: [ Number ],
+    vertex: String,
     history: [ Object ],
     isFirstTurn: Boolean,
     isSecondTurn: Boolean,
@@ -47,6 +46,7 @@ var GameSchema = mongoose.Schema({
       forWhat: String
     },
     currentPlayerID: Number,
+    hasRolled: Boolean,
 
     // player-specific state-values
     players: [ {
@@ -60,10 +60,10 @@ var GameSchema = mongoose.Schema({
         isMuted : Boolean,
         flair : String },
 
+      adjacents: [ String ],
+
       // flags&values
       isHuman: Boolean,
-      isGameWaitingFor : Boolean,
-      hasRolled : Boolean,
       canAcceptTrade : Boolean,
       hasHeavyPurse : Boolean,
       bankTradeRates: Object, // { $RES : Number }
@@ -72,6 +72,7 @@ var GameSchema = mongoose.Schema({
       canBuy: Object,         // { $DC+ : Boolean }
 
       // other data
+      playerID: Number,       // assign at launch
       unplayedDCs: Object,    // { $DC : Number }
       playedDCs: Object,      // { $DC : Number }
       playedKnights: Number,

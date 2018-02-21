@@ -199,11 +199,11 @@
       str +=   '<div class="lobby max-container">';
       str +=     '<div class="lobby max info">';
       str +=       '<p class="victory-points-info">';
-      str +=         '<strong>' + data.VPs + '&nbsp;';
+      str +=         '<strong>' + data.settings.victoryPointsGoal + '&nbsp;';
       str +=         'Victory Points</strong> required for victory';
       str +=       '</p>';
       str +=       '<div class="players-list">';
-      for (let p=0; p<data.numHumans; p++) {
+      for (let p=0; p<data.settings.numHumans; p++) {
         str +=       '<p>';
         str +=         '<span class="num">Player ' + (p+1) + ':&nbsp;&nbsp</span>';
         str +=         formatUsername( data.players[p] );

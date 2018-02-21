@@ -1,51 +1,51 @@
-name	id	source	target	conditions	is-priority	is-multi	is-cancel	label
-init settle	10000	600	590	function (flags) { return g01 || g02; }	1
-first pave	00012	590	580	function (flags) { return g01; }
-second collect	00021	590	21	function (flags) { return g02; }
-second pave	00022	21	580	function (flags) { return g02; }
-init end	10060	580	666	function (flags) { return g01 || g02; }	1
-init game	00000	0	600	function (flags) { return true; }
-roll	01000	600	100	function (flags) { return !p02; }
-roll collect	01001	100	101	function (flags) { return !g07; }
-roll robber	01013	102	220	function (flags) { return p00; }
-roll robber	01020	100	220	function (flags) { return p00 && p01; }
-roll end	01002	101	600	function (flags) { return true; }
-roll discard	11311	100	102	function (flags) { return p11; }	1	1
-roll discard	11312	102	102	function (flags) { return p11; }	1	1
-roll steal	02000	220	224	function (flags) { return true; }
-roll end	02001	224	600	function (flags) { return true; }
-trade bank	03000	600	300	function (flags) { return true; }
-trade offer	03010	600	310	function (flags) { return true; }
-trade end	03001	300	600	function (flags) { return true; }
-trade end	03031	311	600	function (flags) { return true; }
-trade accept	03330	310	311	function (flags) { return p10; }		1
-trade cancel	03434	310	600	function (flags) { return true; }			1
-play vp	04000	600	400	function (flags) { return p21.vp; }
-play knight	04070	600	470	function (flags) { return p21.knight; }
-play knight	04071	470	220	function (flags) { return true; }
-play yop	04080	600	480	function (flags) { return p21.yop; }
-play yop	04081	480	481	function (flags) { return true; }
-play monopoly	04090	600	490	function (flags) { return p21.monopoly; }
-play monopoly	04091	490	491	function (flags) { return true; }
-play end	04001	400	600	function (flags) { return true; }
-play end	04082	481	600	function (flags) { return true; }
-play end	04092	491	600	function (flags) { return true; }
-end game	14002	400	999	function (flags) { return g00; }	1
-end game	14072	470	999	function (flags) { return g00; }	1
-play cancel	04474	470	600	function (flags) { return true; }			1
-play cancel	04484	480	600	function (flags) { return true; }			1
-play cancel	04494	490	600	function (flags) { return true; }			1
-build dc	05010	600	510	function (flags) { return p02 in p23.dc; }
-build city	05070	600	570	function (flags) { return p02 in p22.city; }
-build road	05080	600	580	function (flags) { return p02 in p22.road; }
-build settlement	05090	600	590	function (flags) { return p02 in p22.settlement; }
-build end	05012	510	600	function (flags) { return true; }
-build end	05072	570	600	function (flags) { return true; }
-build end	05082	580	600	function (flags) { return true; }
-build end	05092	590	600	function (flags) { return true; }
-end game	15013	510	999	function (flags) { return g00; }	1
-end game	15073	570	999	function (flags) { return g00; }	1
-end game	15083	580	999	function (flags) { return g00; }	1
-end game	15093	590	999	function (flags) { return g00; }	1
-turn end	06060	600	666	function (flags) { return p02; }
-turn new	06000	666	600	function (flags) { return p00; }				
+name	id	source	target	conditions	is-priority	is-multi	is-cancel
+accept trade	3330	offer trade	accept trade	function (f) { return f.canAcceptTrade; }		1
+build city	5070	root	fortify	function (f) { return f.hasRolled in f.canBuild.city; }
+build road	5080	root	pave	function (f) { return f.hasRolled in f.canBuild.road; }
+build settlement	5090	root	settle	function (f) { return f.hasRolled in f.canBuild.settlement; }
+buy dc	5010	root	buy dc	function (f) { return f.hasRolled in f.canBuy.dc; }
+cancel knight	4474	play knight	root	function (f) { return true; }			1
+cancel monopoly	4494	play monopoly	root	function (f) { return true; }			1
+cancel trade	3434	offer trade	root	function (f) { return true; }			1
+cancel yop	4484	play yop	root	function (f) { return true; }			1
+end game	14202	play vp	end game	function (f) { return f.isGameOver; }	1
+end game	14272	play knight	end game	function (f) { return f.isGameOver; }	1
+end game	15213	buy dc	end game	function (f) { return f.isGameOver; }	1
+end game	15273	fortify	end game	function (f) { return f.isGameOver; }	1
+end game	15283	pave	end game	function (f) { return f.isGameOver; }	1
+end game	15293	settle	end game	function (f) { return f.isGameOver; }	1
+end init	10060	pave	end turn	function (f) { return f.isFirstTurn || f.isSecondTurn; }	1
+end turn	6060	root	end turn	function (f) { return f.hasRolled; }
+init build road	12	settle	pave	function (f) { return f.isFirstTurn; }
+init settle	10000	root	settle	function (f) { return f.isFirstTurn || f.isSecondTurn; }	1
+init2 build road	22	collect resources (single)	pave	function (f) { return f.isSecondTurn; }
+move robber after discard	1013	discard	move robber	function (f) { return f.isCurrentPlayer; }
+move robber after knight	4071	play knight	move robber	function (f) { return true; }
+move robber no discard	1020	roll	move robber	function (f) { return f.isCurrentPlayer && f.isWaitingFor; }
+offer trade	3010	root	offer trade	function (f) { return true; }
+play knight	4070	root	play knight	function (f) { return f.canPlay.knight; }
+play monopoly	4090	root	play monopoly	function (f) { return f.canPlay.monopoly; }
+play monopoly choose	4091	play monopoly	choose resource type	function (f) { return true; }
+play vp	4000	root	play vp	function (f) { return f.canPlay.vp; }
+play yop	4080	root	play yop	function (f) { return f.canPlay.yop; }
+play yop choose	4081	play yop	choose 2 resources	function (f) { return true; }
+roll	1000	root	roll	function (f) { return !f.hasRolled; }
+roll collect	1001	roll	collect resources (all)	function (f) { return !f.isRollSeven; }
+roll discard	11311	roll	discard	function (f) { return f.hasHeavyPurse; }	1	1
+roll discard	11312	discard	discard	function (f) { return f.hasHeavyPurse; }	1	1
+init collect	21	settle	collect resources (single)	function (f) { return f.isSecondTurn; }
+steal robber	2000	move robber	steal from player	function (f) { return true; }
+take turn	6100	end turn	root	function (f) { return f.isCurrentPlayer; }
+to root	100	init	root	function (f) { return true; }
+to root	1102	collect resources (all)	root	function (f) { return true; }
+to root	2101	steal from player	root	function (f) { return true; }
+to root	3101	trade with bank	root	function (f) { return true; }
+to root	3131	accept trade	root	function (f) { return true; }
+to root	4101	play vp	root	function (f) { return true; }
+to root	4182	choose 2 resources	root	function (f) { return true; }
+to root	4192	choose resource type	root	function (f) { return true; }
+to root	5112	buy dc	root	function (f) { return true; }
+to root	5172	fortify	root	function (f) { return true; }
+to root	5182	pave	root	function (f) { return true; }
+to root	5192	settle	root	function (f) { return true; }
+trade bank	3000	root	trade with bank	function (f) { return true; }			

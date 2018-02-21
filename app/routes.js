@@ -1,6 +1,7 @@
 // load stuff
 var aSync = require('async');
 var funcs = require('./funcs.js');
+var logic = require('./logic.js');
 var config = require('../config/catan.js');
 //var config= require('../config/new-game-form.json');
 
@@ -14,6 +15,21 @@ module.exports = function(app, passport) {
       user: req.user,
       //games: data,
       config: config.getNewGameForm()
+    });
+  });
+
+  app.get('/dev', function(req,res) {
+    funcs.requireUserById( '5a88f82d931f760c16c3417c', function(err,user) {
+      if (err) throw err;
+      funcs.requireGameById( '5a8cf31b53a9b0027c8e322b', function(err,game) {
+        if (err) throw err;
+        logic.launch(game, function(err,data) {
+          res.render('dev.ejs', {
+            user: user,
+            data: data//logic.getFlagsForUser(user, game)
+          });
+        });
+      });
     });
   });
 
