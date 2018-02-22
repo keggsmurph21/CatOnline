@@ -126,11 +126,18 @@ module.exports = {
     res.redirect( '/admin' );
 
   },
-  log : function(line) {
+  log : function(line, log=null) {
     let datetime = new Date();
     datetime = dateformat( datetime, "default" );
     line = '[' + datetime + '] ' + line + '\n';
-    fs.appendFile( './logs/debug.log', line, 'utf8', function(err) {
+    if (!fs.existsSync('./logs')) {
+      fs.mkdirSync('./logs');
+    }
+    if (log)
+      fs.appendFile( './logs/'+log+'.log', line, 'ut8', function(err) {
+        if (err) throw err;
+      });
+    fs.appendFile( './logs/core.log', line, 'utf8', function(err) {
       if (err) throw err;
     });
   },
