@@ -1482,7 +1482,7 @@ var _GUIS = {
 
   }
 }
-var _STATE_GRAPH = {
+const _STATE_GRAPH = require('states.js')/*{
 	edges : {
 		"_e_trade_bank": {
 			isMulti: false,
@@ -1798,7 +1798,7 @@ var _STATE_GRAPH = {
 			]
 		}
 	}
-}
+}*/
 var _NEW_GAME_FORM = {
   strings : {
     scenario : {
