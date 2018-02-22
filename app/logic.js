@@ -5,20 +5,20 @@ function getFlags(user, game) {
   let player = getAllPlayerData(user, game);
 
   return {
-    vertex:           game.state.vertex,
     isGameOver:       game.state.isGameOver,
     isFirstTurn:      game.state.isFirstTurn,
     isSecondTurn:     game.state.isSecondTurn,
     isRollSeven:      game.state.isRollSeven,
-    isCurrentPlayer:  game.state.currentPlayerID===player.playerID,
-    isWaitingFor:     game.state.waiting.forWho.indexOf(player.playerID) > -1, // not sure if should save on the model itself
     hasRolled:        game.state.hasRolled,
+    vertex:           player.vertex,
     canAcceptTrade:   player.canAcceptTrade,
     hasHeavyPurse:    player.hasHeavyPurse,
     canPlayDC:        player.canPlayDC,
     canBuild:         player.canBuild,
     canBuy:           player.canBuy,
-    isHuman:          player.isHuman
+    isHuman:          player.isHuman,
+    isCurrentPlayer:  game.state.currentPlayerID===player.playerID,
+    isWaitingFor:     game.state.waiting.forWho.indexOf(player.playerID) > -1 // not sure if should save on the model itself
   }
 }
 function getAllPlayerData(player, game) {
@@ -49,7 +49,7 @@ module.exports = {
       config.getAdjacentGameStates(flags);
     }
     return "SEE CONSOLE";
-  }
+  },
   launch : function(game, next) {
     //
   }

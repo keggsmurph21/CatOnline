@@ -35,7 +35,6 @@ var GameSchema = mongoose.Schema({
     // global state-values
     status: String,
     turn: Number,
-    vertex: String,
     history: [ Object ],
     isFirstTurn: Boolean,
     isSecondTurn: Boolean,
@@ -60,6 +59,7 @@ var GameSchema = mongoose.Schema({
         isMuted : Boolean,
         flair : String },
 
+      vertex: String,
       adjacents: [ String ],
 
       // flags&values

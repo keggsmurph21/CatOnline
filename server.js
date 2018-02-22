@@ -1,26 +1,26 @@
 // server.js
 
 // setup
-var funcs         = require('./app/funcs.js');
-var express       = require('express');
-var app           = express();
-var port          = process.env.PORT || 3000;
-var mongoose      = require('mongoose');
-var passport      = require('passport');
-var flash         = require('connect-flash');
+const funcs         = require('./app/funcs.js');
+const express       = require('express');
+const app           = express();
+const port          = process.env.PORT || 3000;
+const mongoose      = require('mongoose');
+const passport      = require('passport');
+const flash         = require('connect-flash');
 
-var http          = require('http');
-var io            = require('socket.io');
+const http          = require('http');
+const io            = require('socket.io');
 
-var morgan        = require('morgan');
-var cookieParser  = require('cookie-parser');
-var sioCookieParser=require('socket.io-cookie-parser');
-var bodyParser    = require('body-parser');
-var session       = require('express-session');
+const morgan        = require('morgan');
+const cookieParser  = require('cookie-parser');
+const sioCookieParser=require('socket.io-cookie-parser');
+const bodyParser    = require('body-parser');
+const session       = require('express-session');
 
-var configDB      = require('./config/database.js');
+const configDB      = require('./config/database.js');
 
-var sessionStore   = new express.session.MemoryStore();
+const sessionStore   = new express.session.MemoryStore();
 
 // configuration
 mongoose.connect(configDB.url, function(err) { if (err) throw err; });
@@ -48,13 +48,13 @@ require('./app/routes.js')(app, passport);
 app.use(express.static(__dirname + '/public'));
 
 // launch server
-var server = http.createServer(app).listen(port, function() {
+const server = http.createServer(app).listen(port, function() {
   console.log( 'Express server listening on port ' + port );
   funcs.log( 'Express server listening on port '+port );
 })
 
 // setup sockets
-var sio = io.listen(server);
+const sio = io.listen(server);
 sio.use(sioCookieParser());
 
 // handle socket requests
