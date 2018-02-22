@@ -13,19 +13,26 @@ def get_sheet( spreadsheet, gid ):
         obj.append( line.split('\t') )
     return obj
 
-def get_graph():
-    nodes = get_sheet( _GRAPH, _NODE_SHEET )
-    edges = get_sheet( _GRAPH, _EDGE_SHEET )
-    return (nodes, edges)
+def get_sheets( spreadsheet, sheets ):
+    data = {}
+    for sheet in sheets:
+        data[sheet] = get_sheet( spreadsheet, sheets[sheet] )
+    return data
 
 def get_state_graph():
 
-    nodes, edges = get_graph()
+    spreadsheet = "1UlTewbihkhtMcIgH6p1RqhkqUcSufclM7UvAu6EgOcI"
+    sheets = {
+        'vertices'  : "235763305",
+        'edges'     : "931117447"
+    }
+
+    sheets = get_sheets( spreadsheet, sheets )
     data = { 'vertices':{}, 'edges':{} }
     ignoreList = [ 'id' ]
 
     isHeader = True
-    for line in nodes:
+    for line in sheets['vertices']:
         if isHeader:
             header = line
             isHeader = False
@@ -38,7 +45,7 @@ def get_state_graph():
                 elif th not in ignoreList:
                     data['vertices'][vname][th] = line[i]
     isHeader = True
-    for line in edges:
+    for line in sheets['edges']:
         if isHeader:
             header = line
             isHeader = False
@@ -61,36 +68,32 @@ def get_state_graph():
 
     data = json.dumps(data,indent=3)
 
-    for item in [ 'vertices', 'edges', 'evaluate', 'isMulti', 'isPriority',
-        'isCancel', 'target', 'label' ]:
+    for item in [ 'vertices', 'edges', 'evaluate', 'isMulti', 'isPriority', 'isCancel', 'target', 'label' ]:
         data = re.sub( '"%s"' % item, '%s' % item, data )
 
     data = re.sub(r'"(func.*\})"', r'\1', data)
 
-    os.chdir('..')
-    with open('./states.js', 'w') as f:
-        data = 'module.exports = {\n\n%s\n\n}' % data
+    filepath = get_filepath('states')
+    with open(filepath, 'w') as f:
+        data = 'module.exports = %s' % data
         f.write(data)
 
     return
 
+def get_filepath( modulename ):
+    return os.path.join( os.path.dirname(sys.argv[0]), '..', '%s.js' % modulename )
+
 def replace_name( prefix, name ):
     return '_%s_%s' % ( prefix, name.replace(' ','_') )
 
-_GRAPH = "1UlTewbihkhtMcIgH6p1RqhkqUcSufclM7UvAu6EgOcI" # spreadsheet id
-_EDGE_SHEET = "931117447" # sheet id
-_NODE_SHEET = "235763305" # sheet id
-
 if __name__ == '__main__':
 
-    if len(sys.argv)==0:
+    if len(sys.argv)==1:
         get_state_graph()
 
     else:
         if (sys.argv[1]=='states'):
             get_state_graph()
-
-
 
         else:
             print( 'Error: no action matching argument "%s"' % sys.argv[1] )
