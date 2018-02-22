@@ -1,6 +1,4 @@
 module.exports = {
-
-{
    vertices: {
       "_v_init": {
          edges: [
@@ -433,6 +431,4 @@ module.exports = {
          label: ""
       }
    }
-}
-
 }

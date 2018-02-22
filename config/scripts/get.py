@@ -18,10 +18,7 @@ def get_graph():
     edges = get_sheet( _GRAPH, _EDGE_SHEET )
     return (nodes, edges)
 
-def replace_name( prefix, name ):
-    return '_%s_%s' % ( prefix, name.replace(' ','_') )
-
-def main():
+def get_state_graph():
 
     nodes, edges = get_graph()
     data = { 'vertices':{}, 'edges':{} }
@@ -70,15 +67,30 @@ def main():
 
     data = re.sub(r'"(func.*\})"', r'\1', data)
 
-    with open('../states.js', 'w') as f:
+    os.chdir('..')
+    with open('./states.js', 'w') as f:
         data = 'module.exports = {\n\n%s\n\n}' % data
         f.write(data)
 
     return
+
+def replace_name( prefix, name ):
+    return '_%s_%s' % ( prefix, name.replace(' ','_') )
 
 _GRAPH = "1UlTewbihkhtMcIgH6p1RqhkqUcSufclM7UvAu6EgOcI" # spreadsheet id
 _EDGE_SHEET = "931117447" # sheet id
 _NODE_SHEET = "235763305" # sheet id
 
 if __name__ == '__main__':
-    main();
+
+    if len(sys.argv)==0:
+        get_state_graph()
+
+    else:
+        if (sys.argv[1]=='states'):
+            get_state_graph()
+
+
+
+        else:
+            print( 'Error: no action matching argument "%s"' % sys.argv[1] )
