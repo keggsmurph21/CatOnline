@@ -353,7 +353,8 @@ module.exports = {
     // populate with available scenarios
     return _NEW_GAME_FORM;
   },
-  // build the meta, settings, and state
+
+  // build the meta, game graph, and state graph
   getNewGame : function(user, settings, next) {
 
     try {
