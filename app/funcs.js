@@ -134,7 +134,7 @@ module.exports = {
       fs.mkdirSync('./logs');
     }
     if (log)
-      fs.appendFile( './logs/'+log+'.log', line, 'ut8', function(err) {
+      fs.appendFile( './logs/'+log+'.log', line, 'utf8', function(err) {
         if (err) throw err;
       });
     fs.appendFile( './logs/core.log', line, 'utf8', function(err) {

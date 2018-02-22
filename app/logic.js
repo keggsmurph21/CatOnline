@@ -1,8 +1,8 @@
 var funcs = require('./funcs.js');
 var config = require('../config/catan.js');
 
-function getFlags(user, game) {
-  let player = getAllPlayerData(user, game);
+function getFlags(game, i) {
+  let player = game.state.players[i];
 
   return {
     isGameOver:       game.state.isGameOver,
@@ -17,8 +17,8 @@ function getFlags(user, game) {
     canBuild:         player.canBuild,
     canBuy:           player.canBuy,
     isHuman:          player.isHuman,
-    isCurrentPlayer:  game.state.currentPlayerID===player.playerID,
-    isWaitingFor:     game.state.waiting.forWho.indexOf(player.playerID) > -1 // not sure if should save on the model itself
+    isCurrentPlayer:  game.state.currentPlayerID===i,
+    isWaitingFor:     game.state.waiting.forWho.indexOf(i) > -1 // not sure if should save on the model itself
   }
 }
 function getAllPlayerData(player, game) {
@@ -51,7 +51,24 @@ module.exports = {
     return "SEE CONSOLE";
   },
   launch : function(game, next) {
-    //
+
+    for (let i=0; i<game.meta.settings.numCPUs; i++) {
+      game.state.players.push( config.getNewPlayerData(user,game,false) );
+    }
+
+    funcs.shuffle(game.state.players);
+    colors = config.getColors(game);
+    for (let i=0; i<colors.length; i++) {
+      let player = game.state.players[i];
+      console.log(player);
+      let flags = getFlags(game, i);
+      console.log(flags);
+      player.adjacents = config.getAdjacentGameStates(flags);
+      player.color = colors[i];
+    }
+
+    console.log(game.state.players);
+    return next('still initializing game');
   }
 
 }

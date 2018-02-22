@@ -82,7 +82,8 @@ var GameSchema = mongoose.Schema({
       roads: [ Number ],
       hasLongestRoad: Boolean,
       publicScore: Number,
-      privateScore: Number
+      privateScore: Number,
+      color: String
 
      } ]
   },
@@ -106,8 +107,6 @@ GameSchema.methods.getLobbyData = function() {
     updated  : this.formatDate( this.meta.updated ),
     isFull   : this.checkIsFull() };
   for (let i=0; i<this.state.players.length; i++) {
-    console.log('in get lobby data loop');
-    console.log(this.state.players[i].lobbyData);
     if (this.state.players[i].lobbyData.id)
       data.players.push(this.state.players[i].lobbyData);
   };
@@ -138,10 +137,6 @@ GameSchema.methods.checkIsActive = function() {
 GameSchema.methods.formatDate = function( datetime ) {
   return dateformat(datetime, "mmm. dS, h:MM:ss tt")
 }
-GameSchema.methods.setAdjacentGameStates = function() {
-
-}
-
 
 // create the model for games and expose it to our app
 module.exports = mongoose.model('Game', GameSchema, 'games');

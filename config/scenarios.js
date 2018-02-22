@@ -76,22 +76,28 @@ module.exports = {
     },
     resources: {
       sheep: {
-        count: 4
+        count: 4,
+        ignore: false
       },
       wheat: {
-        count: 4
+        count: 4,
+        ignore: false
       },
       wood: {
-        count: 4
+        count: 4,
+        ignore: false
       },
       brick: {
-        count: 3
+        count: 3,
+        ignore: false
       },
       ore: {
-        count: 3
+        count: 3,
+        ignore: false
       },
       desert: {
-        count: 1
+        count: 1,
+        ignore: true
       }
     },
     dice: [
@@ -933,7 +939,7 @@ module.exports = {
         forWho: [],
         forWhat: null
       },
-      currentPlayerID: null,
+      currentPlayerID: 0,
       initialGameConditions : null,
       players: [],
       hasRolled : false
@@ -942,7 +948,7 @@ module.exports = {
 
       lobbyData: null,
       adjacents: [],
-      vertex: '_v_init',
+      vertex: '_v_end_turn',
 
       isHuman: null,
       canAcceptTrade : false,
@@ -962,6 +968,11 @@ module.exports = {
       hasLongestRoad: false,
       publicScore: 0,
       privateScore: 0,
+    },
+    colors: {
+      4 : [ 'red', 'orange', 'white', 'blue' ],
+      6 : [ 'green', 'brown' ],
+      10: [ 'pink', 'black', 'cyan', 'purple' ]
     }
   }
 }

@@ -33,63 +33,6 @@ module.exports = function(app, passport) {
     });
   });
 
-  // JOIN PAGE
-  /*app.post('/join', funcs.isLoggedIn, function(req,res) {
-    funcs.User.findById( req.user.id, function(err,user) {
-      if (err) throw err;
-      if (!user) throw 'Error: unable to find user.';
-      let data = user.getExtendedLobbyData();
-      if (data.activeGamesAsPlayer < data.maxActiveGamesAsPlayer || user.isAdmin) {
-        funcs.Game.findById(req.body.gameid, function(err,game) {
-          if (err) throw err;
-          if (!game) {
-            req.flash( 'lobbyMessage', 'Unable to find game ' + req.body.gameid );
-            res.redirect( '/lobby' );
-          } else if ( DEFUNCTS.checkIsActive(game) ) {
-            if (!DEFUNCTS.checkIfUserInGame(req.user, game) && !game.checkIsFull()) {
-              game.meta.players.push( req.user );
-              game.meta.status = ( game.checkIsFull() ? 'ready' : 'pending' );
-              game.meta.updated = new Date;
-              game.save( function(err) {
-                if (err) throw err;
-                user.activeGamesAsPlayer += 1;
-                user.save( function(err) {
-                  if (err) throw err;
-
-                  // SUCCESS
-                  funcs.log( 'user '+user.id+' ('+user.name+') joined game '+game.id );
-                  req.flash('lobbyMessage', 'You have joined a game.');
-                  res.redirect('/lobby#'+req.body.gameid);
-
-                });
-              });
-            } else {
-              req.flash( 'lobbyMessage', "Unable to join: game is full or you have already joined." );
-              res.redirect('/lobby');
-            }
-          } else {
-            req.flash( 'lobbyMessage', 'Unable to join: game is not active.' );
-            res.redirect( '/lobby' );
-          }
-        });
-      } else {
-        req.flash('lobbyMessage', 'Unable to join: you are already in the maximum number of games.');
-        res.redirect('/lobby');
-      }
-    });
-  });*/
-
-  // LEAVE PAGE
-  /*app.post('/leave', funcs.isLoggedIn, function(req,res) {
-    DEFUNCTS.tryKickUserFromGame( req.user, req.user.id, req.body.gameid,
-      function(err, success, message) {
-        if (err) throw err;
-        funcs.log( 'user '+user.id+' ('+user.name+') left game '+game.id );
-        req.flash( 'lobbyMessage', message );
-        res.redirect( '/lobby' );
-      }
-    );
-  });*/
 
   // LAUNCH PAGE
   /*app.post('/launch', funcs.isLoggedIn, function(req,res) {
@@ -126,79 +69,6 @@ module.exports = function(app, passport) {
     });
   });*/
 
-  // DELETE PAGE
-  /*app.post('/delete', funcs.isLoggedIn, function(req,res) {
-    funcs.User.findById( req.user.id, function(err,user) {
-      if (err) throw err;
-      if (!user) throw 'Error: unable to find user.';
-      funcs.Game.findById(req.body.gameid, function(err,game) {
-        if (err) throw err;
-        if (!game) {
-          req.flash( 'lobbyMessage', 'Unable to find game ' + req.body.gameid );
-          res.redirect( '/lobby' );
-        } else if ( DEFUNCTS.usersCheckEqual(game.meta.author, req.user) || req.user.isSuperAdmin ) {
-          funcs.User.findById( game.meta.author.id, function(err,user) {
-            if (err) throw err;
-            if (!user) throw 'Error: unable to find user.';
-            user.activeGamesAsAuthor -= 1;
-            user.save( function(err) { if (err) throw err; });
-          });
-          for (let p=0; p<game.meta.players.length; p++) {
-            funcs.User.findById( game.meta.players[p].id, function(err,user) {
-              if (err) throw err;
-              if (!user) throw 'Error: unable to find user.';
-              user.activeGamesAsPlayer -= 1;
-              user.save( function(err) { if (err) throw err; });
-            });
-          }
-          game.remove( function(err,game) {
-            if (err) throw err;
-            funcs.log( 'user '+user.id+' ('+user.name+') deleted game '+game.id );
-            req.flash('lobbyMessage', 'Deleted a game.');
-            res.redirect('/lobby#'+req.body.gameid);
-          });
-        } else {
-          req.flash( 'lobbyMessage', 'Only the owner can delete this game.' );
-          res.redirect('/lobby');
-        }
-      });
-    });
-  });*/
-
-  // NEWGAME PAGES
-  /*app.post('/newgame', funcs.isLoggedIn, function(req,res) {
-    funcs.User.findById( req.user.id, function(err,user) {
-      if (err) throw err;
-      if (!user) throw 'ERROR: unable to find user.';
-      let data = user.getExtendedLobbyData();
-      if ( data.activeGamesAsAuthor < data.maxActiveGamesAsAuthor || req.user.isAdmin ) {
-        if ( data.activeGamesAsPlayer < data.maxActiveGamesAsPlayer || req.user.isAdmin ) {
-
-          let game = DEFUNCTS.getNewGame( req.user, req.body );
-          game.save( function(err) {
-            if (err) throw err;
-            user.activeGamesAsAuthor += 1;
-            user.activeGamesAsPlayer += 1;
-            user.save( function(err) {
-              if (err) throw err;
-
-              // SUCCESS
-              funcs.log( 'user '+user.id+' ('+user.name+') initialized game '+game.id );
-              req.flash('lobbyMessage', 'Your game has been created.');
-              res.redirect('/lobby#'+req.body.gameid);
-
-            });
-          });
-        } else {
-          req.flash('lobbyMessage', 'Cannot create new game: you are already in the maximum number of games.');
-          res.redirect('/lobby');
-        }
-      } else {
-        req.flash('lobbyMessage', 'Cannot create new game: you already own maximum number of games.');
-        res.redirect('/lobby');
-      }
-    });
-  });*/
 
   // PLAY PAGES
   app.get('/play/:gameid', funcs.isLoggedIn, function(req,res) {
@@ -213,7 +83,7 @@ module.exports = function(app, passport) {
           res.redirect('/lobby');
         }
 
-        if ((funcs.checkIfUserInGame( req.user, game ) && game.meta.status==='in-progress') || req.user.isAdmin) {
+        if ((funcs.checkIfUserInGame( req.user, game ) && game.state.status==='in-progress') || req.user.isAdmin) {
           game.getDataForUser( req.user, function(data) {
 
             res.render('play.ejs', {

@@ -1,5 +1,6 @@
 // game/sockets.js
-var funcs = require('../app/funcs.js');
+var funcs = require('./funcs.js');
+var logic = require('./logic.js');
 var config = require('../config/catan.js');
 //var DEFUNCTS = require('./DEFUNCTS.js');
 
@@ -285,16 +286,18 @@ function _LaunchGame(agent, user, game, next) {
     return next(null, { action:'PLAY', url:game._id }); // redirect to /play
   if (game.state.status!=='ready')
     return next( 'Unable to launch until enough players have joined.' );
-  game.state.status = 'in-progress';
-  game.meta.updated = new Date;
-  funcs.saveAndCatch( game, function(err) {
+
+  logic.launch(game, function(err) {
     if (err) return next(err);
+    funcs.saveAndCatch( game, function(err) {
+      if (err) return next(err);
 
-    funcs.log( 'user '+user.id+' ('+user.name+') launched game '+game.id );
-    next(null, { action:'UPDATE', udata:[], gdata:[game] });
-    next(null, { action:'PLAY', url:game._id }); // redirect to /play
-    return;
+      funcs.log( 'user '+user.id+' ('+user.name+') launched game '+game.id );
+      next(null, { action:'UPDATE', udata:[], gdata:[game] });
+      next(null, { action:'PLAY', url:game._id }); // redirect to /play
+      return;
 
+    });
   });
 }
 

@@ -23,8 +23,7 @@ const configDB      = require('./config/database.js');
 const sessionStore   = new express.session.MemoryStore();
 
 // configuration
-mongoose.connect(configDB.url, function(err) { if (err) throw err; });
-configDB.checkStatus( funcs, 'password' );
+configDB.config( mongoose, funcs );
 
 require('./config/passport.js')(passport);
 

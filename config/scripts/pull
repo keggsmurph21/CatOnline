@@ -67,10 +67,8 @@ def get_state_graph():
                     data['edges'][ename][th] = line[i]
 
     data = json.dumps(data,indent=3)
-
     for item in [ 'vertices', 'edges', 'evaluate', 'isMulti', 'isPriority', 'isCancel', 'target', 'label' ]:
         data = re.sub( '"%s"' % item, '%s' % item, data )
-
     data = re.sub(r'"(func.*\})"', r'\1', data)
 
     filepath = get_filepath('states')
@@ -91,9 +89,8 @@ if __name__ == '__main__':
     if len(sys.argv)==1:
         get_state_graph()
 
-    else:
-        if (sys.argv[1]=='states'):
-            get_state_graph()
+    elif (sys.argv[1]=='states'):
+        get_state_graph()
 
-        else:
-            print( 'Error: no action matching argument "%s"' % sys.argv[1] )
+    else:
+        print( 'Error: no action matching argument "%s"' % sys.argv[1] )

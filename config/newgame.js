@@ -25,7 +25,7 @@ module.exports = {
   ints : {
     numHumans : {
       label  : "Number of humans",
-      default: 4,
+      default: 2,
       min    : 0,
       max    : 5
     },

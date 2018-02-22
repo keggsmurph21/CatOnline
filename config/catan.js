@@ -302,15 +302,17 @@ function saveInitialGameBoardToState(game) {
   game.state.initialGameConditions = { hexes:hexes, ports:ports, dcdeck:dcdeck };
 }
 
-function buildInitialPlayerState(user, settings, isHuman=true) {
+function buildInitialPlayerState(user, settings, isHuman) {
   let scenario = _SCENARIOS[settings.scenario],
-    playerState = scenario.defaultPlayerState,
+    playerState = Object.assign({}, scenario.defaultPlayerState),
     bankTradeRates={}, canPlayDC={}, canBuild={},
     canBuy={}, unplayedDCs={}, playedDCs={}, resources={};
 
   for (let resource in scenario.resources) {
-    bankTradeRates[resource] = playerState.bankTradeRates;
-    resources[resource] = playerState.resources;
+    if (!scenario.resources[resource].ignore) {
+      bankTradeRates[resource] = playerState.bankTradeRates;
+      resources[resource] = playerState.resources;
+    }
   }
   for (let dc in scenario.playObjects.dcs) {
     canPlayDC[dc] = playerState.canPlayDC;
@@ -379,13 +381,11 @@ module.exports = {
 		 return next( 'Data validation error (uncaught '+err+')' );
     }
   },
-  getNewPlayerData : function(user, game) {
-    return buildInitialPlayerState(user, game.meta.settings, true);
+  getNewPlayerData : function(user, game, human=true) {
+    return buildInitialPlayerState(user, game.meta.settings, human);
   },
   getAdjacentGameStates : function(flags) {
     let edges = [];
-    //console.log('FLAGS', flags);
-    //console.log('ALL EDGES', _STATE_GRAPH.vertices[flags.vertex])
     for (let e=0; e<_STATE_GRAPH.vertices[flags.vertex].edges.length; e++) {
       let ename = _STATE_GRAPH.vertices[flags.vertex].edges[e];
       let edge = _STATE_GRAPH.edges[ename];
@@ -403,6 +403,15 @@ module.exports = {
   },
   getStateEdges : function() {
     return _STATE_GRAPH.edges;
+  },
+  getColors : function(game) {
+    let i=0;
+    while (_SCENARIOS[game.meta.settings.scenario].colors[i] === undefined) {
+      i++;
+    }
+    let colors = _SCENARIOS[game.meta.settings.scenario].colors[i].splice(0);
+    funcs.shuffle(colors);
+    return colors.slice(game.state.players.length);
   },
 
   // SVG-based GUI functions
