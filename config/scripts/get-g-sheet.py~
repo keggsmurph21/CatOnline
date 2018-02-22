@@ -1,0 +1,18 @@
+#!/usr/bin/python
+
+import requests
+
+def get_sheet_as_tsv( spreadsheet, gid, format="tsv" ):
+        url_format = "https://spreadsheets.google.com/feeds/download/spreadsheets/Export?key=%s&exportFormat=%s&gid=%i"
+        headers = { "GData-Version": "3.0" }
+        req = urllib2.Request(url_format % (spreadsheet, format, gid), headers=headers)
+        return urllib2.urlopen(req)
+                
+_GRAPH = "1UlTewbihkhtMcIgH6p1RqhkqUcSufclM7UvAu6EgOcI"
+_EDGE_SHEET = "931117447"
+_NODE_SHEET = "235763305"
+
+if __name__ == "__main__":
+        tsv = get_sheet_as_tsv( _GRAPH, _EDGE_SHEET )
+        print(tsv)
+        
