@@ -1649,7 +1649,7 @@ var _STATE_GRAPH = {
 			evaluate: function (f) { return f.isCurrentPlayer; },
 			isPriority: false
 		},
-    "_e_init_root": {
+    "_e_init_turns": {
       isMulti: false,
       evaluate: function (f) { return f.isCurrentPlayer; },
       isPriority: false
@@ -1741,7 +1741,7 @@ var _STATE_GRAPH = {
 		},
 		"_v_init": {
 			"edges": [
-			   "_e_init_root"
+			   "_e_init_turns"
 			]
 		},
 		"_v_play_vp": {
