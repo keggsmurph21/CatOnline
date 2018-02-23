@@ -3,6 +3,7 @@ var config = require('../config/catan.js');
 
 function getFlags(game, i) {
   let player = game.state.players[i];
+  console.log('player:'+player);
 
   return {
     isGameOver:       game.state.isGameOver,
@@ -51,7 +52,6 @@ module.exports = {
     return "SEE CONSOLE";
   },
   launch : function(game, next) {
-
     for (let i=0; i<game.meta.settings.numCPUs; i++) {
       game.state.players.push( config.getNewPlayerData(user,game,false) );
     }
@@ -59,16 +59,15 @@ module.exports = {
     funcs.shuffle(game.state.players);
     colors = config.getColors(game);
     for (let i=0; i<colors.length; i++) {
-      let player = game.state.players[i];
-      console.log(player);
       let flags = getFlags(game, i);
-      console.log(flags);
-      player.adjacents = config.getAdjacentGameStates(flags);
-      player.color = colors[i];
+      game.state.players[i].adjacents = config.getAdjacentGameStates(flags);
+      game.state.players[i].color = colors[i];
     }
 
-    console.log(game.state.players);
-    return next('still initializing game');
+    return next(null);
+  },
+  getPlayData : function(user, game) {
+
   }
 
 }

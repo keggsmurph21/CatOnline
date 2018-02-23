@@ -33,78 +33,25 @@ module.exports = function(app, passport) {
     });
   });
 
-
-  // LAUNCH PAGE
-  /*app.post('/launch', funcs.isLoggedIn, function(req,res) {
-    funcs.Game.findById(req.body.gameid, function(err,game) {
-      if (err) throw err;
-      if (!game) {
-        req.flash( 'lobbyMessage', 'Unable to find game ' + req.body.gameid );
-        res.redirect( '/lobby' );
-      } else {
-
-        if ( DEFUNCTS.checkIfUserInGame( req.user, game ) ) {
-          if (game.meta.status==='in-progress') {
-            res.redirect('/play/'+req.body.gameid);
-          } else if (game.meta.status==='ready') {
-
-            game.meta.status = 'in-progress';
-            game.meta.updated = new Date;
-            game.save( function(err) {
-              if (err) throw err;
-              funcs.log( 'user '+user.id+' ('+user.name+') launched game '+game.id );
-              res.redirect('/play/'+req.body.gameid);
-            });
-
-          } else {
-            req.flash('lobbyMessage', 'Unable to launch until enough players have joined.' );
-            res.redirect('/lobby');
-          }
-        } else {
-          req.flash('lobbyMessage', "You can't launch a game you haven't joined!");
-          res.redirect('/lobby');
-        }
-
-      }
-    });
-  });*/
-
-
   // PLAY PAGES
   app.get('/play/:gameid', funcs.isLoggedIn, function(req,res) {
+    funcs.requireGameById(req.params.gameid, function(err,game) {
+      if (err) {
+        req.flash('lobbyMessage', 'Unable to find game ' + req.params.gameid );
+        res.redirect('/lobby');
+      } else if ((funcs.checkIfUserInGame( req.user, game ) && game.state.status==='in-progress') || req.user.isAdmin) {
 
-    if ( funcs.isValidID(req.params.gameid) ) {
-      funcs.Game.findById( req.params.gameid, function(err,game) {
+        res.render('play.ejs', {
+          message: req.flash('playMessage'),
+          user: req.user,
+          data: logic.getPlayData(user, game)
+        });
 
-        if (err) throw err;
-
-        if (!game) {
-          req.flash('lobbyMessage', 'Unable to find game ' + req.params.gameid );
-          res.redirect('/lobby');
-        }
-
-        if ((funcs.checkIfUserInGame( req.user, game ) && game.state.status==='in-progress') || req.user.isAdmin) {
-          game.getDataForUser( req.user, function(data) {
-
-            res.render('play.ejs', {
-              message: req.flash('playMessage'),
-              user: req.user,
-              svg: config.prepareDataForSVG( data ),
-              data: data
-            });
-
-          });
-        } else {
-          req.flash( 'lobbyMessage', 'This game is not yet playable!' );
-          res.redirect( '/lobby' );
-        }
-
-      });
-    } else {
-      req.flash( 'lobbyMessage', 'Invalid game id ' + req.params.gameid );
-      res.redirect('/lobby');
-    }
-
+      } else {
+        req.flash( 'lobbyMessage', 'Game could not be played.' );
+        res.redirect('/lobby');
+      }
+    });
   });
 
   // ADMIN PAGES

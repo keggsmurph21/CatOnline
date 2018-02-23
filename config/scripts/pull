@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 # pip3 install requests
-
 import csv, json, os, re, requests, sys
 
 def get_sheet( spreadsheet, gid ):
@@ -32,7 +31,7 @@ def get_state_graph():
     ignoreList = [ 'id' ]
 
     isHeader = True
-    for line in sheets['vertices']:
+    for line in get_sheets( spreadsheet, sheets['vertices'] ):
         if isHeader:
             header = line
             isHeader = False
@@ -45,7 +44,7 @@ def get_state_graph():
                 elif th not in ignoreList:
                     data['vertices'][vname][th] = line[i]
     isHeader = True
-    for line in sheets['edges']:
+    for line in et_sheets( spreadsheet, sheets['edges'] ):
         if isHeader:
             header = line
             isHeader = False

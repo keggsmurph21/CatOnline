@@ -971,8 +971,8 @@ module.exports = {
     },
     colors: {
       4 : [ 'red', 'orange', 'white', 'blue' ],
-      6 : [ 'green', 'brown' ],
-      10: [ 'pink', 'black', 'cyan', 'purple' ]
+      6 : [ 'red', 'orange', 'white', 'blue', 'green', 'brown' ],
+      10: [ 'red', 'orange', 'white', 'blue', 'green', 'brown', 'pink', 'black', 'cyan', 'purple' ]
     }
   }
 }

@@ -406,12 +406,10 @@ module.exports = {
   },
   getColors : function(game) {
     let i=0;
-    while (_SCENARIOS[game.meta.settings.scenario].colors[i] === undefined) {
-      i++;
-    }
+    while (!_SCENARIOS[game.meta.settings.scenario].colors[i]) { i++; }
     let colors = _SCENARIOS[game.meta.settings.scenario].colors[i].splice(0);
     funcs.shuffle(colors);
-    return colors.slice(game.state.players.length);
+    return colors.slice(0,game.state.players.length);
   },
 
   // SVG-based GUI functions
