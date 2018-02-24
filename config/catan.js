@@ -413,10 +413,10 @@ module.exports = {
   },
 
   // SVG-based GUI functions
-  prepareDataForSVG : function(data, next) {
+  prepareDataForSVG : function(scenario, next) {
     // get the svg data
 
-    guidefs = require('../config/gui/standard');
+    guidefs = require('./guis.js').svg[scenario];
 
     svgData = {
 		 'tiles': [],
@@ -426,62 +426,62 @@ module.exports = {
     };
 
     // data for tiles
-    for (let i=0; i<data.publ.hexes.length; i++) {
+    for (let i=0; i<guidefs.tiles.length; i++) {
 		 const textCoords = anchorToPoints([ guidefs.tiles[i][0]+1, guidefs.tiles[i][1]+0.5 ]);
 		 svgData.tiles.push({
-		 'resource': data.publ.hexes[i].resource,
+		 //'resource': data.publ.hexes[i].resource,
 		 'points': tileAnchorToPointsStr( guidefs.tiles[i] ),
-		 'roll': data.publ.hexes[i].roll,
-		 'x': textCoords[0],
-		 'y': textCoords[1],
-		 'conns': data.publ.hexes[i].conns.join(',')
+		 //'roll': data.publ.hexes[i].roll,
+		 //'x': textCoords[0],
+		 //'y': textCoords[1],
+		 //'conns': data.publ.hexes[i].conns.join(',')
 		 });
     }
 
     // data for roads
     let r = 0; // keep track of our road-indexer
     for (let i=0; i<guidefs.spots.length; i++) {
-		 let owner = data.publ.roads[r].owner;
+		 //let owner = data.publ.roads[r].owner;
 		 switch (guidefs.roadkeys[i]) {
 		 case 0: // 0-> draw legs at 8:00, 4:00  /\
 			svgData.roads.push({
-			  'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+			  //'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
 			  'path' : roadAnchorToPathStr( guidefs.spots[i], 8 ),
-			  'juncs': data.publ.roads[r].juncs.join(',')
+			  //'juncs': data.publ.roads[r].juncs.join(',')
 			});
 			svgData.roads.push({
-			  'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+			  //'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
 			  'path' : roadAnchorToPathStr( guidefs.spots[i], 4 ),
-			  'juncs': data.publ.roads[r].juncs.join(',')
+			  //'juncs': data.publ.roads[r].juncs.join(',')
 			});
 			r += 2;
 			break;
 		 case 1: // 0-> draw leg at 6:00 |
 			svgData.roads.push({
-			  'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+			  //'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
 			  'path' : roadAnchorToPathStr( guidefs.spots[i], 6 ),
-			  'juncs': data.publ.roads[r].juncs.join(',')
+			  //'juncs': data.publ.roads[r].juncs.join(',')
 			});
 			r += 1;
 			break;
 		 case 2: // 0-> draw legs at 10:00, 2:00  /\
 			svgData.roads.push({
-			  'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+			  //'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
 			  'path' : roadAnchorToPathStr( guidefs.spots[i], 10 ),
-			  'juncs': data.publ.roads[r].juncs.join(',')
+			  //'juncs': data.publ.roads[r].juncs.join(',')
 			});
 			svgData.roads.push({
-			  'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+			  //'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
 			  'path' : roadAnchorToPathStr( guidefs.spots[i], 2 ),
-			  'juncs': data.publ.roads[r].juncs.join(',')
+			  //'juncs': data.publ.roads[r].juncs.join(',')
 			});
 			r += 2;
 			break;
 		 case 3: // 0-> draw leg at 12:00
 			svgData.roads.push({
-			  'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
+			  //'owner': owner ? data.publ.players[ owner ].hashcode : 'none',
 			  'path' : roadAnchorToPathStr( guidefs.spots[i], 12 ),
-			  'juncs': data.publ.roads[r].juncs.join(',')
+			  //'juncs': data.publ.roads[r].juncs.join(',')
 			});
 			r += 1;
 			break; // ignore 4
@@ -494,7 +494,7 @@ module.exports = {
     }
 
     // data for spots
-    for (let i=0; i<data.publ.juncs.length; i++) {
+    /*for (let i=0; i<guidefs.juncs.length; i++) {
 		 let junc = data.publ.juncs[i];
 		 const coords = anchorToPoints( guidefs.spots[i] );
 
@@ -519,7 +519,7 @@ module.exports = {
 		 svgData.ports[ junc.port.num ].path = portAnchorToPathStr( portkey );
 		 svgData.ports[ junc.port.num ].juncs.push( junc.num );
 		 }
-    }
+   }*/
 
     return svgData;
   }

@@ -13,7 +13,33 @@
   <%- include( 'banner.ejs' ) %>
 
   <p class="testing-content" style="margin-top: 10%;">
-    <%= JSON.stringify(data) %>
+    <svg id="gameboard" xmlns="http://www.w3.org/2000/svg" viewBox="-8 -6.99 16 15.28">
+      <defs>
+      </defs>
+
+      <% for (let i=0; i< svg.tiles.length; i++) { %>
+        <g class="tile-group" id="<%= i %>">
+          <polygon class="tile-polygon <%= /*svg.tiles[i].resource*/ %>" id="<%= 'polygon'+i %>" points="<%= svg.tiles[i].points %>" resource="<%= /*svg.tiles[i].resource*/ %>" juncs="<%= /*svg.tiles[i].juncs*/ %>"/>
+          <!--<text class="tile-text <%= [6,8].includes(svg.tiles[i].roll) ? 'red' : '' %>" dominant-baseline="middle" alignment-baseline="central" text-anchor="middle" x="<%= svg.tiles[i].x %>" y="<%= svg.tiles[i].y %>">-->
+            <%=/*svg.tiles[i].roll||''*/%>
+          <!--</text>-->
+        </g>
+      <% }
+      for (let i=0; i< svg.ports.length; i++) { %>
+        <path class="port-path <%= svg.ports[i].type %>" id="<%= 'port'+i %>" d="<%= svg.ports[i].path %>" juncs="<%= svg.ports[i].juncs %>" />
+      <% }
+      for (let i=0; i< svg.roads.length; i++) { %>
+        <path class="road-path <%= /*svg.roads[i].owner*/ %>" id="<%= 'road'+i %>" d="<%= svg.roads[i].path %>" juncs="<%= svg.roads[i].juncs %>" />
+      <% }
+      for (let i=0; i< svg.spots.length; i++) {
+        if (false/*svg.spots[i].isCity*/) { %>
+
+        <% } else { %>
+          <circle class="spot-circle <%= /*svg.spots[i].owner*/ %>" id="<%= i %>" cx="<%= svg.spots[i].x %>" cy="<%= svg.spots[i].y %>" r="0.2" roads="<%= svg.spots[i].roads %>" hexes="<%= svg.spots[i].hexes %>"/>
+        <% }
+      } %>
+
+    </svg>
   </p>
 
   <!--<script src='/socket.io/socket.io.js'> </script>-->

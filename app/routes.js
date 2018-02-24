@@ -19,18 +19,19 @@ module.exports = function(app, passport) {
   });
 
   app.get('/dev', function(req,res) {
-    funcs.requireUserById( '5a88f82d931f760c16c3417c', function(err,user) {
+    res.render('dev.ejs', {
+      user: null,
+      svg: config.prepareDataForSVG('standard'),
+      data: null//logic.getFlagsForUser(user, game)
+    });
+    /*funcs.requireUserById( '5a88f82d931f760c16c3417c', function(err,user) {
       if (err) throw err;
       funcs.requireGameById( '5a8cf31b53a9b0027c8e322b', function(err,game) {
         if (err) throw err;
         logic.launch(game, function(err,data) {
-          res.render('dev.ejs', {
-            user: user,
-            data: data//logic.getFlagsForUser(user, game)
-          });
         });
       });
-    });
+    });*/
   });
 
   // PLAY PAGES
