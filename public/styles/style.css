@@ -580,7 +580,7 @@ svg#gameboard {
   height: 100%;
 }
 
-polygon.sheep {
+.sheep {
   fill: #adf442;
 }
 
@@ -608,31 +608,31 @@ polygon.sheep {
   fill: #ccc;
 }
 
-.tile-polygon {
+.tile polygon {
   /*stroke: #fff;
   stroke-width: 0.25;*/
 }
 
-.tile-text {
+.tile text {
   font-size: 1px;
 }
 
-.tile-text.red {
+.tile text.red {
   fill: #ff0000;
 }
 
-.spot-circle {
+.spot {
   fill: #000;
   stroke: #fff;
   stroke-width: 0.1;
 }
 
-.road-path {
+.road {
   stroke: #fff;
   stroke-width: 0.2;
 }
 
-.port-path {
+.port {
 }
 
 svg#gameboard > * {

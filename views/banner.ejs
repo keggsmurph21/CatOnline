@@ -4,7 +4,14 @@
   </div>
   <div class="login-info-container">
     <% if (user) { %>
-      Logged in as <a href="/profile/<%= user.name %>"><%= user.name %></a> (<% if (user.isAdmin) { %><a href="/admin">admin</a>, <% } %><a href="/logout">logout</a>)
+      Logged in as <a href="/profile/<%= user.name %>"><%= user.name %></a>
+      (
+        <% if (user.isAdmin) { %>
+          <a href="/admin">admin</a>,&nbsp;
+          <a href="/dev">developer</a>,&nbsp;
+        <% } %>
+        <a href="/logout">logout</a>
+      )
     <% } else { %>
       <a href="/login">Login</a>
       <a href="/register">Register</a>

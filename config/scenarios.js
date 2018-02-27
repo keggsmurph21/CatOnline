@@ -964,7 +964,9 @@ module.exports = {
       hasLargestArmy: false,
       resources: 0,		// build
       settlements: [],
+      cities: [],
       roads: [],
+      longestRoad: 0,
       hasLongestRoad: false,
       publicScore: 0,
       privateScore: 0,

@@ -7,77 +7,6 @@ const _SCENARIOS      = require('./scenarios.js');
 const _STATE_GRAPH    = require('./states.js');
 const _GUIS           = require('./guis.js');
 
-// SVG helper functions
-function tileAnchorToPointsStr( coords ) {
-  const translations = [ [0,0], [1,-1], [2,0], [2,1], [1,2], [0,1] ];
-  let str = '';
-  for (let i=0; i<translations.length; i++) {
-    const transformedCoords = anchorToPoints([ coords[0] + translations[i][0], coords[1] + translations[i][1] ]);
-    str += transformedCoords[0] + ' ' + transformedCoords[1] + ' ';
-  }
-  return str;
-}
-function roadAnchorToPathStr( coords, dir ) {
-  var [x1,y1] = anchorToPoints( coords );
-  switch (dir) {
-    case 2:
-		 [dx,dy] = [1,-1]; break;
-    case 4:
-		 [dx,dy] = [1,1];  break;
-    case 6:
-		 [dx,dy] = [0,1];  break;
-    case 8:
-		 [dx,dy] = [-1,1]; break;
-    case 10:
-		 [dx,dy] = [-1,-1];break;
-    case 12:
-		 [dx,dy] = [0,-1]; break;
-  }
-  var [x2,y2] = anchorToPoints([ coords[0]+dx, coords[1]+dy ])
-  return 'M '+x1+' '+y1+' L '+x2+' '+y2;
-}
-function portAnchorToPathStr( key ) {
-  let [x1,y1] = key; // note: key has len 3
-  let x2, y2, x3, y3;
-  let d1 = 1/Math.sqrt(12);
-  let d2 = 1-1/Math.sqrt(3);
-  switch (key[2]) {
-    case 0:
-		 [x2,y2] = [ x1+d1,  y1-1.0 ];
-		 [x3,y3] = [ x1+1.0, y1-1.0 ];
-		 break;
-    case 1:
-		 [x2,y2] = [ x1-d1,  y1-1.0 ];
-		 [x3,y3] = [ x1-1.0, y1-1.0 ];
-		 break;
-    case 2:
-		 [x2,y2] = [ x1+d2,  y1-0.5 ];
-		 [x3,y3] = [ x1,		 y1-1.0 ];
-		 break;
-    case 3:
-		 [x2,y2] = [ x1-d2,  y1-0.5 ];
-		 [x3,y3] = [ x1,		 y1-1.0 ];
-		 break;
-    case 4:
-		 [x2,y2] = [ x1+d1,  y1+1.0 ];
-		 [x3,y3] = [ x1+1.0, y1+1.0 ];
-		 break;
-    case 5:
-		 [x2,y2] = [ x1-d1,  y1+1.0 ];
-		 [x3,y3] = [ x1-1.0, y1+1.0 ];
-		 break;
-  }
-  [x1,y1] = anchorToPoints([ x1,y1 ]);
-  [x2,y2] = anchorToPoints([ x2,y2 ]);
-  [x3,y3] = anchorToPoints([ x3,y3 ]);
-  return 'M '+x1+' '+y1+' L '+x2+' '+y2+' L '+x3+' '+y3+' L '+x1+' '+y1;
-}
-function anchorToPoints( coords, scale=1.5 ) {
-  return [
-    coords[0]*Math.sqrt(3)/2*scale,
-    (coords[1]-0.5*Math.floor(coords[1]/2))*scale ];
-}
-
 // helper function generate/validate new game forms
 function populateNewGameForm() {
   _NEW_GAME_FORM.strings.scenario.options = Object.keys( _SCENARIOS );
@@ -151,8 +80,7 @@ function buildGameBoard(scenario) {
 		 return [ funcs.getRandomInt(1,6), funcs.getRandomInt(1,6) ] }},
     hexes  : [],
     juncs  : [],
-    roads  : [],
-    conns  : []
+    roads  : []
   };
 
   // make the Dice
@@ -172,7 +100,7 @@ function buildGameBoard(scenario) {
 		 resource: null,
 		 roll: null,
 		 dots: null,
-		 conns: []
+		 juncs: []
     });
   }
 
@@ -182,7 +110,7 @@ function buildGameBoard(scenario) {
 		 num : i,
 		 port : null,
 		 roads : [],
-		 conns : [],
+		 hexes : [],
 		 isCity : false,
     });
   }
@@ -191,18 +119,7 @@ function buildGameBoard(scenario) {
   for (let i=0; i<scenario.gameBoard.edges.roads.length; i++) {
     board.roads.push({
 		 num : i,
-		 juncs : [],
-		 owner : null,
-    });
-  }
-
-  // make the Connections
-  for (let i=0; i<scenario.gameBoard.edges.conns.length; i++) {
-    board.conns.push({
-		 num : i,
-		 junc : null,
-		 hex : null,
-		 owner : null,
+		 juncs : []
     });
   }
 
@@ -226,13 +143,11 @@ function buildGameBoard(scenario) {
     board.juncs[edge.v].roads.push(i);
   }
 
-  // set the edge data for Conns
+  // use the edge data for Conns to build the edges b/w Hexes & Juncs
   for (let i=0; i<scenario.gameBoard.edges.conns.length; i++) {
     let edge = scenario.gameBoard.edges.conns[i];
-    board.conns[i].junc = edge.u;
-    board.conns[i].hex  = edge.v;
-    board.juncs[edge.u].conns.push(i);
-    board.hexes[edge.v].conns.push(i);
+    board.juncs[edge.u].hexes.push(edge.v);
+    board.hexes[edge.v].juncs.push(edge.u);
   }
 
   return board;
@@ -277,6 +192,7 @@ function randomizeGameBoard(scenario, board, settings) {
   }
 
   // shuffle dev cards
+  console.log(board.dcdeck);
   funcs.shuffle( board.dcdeck );
 
   let ports = scenario.gameBoard.vertices.ports.types.splice(0);
@@ -293,7 +209,8 @@ function randomizeGameBoard(scenario, board, settings) {
 
 }
 function saveInitialGameBoardToState(game) {
-  let hexes = [], ports = [], dcdeck = game.board.dcdeck.splice(0);
+  let hexes = [], ports = [], dcdeck = game.board.dcdeck.slice(0);
+  console.log('dc',dcdeck,'\\dc');
   for (let i=0; i<game.board.hexes.length; i++) {
     let hex = game.board.hexes[i];
     hexes.push({ resource:hex.resource, roll:hex.roll });
@@ -377,7 +294,9 @@ module.exports = {
 			settings: settings
 		 };
 
+     console.log('here',game.board.dcdeck);
 		 saveInitialGameBoardToState(game);
+     console.log('and', game.board.dcdeck);
 		 next(null, game);
 
 		 });
@@ -414,102 +333,6 @@ module.exports = {
     let colors = _SCENARIOS[game.meta.settings.scenario].colors[i].splice(0);
     funcs.shuffle(colors);
     return colors.slice(0,game.state.players.length);
-  },
-
-  // SVG-based GUI functions
-  prepareDataForSVG : function(scenario, next) {
-    // get the svg data
-
-    svg = require('./guis.js').svg[scenario];
-
-    data = {
-      'tiles': [],
-      'roads': [],
-      'ports': [],
-      'spots': []
-    };
-
-    // data for tiles
-    for (let i=0; i<svg.tiles.length; i++) {
-      const textCoords = anchorToPoints([ svg.tiles[i][0]+1, svg.tiles[i][1]+0.5 ]);
-      data.tiles.push({
-        'points': tileAnchorToPointsStr( svg.tiles[i] ),
-        'x': textCoords[0],
-        'y': textCoords[1],
-      });
-    }
-
-    // data for roads
-    let r = 0; // keep track of our road-indexer
-    for (let i=0; i<svg.spots.length; i++) {
-      switch (svg.roadkeys[i]) {
-        case 0: // 0-> draw legs at 8:00, 4:00  /\
-          data.roads.push({
-            'path' : roadAnchorToPathStr( svg.spots[i], 8 ),
-          });
-          data.roads.push({
-            'path' : roadAnchorToPathStr( svg.spots[i], 4 ),
-          });
-          r += 2;
-          break;
-        case 1: // 0-> draw leg at 6:00 |
-          data.roads.push({
-            'path' : roadAnchorToPathStr( svg.spots[i], 6 ),
-          });
-          r += 1;
-          break;
-        case 2: // 0-> draw legs at 10:00, 2:00  /\
-          data.roads.push({
-            'path' : roadAnchorToPathStr( svg.spots[i], 10 ),
-          });
-          data.roads.push({
-            'path' : roadAnchorToPathStr( svg.spots[i], 2 ),
-          });
-          r += 2;
-          break;
-        case 3: // 0-> draw leg at 12:00
-          data.roads.push({
-            'path' : roadAnchorToPathStr( svg.spots[i], 12 ),
-          });
-          r += 1;
-          break; // ignore 4
-      }
-    }
-
-    // build port skeleton
-    for (let i=0; i<svg.ports.length; i++) {
-      data.ports.push({ path:portAnchorToPathStr( svg.ports[i] ) })
-    }
-
-    // data for spots
-    for (let i=0; i<svg.spots.length; i++) {
-      //let junc = data.juncs[i];
-      const coords = anchorToPoints( svg.spots[i] );
-
-      /*let hexes = [];
-      for (let j=0; j<junc.conns.length; j++) {
-        hexes.push( data.publ.conns[ junc.conns[j] ].hex );
-      }*/
-      data.spots.push({
-        //'owner': junc.owner ? data.publ.players[ junc.owner ].hashcode : 'none',
-        'x': coords[0],
-        'y': coords[1],
-        //'isCity': junc.isCity,
-        //'roads': junc.roads.join(','),
-        //'hexes': hexes.join(',')
-      });
-
-      // use this to build port data (check if empty object)
-      /*if ( Object.keys(junc.port).length > 0 ) {
-        let portid = junc.port.num;
-        const portkey = svg.ports[portid];
-        //data.ports[ portid ].type = junc.port.type;
-        data.ports[ portid ].path = portAnchorToPathStr( portkey );
-        //data.ports[ portid ].juncs.push( junc.num );
-      }*/
-    }
-
-    return data;
   }
 
 }

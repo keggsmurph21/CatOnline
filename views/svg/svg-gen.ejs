@@ -1,0 +1,14 @@
+<svg id="gameboard" xmlns="http://www.w3.org/2000/svg" viewBox="<%= data.viewport %>">
+  <% for (let i=0; i< data.tiles.length; i++) { %>
+    <g class="tile" id="<%= 'tile'+i %>">
+      <polygon points="<%= data.tiles[i].points %>" resource="" juncs="<%= data.tiles[i].juncs %>"/>
+      <text dominant-baseline="middle" alignment-baseline="central" text-anchor="middle" x="<%= data.tiles[i].x %>" y="<%= data.tiles[i].y %>">0</text>
+    </g>
+  <% } for (let i=0; i< data.ports.length; i++) { %>
+    <path class="port" id="<%= 'port'+i %>" d="<%= data.ports[i].path %>" juncs="<%= data.ports[i].juncs %>" />
+  <% } for (let i=0; i< data.roads.length; i++) { %>
+    <path class="road" id="<%= 'road'+i %>" d="<%= data.roads[i].path %>" juncs="<%= data.roads[i].juncs %>" />
+  <% } for (let i=0; i< data.spots.length; i++) { %>
+    <circle class="spot" id="<%= 'spot'+i %>" cx="<%= data.spots[i].x %>" cy="<%= data.spots[i].y %>" r="0.2" roads="<%= data.spots[i].roads %>" hexes="<%= data.spots[i].hexes %>"/>
+  <% } %>
+</svg>

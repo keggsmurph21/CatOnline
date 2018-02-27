@@ -33,6 +33,7 @@ var GameSchema = mongoose.Schema({
   state: {
 
     // global state-values
+    initialGameConditions: Object,
     status: String,
     turn: Number,
     history: [ Object ],
@@ -89,11 +90,19 @@ var GameSchema = mongoose.Schema({
   },
 
   // none of this data should persist after the game is completed/exited
-  graph : Object
+  board : Object
 
 }, {
   usePushEach: true
 });
+
+function sumOverObject(obj) {
+  let acc = 0;
+  for( var el in obj ) {
+    acc += obj[el];
+  }
+  return acc;
+}
 
 GameSchema.methods.getLobbyData = function() {
   data = {
@@ -113,14 +122,33 @@ GameSchema.methods.getLobbyData = function() {
   return data;
 }
 GameSchema.methods.getPublicGameData = function() {
-  return {
-    /*data = { // copied from earlier /play implementation
-      meta : this.meta,
-      sett : this.settings,
-      publ : this.state.public,
-      priv : [0,1,2,3]
-    }*/
+  data = {
+    meta    : this.meta,
+    dice    : this.board.dice,
+    hexes   : this.board.hexes,
+    juncs   : this.board.juncs,
+    roads   : this.board.roads,
+    players : []
   };
+  for (let i=0; i<this.state.players.length; i++) {
+    let player = this.state.players[i];
+    data.players.push({
+      color           : player.color,
+      isHuman         : player.isHuman,
+      devCardsInHand  : sumOverObject(player.unplayedDCs),
+      playedKnights   : player.playedKnights,
+      hasLargestArmy  : player.hasLargestArmy,
+      resourcesInHand : sumOverObject(player.resources),
+      longestRoad     : player.longestRoad,
+      hasLongestRoad  : player.hasLongestRoad,
+      publicScore     : player.publicScore,
+      roads           : player.roads,
+      settlements     : player.settlements,
+      cities          : player.cities,
+      lobbyData       : player.lobbyData
+    });
+  }
+  return data;
 }
 GameSchema.methods.getPrivateGameData = function(playerid) {
   // takes an integer (not a userid) and returns the private data for that player

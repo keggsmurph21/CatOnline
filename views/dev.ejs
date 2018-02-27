@@ -7,16 +7,8 @@
   <link rel="SHORTCUT ICON" href="images/favicon.ico" />
   <link rel="icon" href="images/favicon.ico" type="image/ico" />
   <style>
-    svg * {
-      /*opacity: 0.5;
-      stroke: #000;*/
-      stroke-width: 0;
-    }
-    svg path {
-      fill: #999;
-    }
-    svg polygon {
-      opacity: 0.5;
+    #testing {
+      background-color: #00f;
     }
   </style>
 </head>
@@ -25,35 +17,52 @@
 
   <%- include( 'banner.ejs' ) %>
 
-  <p class="testing-content" style="margin-top: 10%;">
-    <svg id="gameboard" xmlns="http://www.w3.org/2000/svg" viewBox="-8 -6.99 16 15.28">
-      <defs>
-      </defs>
+  <p id="testing" style="margin-top: 10%;">
+    <%- include( 'svg/standard.ejs' ) %>
+  </p>
 
-      <% for (let i=0; i< svg.tiles.length; i++) { %>
-        <g class="tile-group" id="<%= 'tile-group '+i %>">
-          <polygon class="tile-polygon" id="<%= 'polygon '+i %>" points="<%= svg.tiles[i].points %>" resource="" juncs=""/>
-          <text class="tile-text" dominant-baseline="middle" alignment-baseline="central" text-anchor="middle" x="<%= svg.tiles[i].x %>" y="<%= svg.tiles[i].y %>">
-            0
-          </text>
-        </g>
-      <% }
-      for (let i=0; i< svg.ports.length; i++) { %>
-        <path class="port-path" id="<%= 'port '+i %>" d="<%= svg.ports[i].path %>" juncs="" />
-      <% }
-      for (let i=0; i< svg.roads.length; i++) { %>
-        <path class="road-path" id="<%= 'road '+i %>" d="<%= svg.roads[i].path %>" juncs="" />
-      <% }
-      for (let i=0; i< svg.spots.length; i++) { %>
-        <circle class="spot-circle" id="<%= 'spot '+i %>" cx="<%= svg.spots[i].x %>" cy="<%= svg.spots[i].y %>" r="0.2" roads="" hexes=""/>
-      <% } %>
-
-    </svg>
+  <p id="json">
+    <%= JSON.stringify(public, null, 2) %>
   </p>
 
   <!--<script src='/socket.io/socket.io.js'> </script>-->
   <script src='http://code.jquery.com/jquery-latest.min.js'> </script>
   <script>
+    function bind(game) {
+      console.log(game);
+      for (let i=0; i<game.hexes.length; i++) {
+        let hex = game.hexes[i];
+        $('#tile'+i+' polygon')
+          .attr( 'resource', hex.resource )
+          .attr( 'class', hex.resource );
+        $('#tile'+i+' text')
+          .attr( 'class', [6,8].indexOf(hex.roll) > -1 ? 'red' : '' )
+          .text( hex.roll ? hex.roll : '' );
+      }
+      for (let i=0; i<game.juncs.length; i++) {
+        let junc = game.juncs[i];
+        $('#spot'+i).attr( 'class', junc.isCity ? 'spot city' : 'spot' );
+        if (junc.port !== null)
+          $('#port'+junc.port.num).attr( 'class', 'port '+junc.port.type );
+      }
+      for (let i=0; i<game.players.length; i++) {
+        let player = game.players[i];
+        for (let j=0; j<player.roads.length; j++) {
+          $('#road'+j).attr( 'class', 'road player_'+player.color );
+        }
+        for (let j=0; j<player.settlements.length; j++) {
+          $('#spot'+j).attr( 'class', 'spot player_'+player.color );
+        }
+        for (let j=0; j<player.cities.length; j++) {
+          $('#spot'+j).attr( 'class', 'spot city player_'+player.color );
+        }
+        console.log(player);
+      }
+    }
+
+    $( function() {
+      bind( JSON.parse( $('#json').text() ) );
+    });
   </script>
 </body>
 </html>

@@ -19,10 +19,15 @@ module.exports = function(app, passport) {
   });
 
   app.get('/dev', function(req,res) {
-    res.render('dev.ejs', {
-      user: null,
-      svg: config.prepareDataForSVG('standard'),
-      data: null//logic.getFlagsForUser(user, game)
+    funcs.requireGameById( '5a95cd4060f4410327aec23a', function(err,game) {
+      console.log('requiring');
+      if (err) throw err;
+
+      res.render('dev.ejs', {
+        user: null,
+        public: game.getPublicGameData(),
+        data: null//logic.getFlagsForUser(user, game)
+      });
     });
     /*funcs.requireUserById( '5a88f82d931f760c16c3417c', function(err,user) {
       if (err) throw err;
