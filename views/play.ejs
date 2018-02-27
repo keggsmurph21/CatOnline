@@ -60,8 +60,10 @@
       for (let i=0; i<game.juncs.length; i++) {
         let junc = game.juncs[i];
         $('#spot'+i).attr( 'class', junc.isCity ? 'spot city' : 'spot' );
-        if (junc.port !== null)
+        if (junc.port !== null) {
+          console.log(junc.port);
           $('#port'+junc.port.num).attr( 'class', 'port '+junc.port.type );
+        }
       }
       for (let i=0; i<game.players.length; i++) {
         let player = game.players[i];

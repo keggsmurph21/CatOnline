@@ -202,14 +202,16 @@ function randomizeGameBoard(scenario, board, settings) {
   // shuffle dev cards
   funcs.shuffle( board.dcdeck );
 
-  let ports = scenario.gameBoard.vertices.ports.types.splice(0);
+  let ports = scenario.gameBoard.vertices.ports;
   if ( settings.portStyle==='random' ) {
-    funcs.shuffle( ports );
+    funcs.shuffle( ports.types.slice(0) );
   }
-  for (let i=0; i<board.juncs.length; i++) {
-    if (board.juncs[i].port !== null) {
-		 board.juncs[i].port.type = ports.pop();
-    }
+  for (let i=0; i<ports.locations.length; i++) {
+    let type = ports.types.pop();
+    console.log(type)
+    console.log(ports.locations[i]);
+    board.juncs[ ports.locations[i].juncs[0] ].port.type = type;
+    board.juncs[ ports.locations[i].juncs[1] ].port.type = type;
   }
 
   return board;
