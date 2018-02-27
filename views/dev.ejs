@@ -6,6 +6,19 @@
   <link rel="stylesheet" href="/styles/style.css">
   <link rel="SHORTCUT ICON" href="images/favicon.ico" />
   <link rel="icon" href="images/favicon.ico" type="image/ico" />
+  <style>
+    svg * {
+      /*opacity: 0.5;
+      stroke: #000;*/
+      stroke-width: 0;
+    }
+    svg path {
+      fill: #999;
+    }
+    svg polygon {
+      opacity: 0.5;
+    }
+  </style>
 </head>
 
 <body>
@@ -18,26 +31,22 @@
       </defs>
 
       <% for (let i=0; i< svg.tiles.length; i++) { %>
-        <g class="tile-group" id="<%= i %>">
-          <polygon class="tile-polygon <%= /*svg.tiles[i].resource*/ %>" id="<%= 'polygon'+i %>" points="<%= svg.tiles[i].points %>" resource="<%= /*svg.tiles[i].resource*/ %>" juncs="<%= /*svg.tiles[i].juncs*/ %>"/>
-          <!--<text class="tile-text <%= [6,8].includes(svg.tiles[i].roll) ? 'red' : '' %>" dominant-baseline="middle" alignment-baseline="central" text-anchor="middle" x="<%= svg.tiles[i].x %>" y="<%= svg.tiles[i].y %>">-->
-            <%=/*svg.tiles[i].roll||''*/%>
-          <!--</text>-->
+        <g class="tile-group" id="<%= 'tile-group '+i %>">
+          <polygon class="tile-polygon" id="<%= 'polygon '+i %>" points="<%= svg.tiles[i].points %>" resource="" juncs=""/>
+          <text class="tile-text" dominant-baseline="middle" alignment-baseline="central" text-anchor="middle" x="<%= svg.tiles[i].x %>" y="<%= svg.tiles[i].y %>">
+            0
+          </text>
         </g>
       <% }
       for (let i=0; i< svg.ports.length; i++) { %>
-        <path class="port-path <%= svg.ports[i].type %>" id="<%= 'port'+i %>" d="<%= svg.ports[i].path %>" juncs="<%= svg.ports[i].juncs %>" />
+        <path class="port-path" id="<%= 'port '+i %>" d="<%= svg.ports[i].path %>" juncs="" />
       <% }
       for (let i=0; i< svg.roads.length; i++) { %>
-        <path class="road-path <%= /*svg.roads[i].owner*/ %>" id="<%= 'road'+i %>" d="<%= svg.roads[i].path %>" juncs="<%= svg.roads[i].juncs %>" />
+        <path class="road-path" id="<%= 'road '+i %>" d="<%= svg.roads[i].path %>" juncs="" />
       <% }
-      for (let i=0; i< svg.spots.length; i++) {
-        if (false/*svg.spots[i].isCity*/) { %>
-
-        <% } else { %>
-          <circle class="spot-circle <%= /*svg.spots[i].owner*/ %>" id="<%= i %>" cx="<%= svg.spots[i].x %>" cy="<%= svg.spots[i].y %>" r="0.2" roads="<%= svg.spots[i].roads %>" hexes="<%= svg.spots[i].hexes %>"/>
-        <% }
-      } %>
+      for (let i=0; i< svg.spots.length; i++) { %>
+        <circle class="spot-circle" id="<%= 'spot '+i %>" cx="<%= svg.spots[i].x %>" cy="<%= svg.spots[i].y %>" r="0.2" roads="" hexes=""/>
+      <% } %>
 
     </svg>
   </p>
