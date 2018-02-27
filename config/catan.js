@@ -111,7 +111,6 @@ function buildGameBoard(scenario) {
 		 port : null,
 		 roads : [],
 		 hexes : [],
-		 isCity : false,
     });
   }
 

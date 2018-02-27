@@ -64,6 +64,9 @@ module.exports = {
       game.state.players[i].color = colors[i];
     }
 
+    game.state.status = 'in-progress';
+    game.meta.updated = new Date;
+
     return next(null);
   },
   getPlayData : function(user, game) {

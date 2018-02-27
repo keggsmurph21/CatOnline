@@ -80,7 +80,9 @@ var GameSchema = mongoose.Schema({
       hasLargestArmy: Boolean,
       resources: Object,      // { $RES : Number }
       settlements: [ Number ],
+      cities: [ Number ],
       roads: [ Number ],
+      longestRoad: Number,
       hasLongestRoad: Boolean,
       publicScore: Number,
       privateScore: Number,
@@ -90,8 +92,28 @@ var GameSchema = mongoose.Schema({
   },
 
   // none of this data should persist after the game is completed/exited
-  board : Object
+  board : {
 
+    dcdeck    : [ String ],
+    dice      : {
+      values    : [ Number ] },
+    hexes     : [ {
+      num       : Number,
+      resource  : String,
+      roll      : Number,
+      dots      : Number,
+      juncs     : [ Number ] }],
+    juncs     : [ {
+      num       : Number,
+      port      : Object,
+      roads     : [ Number ],
+      hexes     : [ Number ] }],
+    roads     : [ {
+      num       : Number,
+      juncs     : [ Number ] }]
+
+  },
+  
 }, {
   usePushEach: true
 });

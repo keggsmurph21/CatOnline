@@ -48,9 +48,10 @@ module.exports = function(app, passport) {
       } else if ((funcs.checkIfUserInGame( req.user, game ) && game.state.status==='in-progress') || req.user.isAdmin) {
 
         res.render('play.ejs', {
-          message: req.flash('playMessage'),
-          user: req.user,
-          data: logic.getPlayData(user, game)
+          message:  req.flash('playMessage'),
+          user:     req.user,
+          public:   game.getPublicGameData()
+          //data: logic.getPlayData(user, game)
         });
 
       } else {
