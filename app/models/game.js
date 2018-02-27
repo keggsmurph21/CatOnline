@@ -42,8 +42,14 @@ var GameSchema = mongoose.Schema({
     isGameOver: Boolean,
     isRollSeven: Boolean,
     waiting: {
-      forWho: [ String ],
-      forWhat: String
+      forWho: [ {
+        id : String,
+        name : String,
+        isAdmin : Boolean,
+        isSuperAdmin : Boolean,
+        isMuted : Boolean,
+        flair : String } ],
+      forWhat: [ [ String ] ]
     },
     currentPlayerID: Number,
     hasRolled: Boolean,
@@ -113,7 +119,7 @@ var GameSchema = mongoose.Schema({
       juncs     : [ Number ] }]
 
   },
-  
+
 }, {
   usePushEach: true
 });

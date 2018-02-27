@@ -20,23 +20,16 @@ module.exports = function(app, passport) {
 
   app.get('/dev', function(req,res) {
     funcs.requireGameById( '5a95cd4060f4410327aec23a', function(err,game) {
-      console.log('requiring');
-      if (err) throw err;
-
-      res.render('dev.ejs', {
-        user: null,
-        public: game.getPublicGameData(),
-        data: null//logic.getFlagsForUser(user, game)
-      });
-    });
-    /*funcs.requireUserById( '5a88f82d931f760c16c3417c', function(err,user) {
-      if (err) throw err;
-      funcs.requireGameById( '5a8cf31b53a9b0027c8e322b', function(err,game) {
-        if (err) throw err;
-        logic.launch(game, function(err,data) {
+      if (err) {
+        req.flash('lobbyMessage', 'Error loading development environment');
+        res.redirect('/lobby');
+      } else {
+        res.render('dev.ejs', {
+          user: null,
+          public: game.getPublicGameData(),
         });
-      });
-    });*/
+      }
+    });
   });
 
   // PLAY PAGES

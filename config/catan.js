@@ -208,8 +208,6 @@ function randomizeGameBoard(scenario, board, settings) {
   }
   for (let i=0; i<ports.locations.length; i++) {
     let type = ports.types.pop();
-    console.log(type)
-    console.log(ports.locations[i]);
     board.juncs[ ports.locations[i].juncs[0] ].port.type = type;
     board.juncs[ ports.locations[i].juncs[1] ].port.type = type;
   }

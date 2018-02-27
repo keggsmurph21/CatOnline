@@ -179,9 +179,9 @@
       console.log(data);
       let str = '';
 
-      str +=   '<th><strong>' + data.turn + '</strong> (' + ( data.waiting.length ? data.waiting.map(u=>formatUsername(u)).join(', ') : 'N/A' ) + ') </th>';
-      str +=   '<th><strong class="' + data.status + '">' + data.status + '</strong></th>';
-      str +=   '<th>' + data.settings.scenario + '</th>';
+      str +=   '<th class="turn"><strong>' + data.turn + '</strong> ( ' + ( data.waiting.length ? data.waiting.map(u=>formatUsername(u)).join(', ') : 'N/A' ) + ' ) </th>';
+      str +=   '<th class="status"><strong class="' + data.status + '">' + data.status + '</strong></th>';
+      str +=   '<th class="scenario">' + data.settings.scenario + '</th>';
       str +=   '<th>';
       str +=     '<span class="players">' + (data.settings.numHumans + data.settings.numCPUs) + '</span>';
       str +=     '<span class="humans">' + data.players.length + '/' + data.settings.numHumans + '</span>';

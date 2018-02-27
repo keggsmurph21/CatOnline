@@ -58,12 +58,22 @@ module.exports = {
 
     funcs.shuffle(game.state.players);
     colors = config.getColors(game);
+    let waiting = { forWho:[], forWhat:[] };
+
     for (let i=0; i<colors.length; i++) {
       let flags = getFlags(game, i);
-      game.state.players[i].adjacents = config.getAdjacentGameStates(flags);
-      game.state.players[i].color = colors[i];
+      let player = game.state.players[i];
+      let adjacents = config.getAdjacentGameStates(flags);
+      player.adjacents = adjacents;
+      if (adjacents !== []) {
+        waiting.forWho.push( player.lobbyData );
+        waiting.forWhat.push( adjacents );
+      }
+      player.color = colors[i];
     }
 
+    game.state.waiting= waiting;
+    game.state.turn   = 1;
     game.state.status = 'in-progress';
     game.meta.updated = new Date;
 

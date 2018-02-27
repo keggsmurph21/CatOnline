@@ -363,13 +363,13 @@ table.lobby {
   border-collapse: collapse;
 }
 
-.active .humans {
+.active .humans, .active .status {
   display: none;
 }
-.pending .players {
+.pending .players, .pending .turn {
   display: none;
 }
-.available .players {
+.available .players, .available .turn {
   display: none;
 }
 
