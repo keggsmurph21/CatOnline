@@ -141,6 +141,18 @@ module.exports = {
       if (err) throw err;
     });
   },
+  hexGetAdjHexes : function(board, h) {
+    let adjs = new Set();
+    for (let i=0; i<board.hexes[h].juncs.length; i++) {
+      for (let j=0; j<board.juncs[ board.hexes[h].juncs[i] ].hexes.length; j++) {
+        let hex = board.juncs[ board.hexes[h].juncs[i] ].hexes[j];
+        if (hex !== h)
+          adjs.add( hex );
+      }
+    }
+    return adjs;
+  },
+
 
   User : require('./models/user'),
   Game : require('./models/game')

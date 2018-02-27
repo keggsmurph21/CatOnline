@@ -152,6 +152,15 @@ function buildGameBoard(scenario) {
   return board;
 }
 function checkIsGameBoardLegal(board) {
+  for (let i=0; i<board.hexes.length; i++) {
+    if ( [6,8].indexOf(board.hexes[i].roll) > -1 ) {
+      let adjs = funcs.hexGetAdjHexes(board, i);
+      for (let adj of adjs) {
+        if ( [6,8].indexOf(board.hexes[ adj ].roll) > -1 )
+          return false;
+      }
+    }
+  }
   return true;
 }
 function randomizeGameBoard(scenario, board, settings) {
@@ -191,7 +200,6 @@ function randomizeGameBoard(scenario, board, settings) {
   }
 
   // shuffle dev cards
-  console.log(board.dcdeck);
   funcs.shuffle( board.dcdeck );
 
   let ports = scenario.gameBoard.vertices.ports.types.splice(0);
@@ -209,7 +217,6 @@ function randomizeGameBoard(scenario, board, settings) {
 }
 function saveInitialGameBoardToState(game) {
   let hexes = [], ports = [], dcdeck = game.board.dcdeck.slice(0);
-  console.log('dc',dcdeck,'\\dc');
   for (let i=0; i<game.board.hexes.length; i++) {
     let hex = game.board.hexes[i];
     hexes.push({ resource:hex.resource, roll:hex.roll });
@@ -293,9 +300,7 @@ module.exports = {
 			settings: settings
 		 };
 
-     console.log('here',game.board.dcdeck);
 		 saveInitialGameBoardToState(game);
-     console.log('and', game.board.dcdeck);
 		 next(null, game);
 
 		 });
