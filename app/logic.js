@@ -3,6 +3,8 @@ var config = require('../config/catan.js');
 
 function getFlags(game, i) {
   let player = game.state.players[i];
+  /*console.log('players: ('+game.state.players.length+')');
+  console.log('iteration:',i,'=>\n',game.state.players[i]);*/
   let data = {
     isGameOver       : game.state.isGameOver,
     isFirstTurn      : game.state.isFirstTurn,
@@ -16,9 +18,10 @@ function getFlags(game, i) {
     canBuild         : player.canBuild,
     canBuy           : player.canBuy,
     isHuman          : player.isHuman,
-    isCurrentPlayer  : game.state.currentPlayerID===i,
+    isCurrentPlayer  : game.state.currentPlayerID===player.playerID,
     isWaitingFor     : false
   }
+  console.log('flags', data);
   for (let i=0; i<game.state.waiting.forWho.length; i++) {
     if (funcs.usersCheckEqual(game.state.waiting.forWho[i], player))
       data.isWaitingFor = true;
@@ -59,20 +62,22 @@ module.exports = {
       game.state.players.push( config.getNewPlayerData(user,game,false) );
     }
 
+    console.log('launching');
     funcs.shuffle(game.state.players);
     colors = config.getColors(game);
     let waiting = { forWho:[], forWhat:[] };
 
     for (let i=0; i<colors.length; i++) {
-      let flags = getFlags(game, i);
       let player = game.state.players[i];
+      player.playerID = i;
+      let flags = getFlags(game, i);
+      player.flags = flags;
       let adjacents = config.getAdjacentGameStates(flags);
       player.adjacents = adjacents;
-      if (adjacents !== []) {
+      if (adjacents.length) {
         waiting.forWho.push( player.lobbyData );
         waiting.forWhat.push( adjacents );
       }
-      player.playerID = i;
       player.color    = colors[i];
     }
 
@@ -85,13 +90,11 @@ module.exports = {
     return next(null);
   },
   getGameData : function(user, game) {
-    let data = {
+    console.log("getting game data");
+    return {
       public  : game.getPublicGameData(),
       private : game.getPrivateGameData(user)
     };
-    if (data.private)
-      data.private.flags = getFlags(game, data.private.playerID);
-    return data;
   }
 
 }

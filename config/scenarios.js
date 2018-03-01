@@ -972,8 +972,16 @@ module.exports = {
       privateScore: 0,
     },
     colors: {
-      4 : [ 'red', 'orange', 'white', 'blue' ],
-      6 : [ 'red', 'orange', 'white', 'blue', 'green', 'brown' ],
+      0 : [ 'red', 'orange', 'white', 'blue' ],
+      1 : [ 'red', 'orange', 'white', 'blue' ],
+      2 : [ 'red', 'orange', 'white', 'blue' ],
+      3 : [ 'red', 'orange', 'white', 'blue' ],
+      4 : [ 'red', 'orange', 'white', 'blue', 'green', 'brown' ],
+      5 : [ 'red', 'orange', 'white', 'blue', 'green', 'brown' ],
+      6 : [ 'red', 'orange', 'white', 'blue', 'green', 'brown', 'pink', 'black', 'cyan', 'purple' ],
+      7 : [ 'red', 'orange', 'white', 'blue', 'green', 'brown', 'pink', 'black', 'cyan', 'purple' ],
+      8 : [ 'red', 'orange', 'white', 'blue', 'green', 'brown', 'pink', 'black', 'cyan', 'purple' ],
+      9 : [ 'red', 'orange', 'white', 'blue', 'green', 'brown', 'pink', 'black', 'cyan', 'purple' ],
       10: [ 'red', 'orange', 'white', 'blue', 'green', 'brown', 'pink', 'black', 'cyan', 'purple' ]
     }
   }

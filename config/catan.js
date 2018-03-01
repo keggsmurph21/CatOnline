@@ -61,7 +61,7 @@ function validateNewGameParams(data, next) {
 function initGameState(user, settings) {
   let state = _SCENARIOS[settings.scenario].defaultGlobalState;
   state.status = ( settings.numHumans+settings.numCPUs===1 ? 'ready' : 'pending' );
-  state.players = [ buildInitialPlayerState(user, settings, true) ];
+  state.players = [ buildInitialPlayerState(user, settings, true, 0) ];
   return state;
 }
 function initGameBoard(settings) {
@@ -202,12 +202,12 @@ function randomizeGameBoard(scenario, board, settings) {
   // shuffle dev cards
   funcs.shuffle( board.dcdeck );
 
-  let ports = scenario.gameBoard.vertices.ports;
+  let ports = Object.assign({}, scenario.gameBoard.vertices.ports);
   if ( settings.portStyle==='random' ) {
-    funcs.shuffle( ports.types.slice(0) );
+    funcs.shuffle( ports.types );
   }
   for (let i=0; i<ports.locations.length; i++) {
-    let type = ports.types.pop();
+    let type = ports.types[i];
     board.juncs[ ports.locations[i].juncs[0] ].port.type = type;
     board.juncs[ ports.locations[i].juncs[1] ].port.type = type;
   }
@@ -229,7 +229,7 @@ function saveInitialGameBoardToState(game) {
   game.state.initialGameConditions = { hexes:hexes, ports:ports, dcdeck:dcdeck };
 }
 
-function buildInitialPlayerState(user, settings, isHuman) {
+function buildInitialPlayerState(user, settings, isHuman, num) {
   let scenario = _SCENARIOS[settings.scenario],
     playerState = Object.assign({}, scenario.defaultPlayerState),
     bankTradeRates={}, canPlayDC={}, canBuild={},
@@ -253,6 +253,7 @@ function buildInitialPlayerState(user, settings, isHuman) {
     canBuy[buy] = playerState.canBuy;
   }
 
+  playerState.playerID = num;
   playerState.isHuman = isHuman;
   playerState.bankTradeRates = bankTradeRates;
   playerState.canPlayDC = canPlayDC;
@@ -309,14 +310,14 @@ module.exports = {
     }
   },
   getNewPlayerData : function(user, game, human=true) {
-    return buildInitialPlayerState(user, game.meta.settings, human);
+    return buildInitialPlayerState(user, game.meta.settings, human, game.state.players.length);
   },
   getAdjacentGameStates : function(flags) {
     let edges = [];
     for (let e=0; e<_STATE_GRAPH.vertices[flags.vertex].edges.length; e++) {
       let ename = _STATE_GRAPH.vertices[flags.vertex].edges[e];
       let edge = _STATE_GRAPH.edges[ename];
-      console.log((edge.isImportant?'!!':'')+ename+'\t\t'+edge.evaluate(flags));
+      //console.log((edge.isImportant?'!!':'')+ename+'\t\t'+edge.evaluate(flags));
       if (edge.evaluate(flags)) {
         if (edge.isPriority)
           return [ename];
@@ -332,9 +333,7 @@ module.exports = {
     return _STATE_GRAPH.edges;
   },
   getColors : function(game) {
-    let i=0;
-    while (!_SCENARIOS[game.meta.settings.scenario].colors[i]) { i++; }
-    let colors = _SCENARIOS[game.meta.settings.scenario].colors[i].splice(0);
+    let colors = _SCENARIOS[game.meta.settings.scenario].colors[i].slice(0);
     funcs.shuffle(colors);
     return colors.slice(0,game.state.players.length);
   }

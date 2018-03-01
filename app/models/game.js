@@ -69,7 +69,10 @@ var GameSchema = mongoose.Schema({
       vertex: String,
       adjacents: [ String ],
 
-      // flags&values
+      // flags
+      flags : Object,
+
+      // values to power flags
       isHuman: Boolean,
       canAcceptTrade : Boolean,
       hasHeavyPurse : Boolean,
@@ -187,7 +190,7 @@ GameSchema.methods.getPrivateGameData = function(user) {
         playerID      : player.playerID,
         vertex        : player.vertex,
         adjacents     : player.adjacents,
-        flags         : null,
+        flags         : player.flags,
         unplayedDCs   : player.unplayedDCs,
         playedDCs     : player.playerDCs,
         resources     : player.resources,
