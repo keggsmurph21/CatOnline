@@ -1,5 +1,4 @@
 // load stuff
-var aSync = require('async');
 var funcs = require('./funcs.js');
 var logic = require('./logic.js');
 var config = require('../config/catan.js');
@@ -39,12 +38,13 @@ module.exports = function(app, passport) {
         req.flash('lobbyMessage', 'Unable to find game ' + req.params.gameid );
         res.redirect('/lobby');
       } else if ((funcs.checkIfUserInGame( req.user, game ) && game.state.status==='in-progress') || req.user.isAdmin) {
+        let data = logic.getGameData(req.user, game);
 
         res.render('play.ejs', {
           message:  req.flash('playMessage'),
           user:     req.user,
-          public:   game.getPublicGameData()
-          //data: logic.getPlayData(user, game)
+          public:   data.public,
+          private:  data.private
         });
 
       } else {

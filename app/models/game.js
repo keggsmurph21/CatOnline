@@ -161,6 +161,7 @@ GameSchema.methods.getPublicGameData = function() {
   for (let i=0; i<this.state.players.length; i++) {
     let player = this.state.players[i];
     data.players.push({
+      playerID        : player.playerID,
       color           : player.color,
       isHuman         : player.isHuman,
       devCardsInHand  : sumOverObject(player.unplayedDCs),
@@ -178,11 +179,23 @@ GameSchema.methods.getPublicGameData = function() {
   }
   return data;
 }
-GameSchema.methods.getPrivateGameData = function(playerid) {
-  // takes an integer (not a userid) and returns the private data for that player
-  return {
-
-  };
+GameSchema.methods.getPrivateGameData = function(user) {
+  for (let i=0; i<this.state.players.length; i++) {
+    let player = this.state.players[i];
+    if (player.lobbyData.id.toString()===user.id.toString()) {
+      return {
+        playerID      : player.playerID,
+        vertex        : player.vertex,
+        adjacents     : player.adjacents,
+        flags         : null,
+        unplayedDCs   : player.unplayedDCs,
+        playedDCs     : player.playerDCs,
+        resources     : player.resources,
+        privateScore  : player.privateScore
+      };
+    }
+  }
+  return null;
 }
 GameSchema.methods.checkIsFull = function() {
   return ( this.state.players.length === (this.meta.settings.numHumans+this.meta.settings.numCPUs) );

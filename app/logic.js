@@ -3,24 +3,27 @@ var config = require('../config/catan.js');
 
 function getFlags(game, i) {
   let player = game.state.players[i];
-  console.log('player:'+player);
-
-  return {
-    isGameOver:       game.state.isGameOver,
-    isFirstTurn:      game.state.isFirstTurn,
-    isSecondTurn:     game.state.isSecondTurn,
-    isRollSeven:      game.state.isRollSeven,
-    hasRolled:        game.state.hasRolled,
-    vertex:           player.vertex,
-    canAcceptTrade:   player.canAcceptTrade,
-    hasHeavyPurse:    player.hasHeavyPurse,
-    canPlayDC:        player.canPlayDC,
-    canBuild:         player.canBuild,
-    canBuy:           player.canBuy,
-    isHuman:          player.isHuman,
-    isCurrentPlayer:  game.state.currentPlayerID===i,
-    isWaitingFor:     game.state.waiting.forWho.indexOf(i) > -1 // not sure if should save on the model itself
+  let data = {
+    isGameOver       : game.state.isGameOver,
+    isFirstTurn      : game.state.isFirstTurn,
+    isSecondTurn     : game.state.isSecondTurn,
+    isRollSeven      : game.state.isRollSeven,
+    hasRolled        : game.state.hasRolled,
+    vertex           : player.vertex,
+    canAcceptTrade   : player.canAcceptTrade,
+    hasHeavyPurse    : player.hasHeavyPurse,
+    canPlayDC        : player.canPlayDC,
+    canBuild         : player.canBuild,
+    canBuy           : player.canBuy,
+    isHuman          : player.isHuman,
+    isCurrentPlayer  : game.state.currentPlayerID===i,
+    isWaitingFor     : false
   }
+  for (let i=0; i<game.state.waiting.forWho.length; i++) {
+    if (funcs.usersCheckEqual(game.state.waiting.forWho[i], player)
+      data.isWaitingFor = true;
+  }
+  return data;
 }
 function getAllPlayerData(player, game) {
   for (let i=0; i<game.state.players.length; i++) {
@@ -39,7 +42,7 @@ function iterateTurn(game) {
 
 module.exports = {
 
-  getFlagsForUser : function(user, game) {
+  /*getFlagsForUser : function(user, game) {
     let flags = getFlags(user, game);
     console.log(flags);
     let vertices = config.getStateVertices();
@@ -50,7 +53,7 @@ module.exports = {
       config.getAdjacentGameStates(flags);
     }
     return "SEE CONSOLE";
-  },
+  },*/
   launch : function(game, next) {
     for (let i=0; i<game.meta.settings.numCPUs; i++) {
       game.state.players.push( config.getNewPlayerData(user,game,false) );
@@ -69,9 +72,11 @@ module.exports = {
         waiting.forWho.push( player.lobbyData );
         waiting.forWhat.push( adjacents );
       }
-      player.color = colors[i];
+      player.playerID = i;
+      player.color    = colors[i];
     }
 
+    game.state.currentPlayerID = 0;
     game.state.waiting= waiting;
     game.state.turn   = 1;
     game.state.status = 'in-progress';
@@ -79,8 +84,14 @@ module.exports = {
 
     return next(null);
   },
-  getPlayData : function(user, game) {
-
+  getGameData : function(user, game) {
+    let data = {
+      public  : game.getPublicGameData(),
+      private : game.getPrivateGameData(user)
+    };
+    if (data.private)
+      data.private.flags = getFlags(game, data.private.playerID);
+    return data;
   }
 
 }
