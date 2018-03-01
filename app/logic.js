@@ -20,7 +20,7 @@ function getFlags(game, i) {
     isWaitingFor     : false
   }
   for (let i=0; i<game.state.waiting.forWho.length; i++) {
-    if (funcs.usersCheckEqual(game.state.waiting.forWho[i], player)
+    if (funcs.usersCheckEqual(game.state.waiting.forWho[i], player))
       data.isWaitingFor = true;
   }
   return data;
