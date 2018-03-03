@@ -98,6 +98,10 @@ table a, .message a {
   text-decoration: inherit;
 }
 
+td {
+  text-align: center;
+}
+
 /***
  INDEX
  ***/
@@ -382,21 +386,23 @@ tr.lobby.header:first-child {
 }
 
 tr.lobby th {
+  background-color: #222;
+  color: #fff;
+  border-bottom: 1px solid #222;
+  font-weight: 500;
+}
+tr.lobby th:first-child {
+  border-radius: 5px 0 0;
+}
+tr.lobby th:last-child {
+  border-radius: 0 5px 0 0;
+}
+
+tr.lobby td {
   background-color: #ddd;
   color: #222;
   border-bottom: 1px solid #222;
   font-weight: 300;
-}
-tr.lobby.header th {
-  background-color: #222;
-  color: #fff;
-  font-weight: 500;
-}
-tr.lobby.header th:first-child {
-  border-radius: 5px 0 0;
-}
-tr.lobby.header th:last-child {
-  border-radius: 0 5px 0 0;
 }
 
 tr.lobby.max {
@@ -484,21 +490,22 @@ tr.admin.header:first-child {
 }
 
 tr.admin th {
+  background-color: #222;
+  color: #fff;
+  border-bottom: 1px solid #222;
+  font-weight: 500;
+}
+tr.admin th:first-child {
+  border-radius: 5px 0 0;
+}
+tr.admin th:last-child {
+  border-radius: 0 5px 0 0;
+}
+tr.admin td {
   background-color: #ddd;
   color: #222;
   border-bottom: 1px solid #222;
   font-weight: 300;
-}
-tr.admin.header th {
-  background-color: #222;
-  color: #fff;
-  font-weight: 500;
-}
-tr.admin.header th:first-child {
-  border-radius: 5px 0 0;
-}
-tr.admin.header th:last-child {
-  border-radius: 0 5px 0 0;
 }
 
 .admin strong.true {

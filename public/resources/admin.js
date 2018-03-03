@@ -114,22 +114,22 @@ function outputUserRowString(data) {
   let exceededAsAuthor = data.activeGamesAsAuthor > data.maxActiveGamesAsAuthor && !data.isAdmin;
   let exceededAsPlayer = data.activeGamesAsPlayer > data.maxActiveGamesAsPlayer && !data.isAdmin;
 
-  str += '<th><input type="checkbox" class="batch" name="' + data.id + '" id="cb' + data.id + '" /></th>';
-  str += '<th>' + formatUsername(data) + '</th>';
-  str += '<th>';
+  str += '<td><input type="checkbox" class="batch" name="' + data.id + '" id="cb' + data.id + '" /></th>';
+  str += '<td>' + formatUsername(data) + '</th>';
+  str += '<td>';
   str +=   (exceededAsAuthor ? '<strong class="false">' : '') ;
   str +=   data.activeGamesAsAuthor + '/';
   str +=   (data.isAdmin ? '&#x221e;' : data.maxActiveGamesAsAuthor);
   str +=   (exceededAsAuthor ? '</strong>' : '') ;
   str += '</th>';
-  str += '<th>';
+  str += '<td>';
   str +=   (exceededAsPlayer ? '<strong class="false">' : '') ;
   str +=   data.activeGamesAsPlayer + '/';
   str +=   (data.isAdmin ? '&#x221e;' : data.maxActiveGamesAsPlayer);
   str +=   (exceededAsPlayer ? '</strong>' : '') ;
   str += '</th>';
-  str += '<th><strong class="isSuperAdmin ' + data.isSuperAdmin + '">' + data.isSuperAdmin + '</strong></th>';
-  str += '<th>';
+  str += '<td><strong class="isSuperAdmin ' + data.isSuperAdmin + '">' + data.isSuperAdmin + '</strong></th>';
+  str += '<td>';
   str +=   '<strong class="isAdmin ' + data.isAdmin + '">' + data.isAdmin + '</strong>';
   if (!data.isSuperAdmin && user.isSuperAdmin) {
     // only superadmins can pro-/de-mote nonsuperadmins
@@ -146,7 +146,7 @@ function outputUserRowString(data) {
     }
   }
   str += '</th>';
-  str += '<th>';
+  str += '<td>';
   str +=   '<strong class="isMuted ' + data.isMuted + '">' + data.isMuted + '</strong>';
   if (!data.isSuperAdmin && (user.isSuperAdmin || !data.isAdmin)) {
     // superadmins can un-/mute nonsuperadmins, admins can un-/mute users
@@ -163,7 +163,7 @@ function outputUserRowString(data) {
     }
   }
   str += '</th>';
-  str += '<th>';
+  str += '<td>';
   if ( (!data.isSuperAdmin && (user.isSuperAdmin || !data.isAdmin)) || usersCheckEqual(user,data) ) {
     // superadmins can nonsuperadmin flair, admins can change user flair, everyone can change their own flair
     str += '<form class="admin" method="post" action="/admin/flair">';
@@ -173,7 +173,7 @@ function outputUserRowString(data) {
     str += '</form>';
   }
   str += '</th>';
-  str += '<th><form class="admin" method="post" action="/admin/toggle-password-reset"><strong class="';
+  str += '<td><form class="admin" method="post" action="/admin/toggle-password-reset"><strong class="';
   if ( data.allowResetPassword ) {
     str += 'true">enabled';
   } else {
@@ -192,14 +192,14 @@ function outputUserRowString(data) {
 function outputGameRowString(data) {
   let str = '';
 
-  str += '<th><input type="checkbox" class="batch" name="' + data.id + '" id="cb' + data.id + '" ></th>';
-  str += '<th><strong class="status ' + data.status + '">' + data.status + '</strong></th>';
-  str += '<th><strong class="' + (data.turn>0) + '">' + data.turn + '</strong></th>';
-  str += '<th><strong class="' + data.public + '">' + data.public + '</strong></th>';
-  str += '<th><strong>' + data.scenario + '</strong></th>';
-  str += '<th><span class="players-list">' + outputPlayersListSpanString(data) + '</span></th>';
-  str += '<th><strong>' + data.VPs + '</strong></th>';
-  str += '<th><span class="date">' + data.updated + '</span></th>';
+  str += '<td><input type="checkbox" class="batch" name="' + data.id + '" id="cb' + data.id + '" ></th>';
+  str += '<td><strong class="status ' + data.status + '">' + data.status + '</strong></th>';
+  str += '<td><strong class="' + (data.turn>0) + '">' + data.turn + '</strong></th>';
+  str += '<td><strong class="' + data.public + '">' + data.public + '</strong></th>';
+  str += '<td><strong>' + data.scenario + '</strong></th>';
+  str += '<td><span class="players-list">' + outputPlayersListSpanString(data) + '</span></th>';
+  str += '<td><strong>' + data.VPs + '</strong></th>';
+  str += '<td><span class="date">' + data.updated + '</span></th>';
 
   return str;
 }
@@ -235,7 +235,7 @@ function checkIfEmptyTables() {
     let type = ['game', 'user'][i];
     if ( $('table.' + type + 'list').find('tr').length===1 ) {
       let table = $('table.' + type + 'list tr:last');
-      table.after( '<tr class="admin null"><th colspan="10"><div class="admin null-container">no current ' + type + 's ...</div></th></tr>' );
+      table.after( '<tr class="admin null"><td colspan="10"><div class="admin null-container">no current ' + type + 's ...</div></th></tr>' );
     }
   }
 }

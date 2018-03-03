@@ -106,7 +106,7 @@
   <%- include( 'banner.ejs' ) %>
 
   <script src='/socket.io/socket.io.js'> </script>
-  <script src='/resources/jquery.js'> </script>
+  <script src='/resources/jquery-3.3.1.js'> </script>
   <script src='/resources/core.js'> </script>
   <script src='/resources/messages.js'> </script>
   <!--<script src='/resources/lobby.js'> </script>-->
@@ -179,15 +179,15 @@
       console.log(data);
       let str = '';
 
-      str +=   '<th class="turn"><strong>' + data.turn + '</strong> ( ' + ( data.waiting.length ? data.waiting.map(u=>formatUsername(u)).join(', ') : 'N/A' ) + ' ) </th>';
-      str +=   '<th class="status"><strong class="' + data.status + '">' + data.status + '</strong></th>';
-      str +=   '<th class="scenario">' + data.settings.scenario + '</th>';
-      str +=   '<th>';
+      str +=   '<td class="turn"><strong>' + data.turn + '</strong> ( ' + ( data.waiting.length ? data.waiting.map(u=>formatUsername(u)).join(', ') : 'N/A' ) + ' ) </th>';
+      str +=   '<td class="status"><strong class="' + data.status + '">' + data.status + '</strong></th>';
+      str +=   '<td class="scenario">' + data.settings.scenario + '</th>';
+      str +=   '<td>';
       str +=     '<span class="players">' + (data.settings.numHumans + data.settings.numCPUs) + '</span>';
       str +=     '<span class="humans">' + data.players.length + '/' + data.settings.numHumans + '</span>';
       str +=   '</th>';
-      str +=   '<th>' + formatUsername( data.author ) + '</th>';
-      str +=   '<th><span class="date-updated">' + data.updated + '</span></th>';
+      str +=   '<td>' + formatUsername( data.author ) + '</th>';
+      str +=   '<td><span class="date-updated">' + data.updated + '</span></th>';
       str += '</tr>';
 
       return str;
@@ -195,7 +195,7 @@
     function outputGameMaxRowString( data, type ) {
       let str = '', canDelete = usersCheckEqual(data.author, user);
 
-      str += '<th colspan="6">';
+      str += '<td colspan="6">';
       str +=   '<div class="lobby max-container">';
       str +=     '<div class="lobby max info">';
       str +=       '<p class="victory-points-info">';
@@ -244,7 +244,7 @@
         let type = ['active', 'available', 'pending'][i];
         if ( $('#' + type + '-games').find('tr').length===1 ) {
           let table = $('#' + type + '-games tr:last');
-          table.after( '<tr class="lobby null"><th colspan="10"><div class="lobby null-container">no current games ...</div></th></tr>' );
+          table.after( '<tr class="lobby null"><td colspan="10"><div class="lobby null-container">no current games ...</div></th></tr>' );
         }
       }
 

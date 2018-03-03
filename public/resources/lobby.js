@@ -14,12 +14,12 @@ function outputGameMinRowString( data, type ) {
   let str = '';
 
   if (type==='active') {
-    str += '<th>' + data.turn + ' (' + data.waitfor.name + ')</th>';
+    str += '<td>' + data.turn + ' (' + data.waitfor.name + ')</th>';
   } else {
-    str += '<th><strong class="' + data.status + '" id="data' + data.status + '">' + data.status + '</strong></th>';
+    str += '<td><strong class="' + data.status + '" id="data' + data.status + '">' + data.status + '</strong></th>';
   }
-  str +=   '<th>' + data.scenario + '</th>';
-  str +=   '<th>';
+  str +=   '<td>' + data.scenario + '</th>';
+  str +=   '<td>';
   if (type==='active') {
     str +=   (data.numHumans + data.numCPUs);
   } else {
@@ -27,8 +27,8 @@ function outputGameMinRowString( data, type ) {
     str +=   '<span class="required-number">'+ data.numHumans + '</span>';
   }
   str +=   '</th>';
-  str +=   '<th>' + formatUsername( data.author ) + '</th>';
-  str +=   '<th><span class="date-updated" id="date' + data.id + '">' + data.updated + '</span></th>';
+  str +=   '<td>' + formatUsername( data.author ) + '</th>';
+  str +=   '<td><span class="date-updated" id="date' + data.id + '">' + data.updated + '</span></th>';
   str += '</tr>';
 
   return str;
@@ -36,7 +36,7 @@ function outputGameMinRowString( data, type ) {
 function outputGameMaxRowString( data, type ) {
   let str = '';
 
-  str += '<th colspan="6">';
+  str += '<td colspan="6">';
   str +=   '<div class="lobby max-container">';
   str +=     '<div class="lobby max info">';
   str +=       '<p class="victory-points-info">';
@@ -148,7 +148,7 @@ function updateTables(data) {
     let type = ['active', 'pending', 'available'][f];
     if ( $('table#' + type + '-games').find('tr').length===1 ) {
       let table = $('table#' + type + '-games tr:last');
-      table.after( '<tr class="lobby null"><th colspan="10"><div class="lobby null-container">no current games ...</div></th></tr>' );
+      table.after( '<tr class="lobby null"><td colspan="10"><div class="lobby null-container">no current games ...</div></th></tr>' );
     }
   }
 
@@ -399,7 +399,7 @@ $( function() {
       let type = ['current', 'available'][f];
       if ( $('table#' + type + '-games').find('tr').length===1 ) {
         let table = $('table#' + type + '-games tr:last');
-        table.after( '<tr class="lobby null"><th colspan="10"><div class="lobby null-container">no current games ...</div></th></tr>' );
+        table.after( '<tr class="lobby null"><td colspan="10"><div class="lobby null-container">no current games ...</div></th></tr>' );
       }
     }
 
@@ -470,21 +470,21 @@ $( function() {
     let minrow = '';
 
     minrow += '<tr class="lobby min" id="min' + data._id + '">';
-    minrow +=   '<th><strong class="' + data.status + '" id="data' + data.status + '">' + data.status + '</strong></th>';
-    minrow +=   '<th>' + data.scenario + '</th>';
-    minrow +=   '<th>';
+    minrow +=   '<td><strong class="' + data.status + '" id="data' + data.status + '">' + data.status + '</strong></th>';
+    minrow +=   '<td>' + data.scenario + '</th>';
+    minrow +=   '<td>';
     minrow +=     '<span class="current-number" id="' + data._id + '">' + data.players.length + '</span>/';
     minrow +=     '<span class="required-number">'+ data.numHumans + '</span>';
     minrow +=   '</th>';
-    minrow +=   '<th>' + data.author + '</th>';
-    minrow +=   (current ? '<th>' + data.turn + '</th>' : '');
-    minrow +=   '<th><span class="date-updated" id="date' + data._id + '">' + data.updated + '</span></th>';
+    minrow +=   '<td>' + data.author + '</th>';
+    minrow +=   (current ? '<td>' + data.turn + '</th>' : '');
+    minrow +=   '<td><span class="date-updated" id="date' + data._id + '">' + data.updated + '</span></th>';
     minrow += '</tr>';
 
     let maxrow = '';
 
     maxrow += '<tr class="lobby max" id="max' + data._id + '">';
-    maxrow +=   '<th colspan="6">';
+    maxrow +=   '<td colspan="6">';
     maxrow +=     '<div class="lobby max-container">';
     maxrow +=       '<div class="lobby max info">';
     maxrow +=         '<p class="victory-points-info">';
