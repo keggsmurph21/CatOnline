@@ -582,29 +582,90 @@ span.batch * {
   min-height: 150px;
 }
 
+.play #info {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+}
+.play #info > * {
+  width: 100%;
+}
+
+.play table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+.play table tr.header th {
+  border-bottom: 1px solid #222;
+}
+
+div#private-data {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-around;
+}
+
+.play .player {
+  font-weight: bold;
+}
+
+.play .red {
+  color: #f00;
+}
+
+.play .orange {
+  color: #ffa500;
+}
+
+.play .blue {
+  color: #00f;
+}
+
+.play .white {
+  color: #fff;
+}
+
+.yop, .monopoly, .rb {
+  color: #2b6836;
+}
+
+.vp {
+  color: #ff0;
+}
+
+.knight {
+  color: #f00;
+}
+
 svg#gameboard {
   width: 100%;
   height: 100%;
 }
 
 .sheep {
-  fill: #adf442;
+  fill:  #adf442;
+	color: #adf442;
 }
 
 .brick {
-  fill: #ed8428;
+  fill:  #ed8428;
+	color: #ed8428;
 }
 
 .wood {
-  fill: #2b6836;
+  fill:  #2b6836;
+	color: #2b6836;
 }
 
 .wheat {
-  fill: #e2d92f;
+  fill:  #e2d92f;
+	color: #e2d92f;
 }
 
 .ore {
-  fill: #38332f;
+  fill:  #38332f;
+	color: #38332f;
 }
 
 .desert {

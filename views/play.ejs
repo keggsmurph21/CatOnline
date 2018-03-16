@@ -20,7 +20,57 @@
       </div>
 
       <div class="panel" id="info">
-        info
+        <table id="public-data">
+          <tr class="header">
+            <th>name</th>
+            <th>vp</th>
+            <th>resources</th>
+            <th>road</th>
+            <th>dev cards</th>
+            <th>knights</th>
+          </tr>
+          <% for (let i=0; i< public.players.length; i++) {
+            let player = public.players[i]; %>
+            <tr class="player <%= player.color %>">
+              <td><%= player.lobbyData.name %></td>
+              <td>
+                <%= player.publicScore + ( // display the private score here if different
+                  i==private.playerID && player.publicScore!=private.privateScore ?
+                    ' ('+private.privateScore+')' :
+                    '')
+                %>
+              </td>
+              <td><%= player.resourcesInHand %></td>
+              <td><%= player.longestRoad %></td>
+              <td><%= player.devCardsInHand %></td>
+              <td><%= player.playedKnights %></td>
+            </tr>
+          <% } %>
+        </table>
+        <div id="private-data">
+          <table id="resources">
+            <tr class="header">
+              <th colspan="100">resources</th>
+            </tr>
+            <% for (let resource in private.resources) { %>
+              <tr class="<%= resource %>">
+                <th><%= resource %></th>
+                <th><%= private.resources[resource] %></th>
+              </tr>
+            <% } %>
+          </table>
+          <table id="dev-cards">
+            <tr class="header">
+              <th colspan="100">dev cards</th>
+            </tr>
+            <% for (let dc in private.unplayedDCs) { %>
+              <tr class="<%= dc %>">
+                <th><%= dc %></th>
+                <th><%= private.unplayedDCs[dc] %></th>
+              </tr>
+            <% } %>
+          </table>
+        </div>
       </div>
 
       <%- include( 'messages.ejs' ) %>
