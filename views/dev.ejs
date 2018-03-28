@@ -15,23 +15,100 @@
 
 <body>
 
+  <div class="play content">
+
+    <div class="frame" id="control">
+      <div class="panel" id="navigation">
+        <button onclick="location.href='/lobby';" id="lobby">Go to lobby</button>
+        <button onclick="forceSwitchView();" class="switch-view" id="wide">Switch to wide view</button>
+      </div>
+
+      <div class="panel" id="info">
+        <table id="public-data">
+          <tr class="header">
+            <th>name</th>
+            <th>vp</th>
+            <th>resources</th>
+            <th>road</th>
+            <th>dev cards</th>
+            <th>knights</th>
+          </tr>
+          <% for (let i=0; i< public.players.length; i++) {
+            let player = public.players[i]; %>
+            <tr class="player <%= player.color %>">
+              <td><%= player.lobbyData.name %></td>
+              <td>
+                <% // get the score to display
+                let score = player.publicScore;
+                if (private) { if (i==private.playerID) {
+                  score += score!=private.privateScore ? ' ('+private.privateScore+')' : ''
+                } } %>
+                <%= score %>
+              </td>
+              <td><%= player.resourcesInHand %></td>
+              <td><%= player.longestRoad %></td>
+              <td><%= player.devCardsInHand %></td>
+              <td><%= player.playedKnights %></td>
+            </tr>
+          <% } %>
+        </table>
+        <div id="private-data">
+          <% if (private) { %>
+            <table id="resources">
+              <tr class="header">
+                <th colspan="100">resources</th>
+              </tr>
+              <% for (let resource in private.resources) { %>
+                <tr class="<%= resource %>">
+                  <th><%= resource %></th>
+                  <th><%= private.resources[resource] %></th>
+                </tr>
+              <% } %>
+            </table>
+            <table id="dev-cards">
+              <tr class="header">
+                <th colspan="100">dev cards</th>
+              </tr>
+              <% for (let dc in private.unplayedDCs) { %>
+                <tr class="<%= dc %>">
+                  <th><%= dc %></th>
+                  <th><%= private.unplayedDCs[dc] %></th>
+                </tr>
+              <% } %>
+            </table>
+          <% } %>
+        </div>
+      </div>
+
+      <%- include( 'messages.ejs' ) %>
+
+    </div>
+
+    <div class="frame" id="game">
+      <%- include( 'svg/standard.ejs' ) %>
+    </div>
+
+  </div>
   <%- include( 'banner.ejs' ) %>
 
-  <p id="testing" style="margin-top: 10%;">
-    <%- include( 'svg/standard.ejs' ) %>
+  <p id="json" style="display:none;">
+    <%= JSON.stringify({ public:public, private:private }) %>
   </p>
 
-  <p id="json">
-    <%= JSON.stringify(public, null, 2) %>
-  </p>
-
-  <!--<script src='/socket.io/socket.io.js'> </script>-->
+  <script src='/socket.io/socket.io.js'> </script>
   <script src='/resources/jquery-3.3.1.js'> </script>
+  <script src='/resources/svg-pan-zoom.js'> </script>
+  <!--<script src="/resources/lib.js"> </script>-->
+  <script src='/resources/core.js'> </script>
+  <script src='/resources/messages.js'> </script>
   <script>
+
     function bind(game) {
       console.log(game);
-      for (let i=0; i<game.hexes.length; i++) {
-        let hex = game.hexes[i];
+      // use public and private data from the server
+      // to build our visible game board
+      for (let i=0; i<game.public.hexes.length; i++) {
+        let hex = game.public.hexes[i];
         $('#tile'+i+' polygon')
           .attr( 'resource', hex.resource )
           .attr( 'class', hex.resource );
@@ -39,14 +116,15 @@
           .attr( 'class', [6,8].indexOf(hex.roll) > -1 ? 'red' : '' )
           .text( hex.roll ? hex.roll : '' );
       }
-      for (let i=0; i<game.juncs.length; i++) {
-        let junc = game.juncs[i];
+      for (let i=0; i<game.public.juncs.length; i++) {
+        let junc = game.public.juncs[i];
         $('#spot'+i).attr( 'class', junc.isCity ? 'spot city' : 'spot' );
-        if (junc.port !== null)
+        if (junc.port !== null) {
           $('#port'+junc.port.num).attr( 'class', 'port '+junc.port.type );
+        }
       }
-      for (let i=0; i<game.players.length; i++) {
-        let player = game.players[i];
+      for (let i=0; i<game.public.players.length; i++) {
+        let player = game.public.players[i];
         for (let j=0; j<player.roads.length; j++) {
           $('#road'+j).attr( 'class', 'road player_'+player.color );
         }
@@ -56,13 +134,51 @@
         for (let j=0; j<player.cities.length; j++) {
           $('#spot'+j).attr( 'class', 'spot city player_'+player.color );
         }
+        console.log('`player`');
         console.log(player);
       }
+      console.log('`private`');
+      console.log(game.private);
     }
 
-    $( function() {
-      bind( JSON.parse( $('#json').text() ) );
+    // set global variables
+    var game, panzoom;
+
+    // once all DOM is rendered
+    $( function(){
+
+      // set semiglobal objects
+      panzoom = svgPanZoom('svg#gameboard');
+
+      /*$('.tile-group').each( function(i) {
+        $(this).click(function() {
+          console.log( 'you clicked tile ' + this.id );
+        });
+      });
+
+      $('.port-path').each( function(i) {
+        $(this).click(function() {
+          console.log( 'you clicked port ' + this.id );
+        });
+      });
+
+      $('.road-path').each( function(i) {
+        $(this).click(function() {
+          console.log( 'you clicked road ' + this.id );
+        });
+      });
+
+      $('.spot-circle').each( function(i) {
+        $(this).click(function() {
+          console.log( 'you clicked spot ' + this.id );
+        });
+      });*/
+
+      game = JSON.parse( $('#json').text() );
+      bind(game);
+
     });
+
   </script>
 </body>
 </html>

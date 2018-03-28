@@ -18,14 +18,16 @@ module.exports = function(app, passport) {
   });
 
   app.get('/dev', function(req,res) {
-    funcs.requireGameById( '5a95cd4060f4410327aec23a', function(err,game) {
+    funcs.requireGameById( '5a9b2b85b375470058ae4142', function(err,game) {
       if (err) {
         req.flash('lobbyMessage', 'Error loading development environment');
         res.redirect('/lobby');
       } else {
         res.render('dev.ejs', {
+          message: req.flash('devMessage'),
           user: null,
           public: game.getPublicGameData(),
+          private: null
         });
       }
     });
