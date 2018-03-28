@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -e
+
+for collection in games scenarios users; do
+  # coerce export to valid JSON
+  mongoexport -d catonline-db -c $collection \
+  | tr "\n" ",\n" \
+  | sed '$s/^/[/' \
+  | sed '$s/,$/]/' \
+  > ./data/dump/$collection.json
+done;

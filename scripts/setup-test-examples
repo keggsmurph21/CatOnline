@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+
+function filter(path, keys) {
+  let data = require(path)
+    .filter( (value,key) => keys.includes(key) );
+  return JSON.stringify(data);
+}
+
+function setup(collection, keys) {
+  let src = '../data/dump/'+collection+'.json';
+  let tar = './tests/example/'+collection+'.json';
+
+  let data = filter(src,keys);
+  fs.writeFile( tar, data, function(err) {
+    if (err) throw err;
+  });
+}
+
+setup( 'games',      [0,2] );
+setup( 'scenarios',  []    );
+setup( 'users',      [0,1] );

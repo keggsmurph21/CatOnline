@@ -1,1 +1,2 @@
-console.log('hello world');
+const GAMES = require( './example/games.json' );
+const USERS = require( './example/users.json' );
