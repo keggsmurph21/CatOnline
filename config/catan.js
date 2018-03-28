@@ -151,12 +151,15 @@ function buildGameBoard(scenario) {
 
   return board;
 }
+function isRedNumber(roll) {
+  return [6,8].indexOf(roll) > -1;
+}
 function checkIsGameBoardLegal(board) {
   for (let i=0; i<board.hexes.length; i++) {
-    if ( [6,8].indexOf(board.hexes[i].roll) > -1 ) {
+    if ( isRedNumber(board.hexes[i].roll) ) {
       let adjs = funcs.hexGetAdjHexes(board, i);
       for (let adj of adjs) {
-        if ( [6,8].indexOf(board.hexes[ adj ].roll) > -1 )
+        if ( isRedNumber(board.hexes[ adj ].roll) )
           return false;
       }
     }
