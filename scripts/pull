@@ -1,45 +1,73 @@
 #!/usr/bin/env python3
+'''
+/scripts/pull
+
+Kevin Murphy
+29 March 2018
+
+The script uses data stored in the "state graph" google sheet (see script for
+exact URI) to generate javascript that will eventually be used by building the
+Catonline graph of accessible game states.
+
+usage:
+    $ ./scripts/pull         (-> stdout)
+ or $ ./scripts/pull -o      (-> /config/states.js [RECOMMENDED])
+'''
 
 # pip3 install requests
-import csv, json, os, re, requests, sys
+import argparse, csv, json, os, re, requests, sys
 
-def get_sheet( spreadsheet, gid ):
-    obj = []
-    url = "https://spreadsheets.google.com/feeds/download/spreadsheets/Export?key=%s&exportFormat=tsv&gid=%s" % (spreadsheet, gid)
+def get_sheet( spreadsheet, gid, export_as='tsv' ):
+    '''
+    Request a particular sheet from a particular google spreadsheet in a
+    particular format.
+
+    @param spreadsheet  unique identifier for the google spreadsheet file
+    @param gid          unique identifier for the specific sheet in this file
+    @param export_as    desired output format for the spreadsheet matrix
+    @return             the formatted data
+    '''
+
+    url = "https://spreadsheets.google.com/feeds/download/spreadsheets/" \
+        + "Export?key=%s&gid=%s&exportFormat=%s" % (spreadsheet, gid, export_as)
+    printf( msg='pulling from %s' % url, priority=1 )
     res = requests.get(url)
+
     if res.status_code == 200:
-        content = res.content.decode('utf-8')
-        lines = content.split('\r\n')
-        for line in lines:
-            obj.append( line.split('\t') )
-        return obj
+        # if we get valid response, format it correctly as a matrix
+        lines = res.content.decode('utf-8').split('\r\n')
+        return [ line.split('\t') for line in lines ]
     else:
-        print( 'exiting ... HTTP response %s at `%s`' % (res.status_code, url) )
-        exit()
+        printf(msg='exiting ... HTTP response %s' % res.status_code, priority=0)
+        sys.exit(1)
 
-def get_sheets( spreadsheet, sheets ):
-    data = {}
-    for sheet in sheets:
-        data[sheet] = get_sheet( spreadsheet, sheets[sheet] )
-    return data
+def get_state_graph( args ):
+    '''
+    Get the data.
 
-def get_state_graph():
+    @args       contains args.out, our open file-like object
+    @return     None
+    '''
 
+    # the global stuff to configure URI access
     spreadsheet = "1UlTewbihkhtMcIgH6p1RqhkqUcSufclM7UvAu6EgOcI"
+    printf( msg='spreadsheet: %s' % spreadsheet, priority=3 )
+    ignoreList = [ 'id' ]
+    printf( msg='ignoring:'+str(ignoreList), priority=3 )
     sheets = {
         'vertices'  : "235763305",
-        'edges'     : "931117447"
-    }
+        'edges'     : "931117447" }
+    data = {
+        'vertices'  : {},
+        'edges'     : {} }
 
-    sheets = get_sheets( spreadsheet, sheets )
-    data = { 'vertices':{}, 'edges':{} }
-    ignoreList = [ 'id' ]
-
-    isHeader = True
-    for line in sheets['vertices']:
-        if isHeader:
+    # parse the vertices
+    sheet = get_sheet(spreadsheet, sheets['vertices'])
+    printf( msg='parsing sheet `vertices`', priority=4)
+    for li, line in enumerate(sheet):
+        printf( msg='%s' % '\t'.join(line), priority=5)
+        if not(li):
             header = line
-            isHeader = False
         else:
             for i in range(len(line)):
                 col_name = header[i]
@@ -48,11 +76,13 @@ def get_state_graph():
                     data['vertices'][vertex_name] = { 'edges':[] }
                 elif col_name not in ignoreList:
                     data['vertices'][vertex_name][col_name] = line[i]
-    isHeader = True
-    for line in sheets['edges']:
-        if isHeader:
+
+    sheet = get_sheet(spreadsheet, sheets['edges'])
+    printf( msg='parsing sheet `edges`', priority=4 )
+    for li, line in enumerate(sheet):
+        printf( msg='%s' % '\t'.join(line), priority=5 )
+        if not(li):
             header = line
-            isHeader = False
         else:
             for i in range(len(line)):
                 col_name = header[i]
@@ -70,31 +100,62 @@ def get_state_graph():
                 elif col_name not in ignoreList:
                     data['edges'][edge_name][col_name] = line[i]
 
+    # coerce the dict -> JSON -> js
     data = json.dumps(data,indent=3)
-    for item in [ 'vertices', 'edges', 'evaluate', 'execute', 'isMulti', 'isPriority', 'isCancel', 'target', 'label' ]:
+    for item in [   'vertices', 'edges', 'evaluate',
+                    'execute', 'isMulti', 'isPriority',
+                    'isCancel', 'target', 'label'           ]:
         data = re.sub( '"%s"' % item, '%s' % item, data )
     data = re.sub(r'"(func.*\})"', r'\1', data)
 
-    filepath = get_filepath( os.path.join('config','states') )
-    with open(filepath, 'w') as f:
-        data = 'module.exports = %s' % data
-        f.write(data)
-
-    return
-
-def get_filepath( moduledge_name ):
-    return os.path.join( os.path.dirname(sys.argv[0]), '..', '%s.js' % moduledge_name )
+    # "roll that shit, write that shit, smoke it" - Method Man
+    args.out.write( 'module.exports = %s' % data )
 
 def replace_name( prefix, name ):
+    '''
+    Prefix a variable name with a defined scheme.
+
+    @param prefix
+    @param name
+    @return             prefixed variable name
+    '''
     return '_%s_%s' % ( prefix, name.replace(' ','_') )
+
+def printf( msg='', priority=1 ):
+    '''
+    Print wrapper to handle verbosity.  Also redirects print statements to
+    stderr to avoid conflicts with data writing to stdout.
+
+    @param  msg         message to be printed
+    @param  priority    message will be printed unless VERBOSITY is < this value
+    @return             None
+    '''
+
+    global VERBOSITY
+    if priority <= VERBOSITY:
+        print( msg, file=sys.stderr )
+
+VERBOSITY = 1
 
 if __name__ == '__main__':
 
-    if len(sys.argv)==1:
-        get_state_graph()
+    # get arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument( '-q', '--quiet', action="store_true" )
+    parser.add_argument( '-v', '--verbose', action="count", default=1 )
+    parser.add_argument( '-o', '--out', default=sys.stdout, nargs='?',
+        help="where to output the formatted .js -- default is stdout, running \
+        with no path specified writes to <PROJECT_ROOT>/config/states.js" )
+    args = parser.parse_args()
 
-    elif (sys.argv[1]=='states'):
-        get_state_graph()
+    # more argument parsing
+    VERBOSITY = 0 if args.quiet else min(args.verbose,5)
+    if args.out is not sys.stdout:
+        if args.out is None:
+            args.out = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                os.path.join('config','states') )
+        args.out = open(args.out, 'w')  # can't .open() sys.stdout
 
-    else:
-        print( 'Error: no action matching argument "%s"' % sys.argv[1] )
+    get_state_graph(args)
+    args.out.close()
