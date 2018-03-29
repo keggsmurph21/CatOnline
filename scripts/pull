@@ -31,15 +31,21 @@ def get_sheet( spreadsheet, gid, export_as='tsv' ):
     url = 'https://spreadsheets.google.com/feeds/download/spreadsheets/' \
         + 'Export?key=%s&gid=%s&exportFormat=%s' % (spreadsheet, gid, export_as)
     printf( msg='pulling from %s' % url, priority=1 )
-    res = requests.get(url)
 
-    if res.status_code == 200:
-        # if we get valid response, format it correctly as a matrix
-        lines = res.content.decode('utf-8').split('\r\n')
-        return [ line.split('\t') for line in lines ]
-    else:
-        printf(msg='exiting ... HTTP response %s' % res.status_code, priority=0)
-        sys.exit(1)
+    # require a valid response
+    try:
+        res = requests.get(url)
+        if res.status_code == 200:
+            # format response as a matrix
+            lines = res.content.decode('utf-8').split('\r\n')
+            return [ line.split('\t') for line in lines ]
+        else:
+            printf(msg='exiting ... HTTP response %s' % res.status_code, priority=0)
+    except requests.exceptions.RequestException as e:
+        printf(msg='exiting ... connection error occurred', priority=0)
+        printf(msg=str(e), priority=2)
+
+    sys.exit(1)
 
 def get_state_graph( args ):
     '''
@@ -60,6 +66,7 @@ def get_state_graph( args ):
     data = {
         'vertices'  : {},
         'edges'     : {} }
+    printf( msg='', priority=1 ) # spacing
 
     # parse the vertices
     sheet = get_sheet(spreadsheet, sheets['vertices'])
@@ -77,6 +84,7 @@ def get_state_graph( args ):
                 elif col_name not in ignoreList:
                     data['vertices'][vertex_name][col_name] = line[i]
 
+    # parse the edges
     sheet = get_sheet(spreadsheet, sheets['edges'])
     printf( msg='parsing sheet `edges`', priority=4 )
     for li, line in enumerate(sheet):
@@ -157,5 +165,8 @@ if __name__ == '__main__':
                 os.path.join('config','states') )
         args.out = open(args.out, 'w')  # can't .open() sys.stdout
 
+    # do the work
     get_state_graph(args)
+
+    # clean up
     args.out.close()
