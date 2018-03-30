@@ -18,6 +18,6 @@ function setup(collection, keys) {
   });
 }
 
-setup( 'games',      [0,2] );
+setup( 'games',      [0] );
 setup( 'scenarios',  []    );
 setup( 'users',      [0,1] );
