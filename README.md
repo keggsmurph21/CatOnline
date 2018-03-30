@@ -1,16 +1,16 @@
-## catonline
+# catonline
 
-# interact via command line thru stdin
+## interact via command line thru stdin
 `$ ./bin/do`
 
-# init server
+## start localhost server
 `$ ./bin/init`
 
-# query database
+## query database
 `$ ./bin/db`
 
-# dump database (to /data/dump/)
+## dump database (to /data/dump/)
 `$ ./bin/dump`
 
-# pull most recent state-graph data
+## pull most recent state-graph data
 `$ ./bin/pull`
