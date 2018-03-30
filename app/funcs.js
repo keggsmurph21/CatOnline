@@ -10,6 +10,10 @@ module.exports = {
   getRandomInt : function(min=0, max=1) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   },
+  getRandomChoice : function(list) {
+    let i = module.exports.getRandomInt(min=0, max=(list.length-1));
+    return list[i];
+  },
   shuffle : function(arr) {
     for (let i =arr.length-1; i>0; i--) {
       const j = Math.floor(Math.random() * (i+1));

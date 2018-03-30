@@ -22,8 +22,7 @@ const SOCKETS= require( '../app/sockets' );
 const STATES = require( '../config/states' );
 const USERS  = require( '../tests/example/users' );
 
-const error  = function(msg) { console.log(chalk.red(msg)); /*process.exit(1);*/ }
-const warn   = function(msg) { console.log(chalk.keyword('orange')(msg)); }
+const error  = function(msg) { console.log(chalk.red(msg)); }
 
 var game=null, user=null;
 
@@ -55,53 +54,32 @@ function parseInput(line) {
 
   try {
 
-    console.log(chalk.green(' >> '+line));
-
     let words = line.split(' '),
       command = words[0],
       args    = words.slice(1);
+
+    if (command[0] === '#') // comment
+      return
+    console.log(chalk.green(' >> '+line));
 
     switch (command) {
       case ('do'):
         let player_id = validatePlayerID(args[0]);
         switch (args[1]) {
           case ('exec'):
+          case ('force'):
             let edge = args[2]; // undefined if not enough args given
-            if (edge === undefined) {
-              warn('not enough arguments for exec');
-            } else if (!LOGIC.validateEdgeIsAdjacent(game, player_id, edge)) {
-              warn('player '+player_id+' is not adjacent to edge `'+edge+'`');
-            } else {
-              LOGIC.executeEdge(game, player_id, edge, args.slice(3));
-            }
+            let validate = (args[1]=='exec');
+
+            if (!LOGIC.validateEdgeIsAdjacent(game, player_id, edge))
+              return error('player '+player_id+' is not adjacent to edge `'+edge+'`');
+            LOGIC.executeEdge(game, player_id, edge, args.slice(3), validate);
             break;
+
           default:
-            warn('unrecognized arguments:', args);
+            error('unrecognized arguments:', args);
         }
         break;
-
-      /*case ('create'):
-        switch (args[0]) {
-          case ('game'):
-            console.log('new game');
-            try {
-              SOCKETS.host(user, {}, function(err, arg1, arg2, arg3) {
-                console.log('rets:');
-                console.log(err);
-                console.log(arg1);
-                console.log(arg2);
-                console.log(arg3);
-              });
-              console.log('after?');
-            } catch (e) {
-              console.log('error');
-              console.log(e);
-            }
-            break;
-          default:
-            warn('unrecognized arguments:', args);
-        }
-        break;*/
 
       case ('get'):
         let func = function() { return ''; };
@@ -142,7 +120,7 @@ function parseInput(line) {
             }
             break;
           default:
-            warn('unrecognized arguments:', args);
+            error('unrecognized arguments:', args);
         }
 
         console.log('[turn: '+game.state.turn+']');
@@ -161,7 +139,7 @@ function parseInput(line) {
             console.log('what:', waiting.forWhat);
             break;
           default:
-            warn('unrecognized arguments:', args);
+            error('unrecognized arguments:', args);
         }
         break;
 
@@ -184,11 +162,8 @@ function parseInput(line) {
         user = loadUser();
         break;
 
-      case ('#'):
-        break;
-
       default:
-        warn('unrecognized command:', command);
+        error('unrecognized command:', command);
     }
   } catch (e) {
     error(e);

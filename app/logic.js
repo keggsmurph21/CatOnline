@@ -111,10 +111,10 @@ module.exports = {
   validateEdgeIsAdjacent : function(game, i, edge) {
     return game.state.players[i].adjacents.indexOf(edge) > -1;
   },
-  executeEdge : function(game, p, edge, args, callback) {
+  executeEdge : function(game, p, edge, args, validate=true) {
     let player = game.state.players[p];
     edge = config.getStateEdge(edge);
-    args = _validateArgs(edge, args);
+    args = (validate ? _validateArgs(edge, args) : args.map(a=>parseInt(a)));
     args.unshift(p); // add playerid as first arg
     //console.log(args);
     try {
