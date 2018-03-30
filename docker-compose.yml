@@ -12,7 +12,7 @@ services:
     container_name: catonline_app
     restart: always
     build: .
-    command: nodemon -L server.js --ignore data/*
+    command: nodemon -L server.js --ignore data/* --ignore tests/*
     ports:
       - "49160:3000"
     links:

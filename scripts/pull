@@ -162,7 +162,7 @@ if __name__ == '__main__':
         if args.out is None:
             args.out = os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
-                os.path.join('config','states') )
+                os.path.join('..','config','states.js') )
         args.out = open(args.out, 'w')  # can't .open() sys.stdout
 
     # do the work
