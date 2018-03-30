@@ -35,13 +35,6 @@ function _getAllPlayerData(player, game) {
     }
   }
 }
-function _iterateTurn(game) {
-  // reset flags for player who just ended their turn
-  let endTurnPlayer = game.state.players[game.state.currentPlayerID];
-
-  game.state.waiting.forWho =
-  game.state.currentPlayerID = game.state.turn % game.state.players.length;
-}
 function _updateGameStates(game) {
   let waiting = { forWho:[], forWhat:[] };
   for (let i=0; i<game.state.players.length; i++) {
@@ -120,12 +113,16 @@ module.exports = {
   },
   executeEdge : function(game, p, edge, args, callback) {
     let player = game.state.players[p];
-    console.log(edge);
     edge = config.getStateEdge(edge);
     args = _validateArgs(edge, args);
     args.unshift(p); // add playerid as first arg
     //console.log(args);
-    edge.execute(game, args);
+    try {
+      edge.execute(game, args);
+    } catch (e) {
+      console.log(edge.name);
+      throw e;
+    }
     //console.log(game.state.players);
 
     player.vertex = edge.target;

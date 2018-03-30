@@ -108,8 +108,11 @@ function parseInput(line) {
         switch (args[0]) {
           case ('all'):
             func = function(game, p) {
-              return LOGIC.getFlags(game, p).vertex + '\t'
-                + LOGIC.getAdjacentGameStates(game, p);
+              return '\n  vertex:\t'+LOGIC.getFlags(game, p).vertex
+                +'\n  adjacents:\t'+ LOGIC.getAdjacentGameStates(game, p)
+                +'\n  settlements:\t'+ game.state.players[p].settlements
+                +'\n  roads:\t'+ game.state.players[p].roads
+                +'\n  resources:\t'+ JSON.stringify(game.state.players[p].resources);
             }
             break;
           case ('adjs'):
@@ -117,6 +120,21 @@ function parseInput(line) {
             break;
           case ('flags'):
             func = LOGIC.getFlags;
+            break;
+          case ('resources'):
+            func = function(game, p) {
+              return JSON.stringify(game.state.players[p].resources);
+            }
+            break;
+          case ('roads'):
+            func = function(game, p) {
+              return game.state.players[p].roads;
+            }
+            break;
+          case ('settlements'):
+            func = function(game, p) {
+              return game.state.players[p].settlements;
+            }
             break;
           case ('vertices'):
             func = function(game, p) {
@@ -127,12 +145,28 @@ function parseInput(line) {
             warn('unrecognized arguments:', args);
         }
 
+        console.log('[turn: '+game.state.turn+']');
         for (let p in game.state.players) {
           let pstr = getPlayerStringByID(p);
           let data = func(game, p);
           console.log(pstr, '\t', data);
         }
+        break;
 
+      case ('check'):
+        switch (args[0]) {
+          case ('waiting'):
+            let waiting = game.state.waiting;
+            console.log('for: ', waiting.forWho.map(o=>o.name).join(', '));
+            console.log('what:', waiting.forWhat);
+            break;
+          default:
+            warn('unrecognized arguments:', args);
+        }
+        break;
+
+      case ('exit'):
+        process.exit(0);
         break;
 
       case ('read'):
@@ -143,6 +177,7 @@ function parseInput(line) {
             terminal: false
           })
           .on('line', parseInput);
+        break;
 
       case ('reset'):
         game = loadGame();

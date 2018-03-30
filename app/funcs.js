@@ -141,18 +141,6 @@ module.exports = {
       if (err) throw err;
     });
   },
-  validateRoad : function(game, road) {
-    road = parseInt(road);
-    if (isNaN(road) || road<0 || game.board.roads.length<=road)
-      throw Error('invalid road: '+road);
-    return game.board.roads[road];
-  },
-  validateJunc : function(game, junc) {
-    junc = parseInt(junc);
-    if (isNaN(junc) || junc<0 || game.board.juncs.length<=junc)
-      throw Error('invalid junc: '+junc);
-    return game.board.juncs[junc];
-  },
   hexGetAdjHexes : function(board, h) {
     let adjs = new Set();
     for (let i=0; i<board.hexes[h].juncs.length; i++) {

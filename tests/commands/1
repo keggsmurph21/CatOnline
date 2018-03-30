@@ -1,0 +1,11 @@
+get all
+do 0 exec _e_take_turn
+do 0 exec _e_init_settle
+do 0 exec _e_init_settle 100
+do 0 exec _e_init_settle -1
+do 0 exec _e_init_settle 22
+do 0 exec _e_init_build_road
+do 0 exec _e_init_build_road 26
+do 0 exec _e_init_build_road 25
+do 0 exec _e_init_build_road 17
+get all
