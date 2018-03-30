@@ -108,9 +108,11 @@ function buildGameBoard(scenario) {
   for (let i=0; i<scenario.gameBoard.vertices.juncs; i++) {
     board.juncs.push({
 		 num : i,
+     owner: -1,
 		 port : null,
 		 roads : [],
 		 hexes : [],
+     isSettleable : true
     });
   }
 
@@ -118,6 +120,7 @@ function buildGameBoard(scenario) {
   for (let i=0; i<scenario.gameBoard.edges.roads.length; i++) {
     board.roads.push({
 		 num : i,
+     owner : -1,
 		 juncs : []
     });
   }

@@ -65,12 +65,13 @@ function _validateArgs(edge,args) {
       case ('int'):
         let int = parseInt(args[a])
         if (isNaN(int))
-          return undefined
+          throw Error('unable to parse int: '+args[a]);
         e_args[a] = int;
         break;
       case (''):
         return [];
       default:
+        throw Error('does this ever happen?');
         return undefined;
     }
   }
@@ -119,13 +120,14 @@ module.exports = {
   },
   executeEdge : function(game, p, edge, args, callback) {
     let player = game.state.players[p];
+    console.log(edge);
     edge = config.getStateEdge(edge);
-    args = _validateArgs(edge, args)
-
-    if (args === undefined)
-      return console.log('invalid args');
-
+    args = _validateArgs(edge, args);
+    args.unshift(p); // add playerid as first arg
+    //console.log(args);
     edge.execute(game, args);
+    //console.log(game.state.players);
+
     player.vertex = edge.target;
     game.state.waiting = _updateGameStates(game);
 
@@ -136,5 +138,5 @@ module.exports = {
     }
 
   }
-  
+
 }

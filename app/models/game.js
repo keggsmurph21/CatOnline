@@ -114,11 +114,14 @@ var GameSchema = mongoose.Schema({
       juncs     : [ Number ] }],
     juncs     : [ {
       num       : Number,
+      owner     : Number,
       port      : Object,
       roads     : [ Number ],
-      hexes     : [ Number ] }],
+      hexes     : [ Number ],
+      isSettleable : Boolean }],
     roads     : [ {
       num       : Number,
+      owner     : Number,
       juncs     : [ Number ] }]
 
   },

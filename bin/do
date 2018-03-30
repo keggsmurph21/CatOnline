@@ -8,19 +8,24 @@
  * Reads a list of commands from standard input and executes them in order.
 */
 
+const argv   = process.argv.slice(2);
 const chalk  = require( 'chalk' );
 const exec   = require('child_process').exec;
-const argv   = process.argv.slice(2);
+const fs     = require('fs');
+const read   = require('readline');
 
-const FUNCS  = require( '../app/funcs.js' );
-const LOGIC  = require( '../app/logic.js' );
-const CONFIG = require( '../config/catan.js' );
-const STATES = require( '../config/states.js');
+const CONFIG = require( '../config/catan' );
+const FUNCS  = require( '../app/funcs' );
+const GAMES  = require( '../tests/example/games' );
+const LOGIC  = require( '../app/logic' );
+const SOCKETS= require( '../app/sockets' );
+const STATES = require( '../config/states' );
+const USERS  = require( '../tests/example/users' );
 
-const error  = function(msg) { console.log(chalk.red(msg)); process.exit(1); }
+const error  = function(msg) { console.log(chalk.red(msg)); /*process.exit(1);*/ }
 const warn   = function(msg) { console.log(chalk.keyword('orange')(msg)); }
 
-var game, user;
+var game=null, user=null;
 
 function getPlayerStringByID(id) {
   let player = game.state.players[id];
@@ -30,100 +35,145 @@ function getPlayerStringByID(id) {
 function validatePlayerID(id) {
   let int = parseInt(id);
   if (isNaN(int))
-    error('unable to parse player id `'+id+'`');
+    throw Error('unable to parse player id `'+id+'`');
   if (int < 0 || game.state.players.length <= int)
-    error('player id out of bounds `'+id+'`');
+    throw Error('player id out of bounds `'+id+'`');
   return int;
 }
 
-function load() {
-  game   = require( '../tests/example/games.json' )[1]; // eventually make
-  user   = require( '../tests/example/users.json' )[0]; //these passable somehow
+function loadGame(id=0) {
+  return Object.assign({}, GAMES[id]);
+}
+
+function loadUser(id=0) {
+  var obj = Object.assign({}, USERS[id]);
+  obj.id = obj._id['$oid'];
+  return obj;
 }
 
 function parseInput(line) {
 
-  console.log(chalk.green(' >> '+line));
+  try {
 
-  let words = line.split(' '),
-    command = words[0],
-    args    = words.slice(1);
+    console.log(chalk.green(' >> '+line));
 
-  switch (command) {
-    case ('do'):
-      let player_id = validatePlayerID(args[0]);
-      switch (args[1]) {
-        case ('exec'):
-          let edge = args[2]; // undefined if not enough args given
-          if (edge === undefined) {
-            warn('not enough arguments for exec');
-          } else if (!LOGIC.validateEdgeIsAdjacent(game, player_id, edge)) {
-            warn('player '+player_id+' is not adjacent to edge `'+edge+'`');
-          } else {
-            LOGIC.executeEdge(game, player_id, edge, args.slice(3));
-          }
-          break;
-        default:
-          warn('unrecognized arguments:', args);
-      }
-      break;
+    let words = line.split(' '),
+      command = words[0],
+      args    = words.slice(1);
 
-    case ('get'):
-      let func = function() { return ''; };
-      switch (args[0]) {
-        case ('all'):
-          func = function(game, p) {
-            return LOGIC.getFlags(game, p).vertex + '\t'
-              + LOGIC.getAdjacentGameStates(game, p);
-          }
-          break;
-        case ('adjs'):
-          func = LOGIC.getAdjacentGameStates;
-          break;
-        case ('flags'):
-          func = LOGIC.getFlags;
-          break;
-        case ('vertices'):
-          func = function(game, p) {
-            return LOGIC.getFlags(game, p).vertex;
-          }
-          break;
-        default:
-          warn('unrecognized arguments:', args);
-      }
+    switch (command) {
+      case ('do'):
+        let player_id = validatePlayerID(args[0]);
+        switch (args[1]) {
+          case ('exec'):
+            let edge = args[2]; // undefined if not enough args given
+            if (edge === undefined) {
+              warn('not enough arguments for exec');
+            } else if (!LOGIC.validateEdgeIsAdjacent(game, player_id, edge)) {
+              warn('player '+player_id+' is not adjacent to edge `'+edge+'`');
+            } else {
+              LOGIC.executeEdge(game, player_id, edge, args.slice(3));
+            }
+            break;
+          default:
+            warn('unrecognized arguments:', args);
+        }
+        break;
 
-      for (let p in game.state.players) {
-        let pstr = getPlayerStringByID(p);
-        let data = func(game, p);
-        console.log(pstr, '\t', data);
-      }
+      /*case ('create'):
+        switch (args[0]) {
+          case ('game'):
+            console.log('new game');
+            try {
+              SOCKETS.host(user, {}, function(err, arg1, arg2, arg3) {
+                console.log('rets:');
+                console.log(err);
+                console.log(arg1);
+                console.log(arg2);
+                console.log(arg3);
+              });
+              console.log('after?');
+            } catch (e) {
+              console.log('error');
+              console.log(e);
+            }
+            break;
+          default:
+            warn('unrecognized arguments:', args);
+        }
+        break;*/
 
-      break;
+      case ('get'):
+        let func = function() { return ''; };
+        switch (args[0]) {
+          case ('all'):
+            func = function(game, p) {
+              return LOGIC.getFlags(game, p).vertex + '\t'
+                + LOGIC.getAdjacentGameStates(game, p);
+            }
+            break;
+          case ('adjs'):
+            func = LOGIC.getAdjacentGameStates;
+            break;
+          case ('flags'):
+            func = LOGIC.getFlags;
+            break;
+          case ('vertices'):
+            func = function(game, p) {
+              return LOGIC.getFlags(game, p).vertex;
+            }
+            break;
+          default:
+            warn('unrecognized arguments:', args);
+        }
 
-    case ('reset'):
-      load();
-      break;
+        for (let p in game.state.players) {
+          let pstr = getPlayerStringByID(p);
+          let data = func(game, p);
+          console.log(pstr, '\t', data);
+        }
 
-    default:
-      warn('unrecognized command:', command);
+        break;
+
+      case ('read'):
+        read
+          .createInterface({
+            input: fs.createReadStream('tests/'+args[0]),
+            output: process.stdout,
+            terminal: false
+          })
+          .on('line', parseInput);
+
+      case ('reset'):
+        game = loadGame();
+        user = loadUser();
+        break;
+
+      case ('#'):
+        break;
+
+      default:
+        warn('unrecognized command:', command);
+    }
+  } catch (e) {
+    error(e);
   }
 }
 
 function parse(args) {
 
-  load();
+  game = loadGame();
+  user = loadUser();
 
-  require('readline')
+  read
     .createInterface({
       input: (args.length
-        ? require('fs').createReadStream('tests/'+args[0])
+        ? fs.createReadStream('tests/'+args[0])
         : process.stdin),
       output: process.stdout,
       terminal: false
     })
-    .on('line', function(line) {
-      parseInput(line);
-    });
+    .on('line', parseInput);
 
 }
 
