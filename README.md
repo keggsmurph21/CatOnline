@@ -1,10 +1,16 @@
 ## catonline
 
+# interact via command line thru stdin
+`$ ./bin/do`
+
 # init server
-docker-compose up
+`$ ./bin/init`
 
 # query database
-docker-compose exec mongo mongo
+`$ ./bin/db`
 
-# useless script to count all the unique words
-$ find `pwd` | grep -v data | grep -v tmp | grep -v etc | grep -v node_modules | grep -v package | grep -v logs | grep -v .git | grep '.py\|.js\|.svg\|.css\|.ejs\|.yml' | xargs cat | tr ' ' '\n' | tr '\{' '\n' | tr '\}' '\n' | tr '|' '\n' | tr '(' '\n' | tr ')' '\n' | tr '/' '\n' | tr ';' '\n' | tr "'" '\n' | tr '=' '\n' | tr '.' '\n' | tr ',' '\n' | tr '+' '\n' | tr ':' '\n' | tr '"' '\n' | tr '[' '\n' | tr ']' '\n' | tr '\t' '\n' | tr '<' '\n' | tr '>' '\n' | tr '#' '\n' | tr '!' '\n' | tr '*' '\n' | tr '-' '\n' | tr '\\' '\n' | tr '$' '\n' | tr '~' '\n' | tr '&' '\n' | tr '%' '\n' | tr '?' '\n' | tr '`' '\n' | sort | uniq -c | sort > /tmp/counts.txt
+# dump database (to /data/dump/)
+`$ ./bin/dump`
+
+# pull most recent state-graph data
+`$ ./bin/pull`
