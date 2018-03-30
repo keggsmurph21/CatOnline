@@ -130,9 +130,9 @@ function buildGameBoard(scenario) {
     let port = scenario.gameBoard.vertices.ports.locations[i];
     for (let j=0; j<port.juncs.length; j++) {
 		 board.juncs[ port.juncs[j] ].port = {
-		 num : i,
-		 type : null,
-		 orientation : port.orientation
+  		 num : i,
+  		 type : null,
+  		 orientation : port.orientation
 		 };
     }
   }
@@ -194,6 +194,7 @@ function randomizeGameBoard(scenario, board, settings) {
     if ( resource==='desert' ) {
 		 board.hexes[i].roll = 0;
 		 board.hexes[i].dots = 0;
+     board.robber = i;
     } else {
 		 let dicevalue = dicevalues.pop();
 		 board.hexes[i].roll = dicevalue.roll;

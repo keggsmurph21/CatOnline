@@ -122,7 +122,8 @@ var GameSchema = mongoose.Schema({
     roads     : [ {
       num       : Number,
       owner     : Number,
-      juncs     : [ Number ] }]
+      juncs     : [ Number ] }],
+    robber    : Number
 
   },
 
