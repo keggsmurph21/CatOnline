@@ -10,6 +10,7 @@
 
 const chalk  = require( 'chalk' );
 const exec   = require('child_process').exec;
+const argv   = process.argv.slice(2);
 
 const game   = require( '../tests/example/games.json' )[1]; // eventually make
 const user   = require( '../tests/example/users.json' )[0]; //these passable somehow
@@ -22,26 +23,9 @@ const STATES = require( '../config/states.js');
 const error  = function(msg) { console.log(chalk.red(msg)); process.exit(1); }
 const warn   =  function(msg) { console.log(chalk.keyword('orange')(msg)); }
 
-/*// first pull the data down then proceed
-exec('./scripts/pull', function(err, stdout, stderr) {
-  if (err) throw err;
-  if (stderr) console.log(stderr);
-  console.log(stdout);*/
-  require('readline')
-    .createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: false
-    })
-    .on('line', function(line) {
-      parseInput(line);
-    });
-//*});*//
-
 function getAdjacentGameStates() {
   for (let p in game.state.players) {
-    let flags = LOGIC.checkFlags(game,p);
-    let adjacents = CONFIG.getAdjacentGameStates(flags);
+    let adjacents = LOGIC.getAdjacentGameStates(game,p);
     console.log(adjacents);
   }
 }
@@ -70,7 +54,8 @@ function parseCommand(player, args) {
         warn('player '+player+' is not adjacent to edge `'+edge+'`');
       } else {
         edge = STATES.edges[edge];
-        edge.execute();
+        LOGIC.executeEdge(edge);
+        //edge.execute(null,null);
       }
       break;
   }
@@ -78,7 +63,7 @@ function parseCommand(player, args) {
 
 function parseInput(line) {
 
-  console.log(chalk.green('\n >> '+line));
+  console.log(chalk.green(' >> '+line));
 
   let words = line.split(' '),
     command = words[0];
@@ -95,3 +80,21 @@ function parseInput(line) {
       warn('unrecognized command `'+command+'`');
   }
 }
+
+function parse(args) {
+
+  require('readline')
+    .createInterface({
+      input: (args.length
+        ? require('fs').createReadStream('tests/'+args[0])
+        : process.stdin),
+      output: process.stdout,
+      terminal: false
+    })
+    .on('line', function(line) {
+      parseInput(line);
+    });
+    
+}
+
+parse(argv);

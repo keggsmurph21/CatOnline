@@ -47,11 +47,11 @@ def get_sheet( spreadsheet, gid, export_as='tsv' ):
 
     sys.exit(1)
 
-def get_state_graph( args ):
+def get_state_graph( out ):
     '''
     Get the data.
 
-    @args       contains args.out, our open file-like object
+    @out        where to write the output to, expects open file-like object
     @return     None
     '''
 
@@ -117,7 +117,7 @@ def get_state_graph( args ):
     data = re.sub(r'"(func.*\})"', r'\1', data)
 
     # "roll that shit, write that shit, smoke it" - Method Man
-    args.out.write( 'module.exports = %s' % data )
+    out.write( 'module.exports = %s' % data )
 
 def replace_name( prefix, name ):
     '''
@@ -151,22 +151,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument( '-q', '--quiet', action='store_true' )
     parser.add_argument( '-v', '--verbose', action='count', default=1 )
-    parser.add_argument( '-o', '--out', default=sys.stdout, nargs='?',
-        help='where to output the formatted .js -- default is stdout, running \
-        with no path specified writes to <PROJECT_ROOT>/config/states.js' )
+    parser.add_argument( '-s', '--stdout', action='store_true' )
+    parser.add_argument( '-o', '--out', default=None, help='where to \
+        output the formatted .js (default=<PROJECT_ROOT>/config/states.js' )
     args = parser.parse_args()
 
     # more argument parsing
     VERBOSITY = 0 if args.quiet else min(args.verbose,5)
-    if args.out is not sys.stdout:
-        if args.out is None:
-            args.out = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                os.path.join('..','config','states.js') )
-        args.out = open(args.out, 'w')  # can't .open() sys.stdout
+    if args.out is None:
+        args.out = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            os.path.join('..','config','states.js') )
+    out = sys.stdout if args.stdout else open(args.out, 'w')
 
-    # do the work
-    get_state_graph(args)
+    get_state_graph(out)
 
     # clean up
-    args.out.close()
+    out.close()

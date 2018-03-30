@@ -163,7 +163,7 @@ module.exports = {
       "_e_accept_trade": {
          target: "_v_accept_trade",
          evaluate: function (f) { return f.canAcceptTrade; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: true,
          isCancel: false,
@@ -172,7 +172,7 @@ module.exports = {
       "_e_build_city": {
          target: "_v_fortify",
          evaluate: function (f) { return f.hasRolled in f.canBuild.city; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -181,7 +181,7 @@ module.exports = {
       "_e_build_road": {
          target: "_v_pave",
          evaluate: function (f) { return f.hasRolled in f.canBuild.road; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -190,7 +190,7 @@ module.exports = {
       "_e_build_settlement": {
          target: "_v_settle",
          evaluate: function (f) { return f.hasRolled in f.canBuild.settlement; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -199,7 +199,7 @@ module.exports = {
       "_e_buy_dc": {
          target: "_v_buy_dc",
          evaluate: function (f) { return f.hasRolled in f.canBuy.dc; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -208,7 +208,7 @@ module.exports = {
       "_e_cancel_knight": {
          target: "_v_root",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: true,
@@ -217,7 +217,7 @@ module.exports = {
       "_e_cancel_monopoly": {
          target: "_v_root",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: true,
@@ -226,7 +226,7 @@ module.exports = {
       "_e_cancel_trade": {
          target: "_v_root",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: true,
@@ -235,7 +235,7 @@ module.exports = {
       "_e_cancel_yop": {
          target: "_v_root",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: true,
@@ -244,7 +244,7 @@ module.exports = {
       "_e_discard_move_robber": {
          target: "_v_move_robber",
          evaluate: function (f) { return f.isCurrentPlayer; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -253,7 +253,7 @@ module.exports = {
       "_e_end_game": {
          target: "_v_end_game",
          evaluate: function (f) { return f.isGameOver; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -262,7 +262,7 @@ module.exports = {
       "_e_end_init": {
          target: "_v_end_turn",
          evaluate: function (f) { return f.isFirstTurn || f.isSecondTurn; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -271,7 +271,7 @@ module.exports = {
       "_e_end_turn": {
          target: "_v_end_turn",
          evaluate: function (f) { return f.hasRolled; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -280,7 +280,7 @@ module.exports = {
       "_e_init_build_road": {
          target: "_v_pave",
          evaluate: function (f) { return f.isFirstTurn; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -289,7 +289,7 @@ module.exports = {
       "_e_init_collect": {
          target: "_v_init_collect",
          evaluate: function (f) { return f.isSecondTurn; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -307,7 +307,7 @@ module.exports = {
       "_e_init2_build_road": {
          target: "_v_pave",
          evaluate: function (f) { return f.isSecondTurn; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -316,7 +316,7 @@ module.exports = {
       "_e_knight_move_robber": {
          target: "_v_move_robber",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -325,7 +325,7 @@ module.exports = {
       "_e_offer_trade": {
          target: "_v_offer_trade",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -334,7 +334,7 @@ module.exports = {
       "_e_play_knight": {
          target: "_v_play_knight",
          evaluate: function (f) { return f.canPlay.knight; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -343,7 +343,7 @@ module.exports = {
       "_e_play_monopoly": {
          target: "_v_play_monopoly",
          evaluate: function (f) { return f.canPlay.monopoly; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -352,7 +352,7 @@ module.exports = {
       "_e_play_monopoly_choose": {
          target: "_v_choose_resource_type",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -361,7 +361,7 @@ module.exports = {
       "_e_play_vp": {
          target: "_v_play_vp",
          evaluate: function (f) { return f.canPlay.vp; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -370,7 +370,7 @@ module.exports = {
       "_e_play_yop": {
          target: "_v_play_yop",
          evaluate: function (f) { return f.canPlay.yop; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -379,7 +379,7 @@ module.exports = {
       "_e_play_yop_choose": {
          target: "_v_choose_2_resources",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -388,7 +388,7 @@ module.exports = {
       "_e_roll": {
          target: "_v_roll",
          evaluate: function (f) { return !f.hasRolled; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -397,7 +397,7 @@ module.exports = {
       "_e_roll_collect": {
          target: "_v_collect",
          evaluate: function (f) { return !f.isRollSeven; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -406,7 +406,7 @@ module.exports = {
       "_e_roll_discard": {
          target: "_v_discard",
          evaluate: function (f) { return f.hasHeavyPurse; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: true,
          isMulti: true,
          isCancel: false,
@@ -415,7 +415,7 @@ module.exports = {
       "_e_roll_move_robber": {
          target: "_v_move_robber",
          evaluate: function (f) { return f.isCurrentPlayer && f.isWaitingFor; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -424,7 +424,7 @@ module.exports = {
       "_e_steal_robber": {
          target: "_v_steal",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -433,7 +433,7 @@ module.exports = {
       "_e_take_turn": {
          target: "_v_root",
          evaluate: function (f) { return f.isCurrentPlayer; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -442,7 +442,7 @@ module.exports = {
       "_e_to_root": {
          target: "_v_root",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -451,7 +451,7 @@ module.exports = {
       "_e_trade_bank": {
          target: "_v_trade_with_bank",
          evaluate: function (f) { return true; },
-         execute: "",
+         execute: function (g,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: false,

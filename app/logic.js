@@ -96,11 +96,16 @@ module.exports = {
       private : game.getPrivateGameData(user)
     };
   },
-  checkFlags : function(game, i) {
-    return getFlags(game, i);
+  getFlags : function getFlags(game,p) { getFlags(game,p); },
+  getAdjacentGameStates : function(game,p) {
+    let flags = getFlags(game,p);
+    return config.getAdjacentGameStates(flags);
   },
   validateEdgeIsAdjacent : function(game, i, edge) {
     return game.state.players[i].adjacents.indexOf(edge) > -1;
+  },
+  executeEdge : function(edge) {
+    return edge.execute(null, null);
   }
 
 }
