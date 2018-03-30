@@ -21,9 +21,9 @@ function getFlags(game, i) {
     isCurrentPlayer  : game.state.currentPlayerID===player.playerID,
     isWaitingFor     : false
   }
-  console.log('flags', data);
+  //console.log('flags', data);
   for (let i=0; i<game.state.waiting.forWho.length; i++) {
-    if (funcs.usersCheckEqual(game.state.waiting.forWho[i], player))
+    if (funcs.usersCheckEqual(game.state.waiting.forWho[i], player.lobbyData))
       data.isWaitingFor = true;
   }
   return data;
@@ -95,6 +95,12 @@ module.exports = {
       public  : game.getPublicGameData(),
       private : game.getPrivateGameData(user)
     };
+  },
+  checkFlags : function(game, i) {
+    return getFlags(game, i);
+  },
+  validateEdgeIsAdjacent : function(game, i, edge) {
+    return game.state.players[i].adjacents.indexOf(edge) > -1;
   }
 
 }
