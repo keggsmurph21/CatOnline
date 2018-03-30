@@ -1,7 +1,7 @@
 var funcs = require('./funcs.js');
 var config = require('../config/catan.js');
 
-function getFlags(game, i) {
+function _getFlags(game, i) {
   let player = game.state.players[i];
   /*console.log('players: ('+game.state.players.length+')');
   console.log('iteration:',i,'=>\n',game.state.players[i]);*/
@@ -28,35 +28,57 @@ function getFlags(game, i) {
   }
   return data;
 }
-function getAllPlayerData(player, game) {
+function _getAllPlayerData(player, game) {
   for (let i=0; i<game.state.players.length; i++) {
     if (funcs.usersCheckEqual(player, game.state.players[i].lobbyData)) {
       return game.state.players[i];
     }
   }
 }
-function iterateTurn(game) {
+function _iterateTurn(game) {
   // reset flags for player who just ended their turn
   let endTurnPlayer = game.state.players[game.state.currentPlayerID];
 
   game.state.waiting.forWho =
   game.state.currentPlayerID = game.state.turn % game.state.players.length;
 }
+function _updateGameStates(game) {
+  let waiting = { forWho:[], forWhat:[] };
+  for (let i=0; i<game.state.players.length; i++) {
+    let player = game.state.players[i];
+    let flags = _getFlags(game, i);
+    player.flags = flags;
+    let adjacents = config.getAdjacentGameStates(flags);
+    player.adjacents = adjacents;
+    if (adjacents.length) {
+      waiting.forWho.push( player.lobbyData );
+      waiting.forWhat.push( adjacents );
+    }
+  }
+  return waiting;
+}
+function _validateArgs(edge,args) {
+  let e_args = edge.arguments.split(' ');
+  for (let a in e_args) {
+    let arg = e_args[a];
+    switch (arg) {
+      case ('int'):
+        let int = parseInt(args[a])
+        if (isNaN(int))
+          return undefined
+        e_args[a] = int;
+        break;
+      case (''):
+        return [];
+      default:
+        return undefined;
+    }
+  }
+  return e_args;
+}
 
 module.exports = {
 
-  /*getFlagsForUser : function(user, game) {
-    let flags = getFlags(user, game);
-    console.log(flags);
-    let vertices = config.getStateVertices();
-    let keys = Object.keys(vertices);
-    for (let i=0; i<420; i++) {
-      flags.vertex= keys[ keys.length * Math.random() << 0];
-      console.log('\n'+flags.vertex);
-      config.getAdjacentGameStates(flags);
-    }
-    return "SEE CONSOLE";
-  },*/
   launch : function(game, next) {
     for (let i=0; i<game.meta.settings.numCPUs; i++) {
       game.state.players.push( config.getNewPlayerData(user,game,false) );
@@ -65,24 +87,15 @@ module.exports = {
     console.log('launching');
     funcs.shuffle(game.state.players);
     colors = config.getColors(game);
-    let waiting = { forWho:[], forWhat:[] };
 
     for (let i=0; i<colors.length; i++) {
       let player = game.state.players[i];
       player.playerID = i;
-      let flags = getFlags(game, i);
-      player.flags = flags;
-      let adjacents = config.getAdjacentGameStates(flags);
-      player.adjacents = adjacents;
-      if (adjacents.length) {
-        waiting.forWho.push( player.lobbyData );
-        waiting.forWhat.push( adjacents );
-      }
       player.color    = colors[i];
     }
 
     game.state.currentPlayerID = 0;
-    game.state.waiting= waiting;
+    game.state.waiting= _updateGameStates(game);
     game.state.turn   = 1;
     game.state.status = 'in-progress';
     game.meta.updated = new Date;
@@ -96,16 +109,32 @@ module.exports = {
       private : game.getPrivateGameData(user)
     };
   },
-  getFlags : function getFlags(game,p) { getFlags(game,p); },
+  getFlags : function(game,p) { return _getFlags(game,p); },
   getAdjacentGameStates : function(game,p) {
-    let flags = getFlags(game,p);
+    let flags = _getFlags(game,p);
     return config.getAdjacentGameStates(flags);
   },
   validateEdgeIsAdjacent : function(game, i, edge) {
     return game.state.players[i].adjacents.indexOf(edge) > -1;
   },
-  executeEdge : function(edge) {
-    return edge.execute(null, null);
-  }
+  executeEdge : function(game, p, edge, args, callback) {
+    let player = game.state.players[p];
+    edge = config.getStateEdge(edge);
+    args = _validateArgs(edge, args)
 
+    if (args === undefined)
+      return console.log('invalid args');
+
+    edge.execute(game, args);
+    player.vertex = edge.target;
+    game.state.waiting = _updateGameStates(game);
+
+    for (let a in game.state.players[p].adjacents) {
+      let adj = game.state.players[p].adjacents[a];
+      if (config.getStateEdge(adj).isPriority)
+        module.exports.executeEdge(game, p, adj, null);
+    }
+
+  }
+  
 }

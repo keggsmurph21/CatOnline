@@ -1,2 +1,4 @@
+get all
 do 0 exec _e_take_turn
-ga
+do 0 exec _e_init_settle 22
+get all

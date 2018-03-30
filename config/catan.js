@@ -332,6 +332,9 @@ module.exports = {
   getStateVertices : function() {
     return _STATE_GRAPH.vertices;
   },
+  getStateEdge : function(edge) {
+    return _STATE_GRAPH.edges[edge];
+  },
   getStateEdges : function() {
     return _STATE_GRAPH.edges;
   },

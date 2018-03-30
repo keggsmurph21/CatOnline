@@ -12,22 +12,19 @@ const chalk  = require( 'chalk' );
 const exec   = require('child_process').exec;
 const argv   = process.argv.slice(2);
 
-const game   = require( '../tests/example/games.json' )[1]; // eventually make
-const user   = require( '../tests/example/users.json' )[0]; //these passable somehow
-
 const FUNCS  = require( '../app/funcs.js' );
 const LOGIC  = require( '../app/logic.js' );
 const CONFIG = require( '../config/catan.js' );
 const STATES = require( '../config/states.js');
 
 const error  = function(msg) { console.log(chalk.red(msg)); process.exit(1); }
-const warn   =  function(msg) { console.log(chalk.keyword('orange')(msg)); }
+const warn   = function(msg) { console.log(chalk.keyword('orange')(msg)); }
 
-function getAdjacentGameStates() {
-  for (let p in game.state.players) {
-    let adjacents = LOGIC.getAdjacentGameStates(game,p);
-    console.log(adjacents);
-  }
+var game, user;
+
+function getPlayerStringByID(id) {
+  let player = game.state.players[id];
+  return 'player '+id+': '+player.lobbyData.name;
 }
 
 function validatePlayerID(id) {
@@ -39,26 +36,9 @@ function validatePlayerID(id) {
   return int;
 }
 
-function parseCommand(player, args) {
-  if (!args.length)
-    return true;
-
-  let command = args[0];
-
-  switch (command) {
-    case ('exec'):
-      let edge = args[1]; // undefined if not enough args given
-      if (edge === undefined)
-        warn('not enough arguments for exec');
-      if (!LOGIC.validateEdgeIsAdjacent(game, player, edge)) {
-        warn('player '+player+' is not adjacent to edge `'+edge+'`');
-      } else {
-        edge = STATES.edges[edge];
-        LOGIC.executeEdge(edge);
-        //edge.execute(null,null);
-      }
-      break;
-  }
+function load() {
+  game   = require( '../tests/example/games.json' )[1]; // eventually make
+  user   = require( '../tests/example/users.json' )[0]; //these passable somehow
 }
 
 function parseInput(line) {
@@ -66,22 +46,72 @@ function parseInput(line) {
   console.log(chalk.green(' >> '+line));
 
   let words = line.split(' '),
-    command = words[0];
+    command = words[0],
+    args    = words.slice(1);
 
   switch (command) {
     case ('do'):
-      let player_id = validatePlayerID(words[1]);
-      parseCommand(player_id, words.slice(2));
+      let player_id = validatePlayerID(args[0]);
+      switch (args[1]) {
+        case ('exec'):
+          let edge = args[2]; // undefined if not enough args given
+          if (edge === undefined) {
+            warn('not enough arguments for exec');
+          } else if (!LOGIC.validateEdgeIsAdjacent(game, player_id, edge)) {
+            warn('player '+player_id+' is not adjacent to edge `'+edge+'`');
+          } else {
+            LOGIC.executeEdge(game, player_id, edge, args.slice(3));
+          }
+          break;
+        default:
+          warn('unrecognized arguments:', args);
+      }
       break;
-    case ('ga' || 'get-adj'):
-      getAdjacentGameStates();
+
+    case ('get'):
+      let func = function() { return ''; };
+      switch (args[0]) {
+        case ('all'):
+          func = function(game, p) {
+            return LOGIC.getFlags(game, p).vertex + '\t'
+              + LOGIC.getAdjacentGameStates(game, p);
+          }
+          break;
+        case ('adjs'):
+          func = LOGIC.getAdjacentGameStates;
+          break;
+        case ('flags'):
+          func = LOGIC.getFlags;
+          break;
+        case ('vertices'):
+          func = function(game, p) {
+            return LOGIC.getFlags(game, p).vertex;
+          }
+          break;
+        default:
+          warn('unrecognized arguments:', args);
+      }
+
+      for (let p in game.state.players) {
+        let pstr = getPlayerStringByID(p);
+        let data = func(game, p);
+        console.log(pstr, '\t', data);
+      }
+
       break;
+
+    case ('reset'):
+      load();
+      break;
+
     default:
-      warn('unrecognized command `'+command+'`');
+      warn('unrecognized command:', command);
   }
 }
 
 function parse(args) {
+
+  load();
 
   require('readline')
     .createInterface({
@@ -94,7 +124,7 @@ function parse(args) {
     .on('line', function(line) {
       parseInput(line);
     });
-    
+
 }
 
 parse(argv);
