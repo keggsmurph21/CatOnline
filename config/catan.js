@@ -285,6 +285,12 @@ populateNewGameForm();
 // expose some functionality to the environment
 module.exports = {
 
+  getBuildObjects(game) {
+    return _SCENARIOS[game.meta.settings.scenario].buildObjects;
+  },
+  getBuyObjects(game) {
+    return _SCENARIOS[game.meta.settings.scenario].buyObjects;
+  },
   // output the necessary objects to make the host-new-game
   getNewGameForm : function() {
     // populate with available scenarios

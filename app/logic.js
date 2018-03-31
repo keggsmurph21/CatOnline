@@ -18,6 +18,7 @@ function _getFlags(game, i) {
     isSecondTurn     : game.state.isSecondTurn,
     isRollSeven      : game.state.isRollSeven,
     hasRolled        : game.state.hasRolled,
+    tradeAccepted    : game.state.tradeAccepted,
     vertex           : player.vertex,
     canAcceptTrade   : player.canAcceptTrade,
     hasHeavyPurse    : player.hasHeavyPurse,
@@ -50,11 +51,15 @@ function _storeHistory(game, edge, args) {
   let extra = (args.length > 1 ? ' '+args.slice(1).join(' ') : '')
   game.state.history[game.state.turn].push( edge.name + extra );
 }
-function _toInt(str) {
-  let i = parseInt(str);
-  if (isNaN(i))
-    throw Error('unable to parse int: '+str);
-  return i;
+function _sumTotalDevCards(player) {
+  let acc = 0;
+  for (let dc in player.unplayedDCs) {
+    acc += player.unplayedDCs[dc];
+  }
+  for (let dc in player.playedDCs) {
+    acc += player.playedDCs[dc];
+  }
+  return acc;
 }
 function _updateGameStates(game) {
   let waiting = { forWho:[], forWhat:[] };
@@ -70,6 +75,31 @@ function _updateGameStates(game) {
     }
   }
   return waiting;
+}
+function _updateBuyOptions(game, player) {
+  let buildable = config.getBuildObjects(game);
+  let buyable   = config.getBuyObjects(game);
+
+  for (let build in buildable) {
+    let canAfford = funcs.canAfford(player, buildable[build].cost),
+      propName = (build=='city' ? 'cities' : build+'s'),
+      available = player[propName].length < buildable[build].max;
+
+    player.canBuild[build] = canAfford && available;
+  }
+
+  for (let buy in buyable) {
+    switch (buy) {
+      case ('dc'):
+        let canAfford = funcs.canAfford(player, buyable.dc.cost),
+          available = _sumTotalDevCards(player) < buyable.dc.max;
+
+        player.canBuy.dc = canAfford && available;
+        break;
+      default:
+        throw Error('unrecognized `buy` item: '+buy);
+    }
+  }
 }
 
 module.exports = {
@@ -111,6 +141,7 @@ module.exports = {
   },
   validateArguments : function(player, edge, args) {
     let e_args = config.getStateEdge(edge).arguments.split(' ');
+    if (e_args[0] === '*') return args; // opt out of this scheme for complex args (for now?)
     for (let a in e_args) {
       let arg = e_args[a];
       switch (arg) {
@@ -119,7 +150,7 @@ module.exports = {
         case ('player'):
         case ('road'):
         case ('settlement'):
-          e_args[a] = _toInt(args[a]);
+          e_args[a] = funcs.toInt(args[a]);
           break;
         case ('resource'):
           e_args[a] = args[a];
@@ -151,10 +182,13 @@ module.exports = {
     player.vertex = edge.target;
     game.state.waiting = _updateGameStates(game);
 
-    for (let a in game.state.players[p].adjacents) {
-      let adj = game.state.players[p].adjacents[a];
-      if (config.getStateEdge(adj).isPriority)
-        module.exports.executeEdge(game, p, adj, []);
+    for (let q=0; q<game.state.players.length; q++) {
+      _updateBuyOptions(game, player);
+      for (let a in game.state.players[q].adjacents) {
+        let adj = game.state.players[q].adjacents[a];
+        if (config.getStateEdge(adj).isPriority)
+          module.exports.executeEdge(game, q, adj, []);
+      }
     }
 
   }

@@ -18,20 +18,34 @@ do 0 exec _e_take_turn
 do 0 force _e_roll 4 1
 #do 0 exec _e_roll_move_robber 0
 #do 0 exec _e_steal_robber 1
-do 0 exec _e_to_root
+#do 0 exec _e_to_root
 do 0 exec _e_end_turn
 do 1 exec _e_take_turn
 do 1 force _e_roll 4 1
-do 1 exec _e_to_root
+#do 1 exec _e_to_root
 do 1 exec _e_end_turn
 do 0 exec _e_take_turn
 do 0 force _e_roll 4 6
-do 0 exec _e_to_root
+#do 0 exec _e_to_root
 #do 0 exec _e_trade_bank four wheat ore
 #do 0 exec _e_trade_bank 3 wheat ore
 #do 0 exec _e_trade_bank 4 sheep ore
 #do 0 exec _e_trade_bank 4 wheat wheat
-do 0 exec _e_trade_bank 4 wheat ore
-#get flags
+do 0 exec _e_trade_bank 4 wheat = 1 ore
+#do 0 exec _e_to_root
+do 0 exec _e_offer_trade 1 ore 1 wheat = 1 brick
+do 0 exec _e_cancel_trade
+do 0 exec _e_offer_trade 1 ore 1 wheat = 1 wood
+do 1 exec _e_accept_trade_partner
+do 0 exec _e_end_turn
+do 1 exec _e_take_turn
+do 1 force _e_roll 5 6
+do 1 exec _e_build_city -1
+do 1 exec _e_build_city test
+do 1 exec _e_build_city 55
+do 1 exec _e_build_city 0
+do 1 exec _e_build_road
+do 1 exec _e_build_settlement
+do 1 exec _e_buy_dc
 get all
 #check history

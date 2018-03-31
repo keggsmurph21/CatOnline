@@ -1,18 +1,15 @@
 const funcs = require('../app/funcs');
 
-function canAfford(player, cost) {
-  for (let res in cost) {
-    //console.log('need '+cost[res]+' '+res+' have '+player.resources[res]);
-    if (player.resources[res] < cost[res])
-      return false;
+function accrue(player, windfall) {
+  for (let res in windfall) {
+    player.resources[res] += windfall[res];
   }
-  return true;
 }
 function getCost(game, item) {
 
 }
 function spend(player, cost) {
-  if (!canAfford(player, cost))
+  if (!funcs.canAfford(player, cost))
     throw Error(`can't afford, insufficient funds (`+JSON.stringify(cost)+`)`);
   for (let res in cost) {
     player.resources[res] -= cost[res];
@@ -20,6 +17,32 @@ function spend(player, cost) {
 }
 
 module.exports = {
+
+  acceptTradeAsOffer(game, p) {
+    let player = game.state.players[p];
+
+    spend(player, game.state.currentTrade.out);
+    accrue(player, game.state.currentTrade.in);
+
+    module.exports.cancelTrade(game);
+  },
+
+  acceptTradeAsPartner(game, p) {
+    let player = game.state.players[p];
+
+    spend(player, game.state.currentTrade.in);
+    accrue(player, game.state.currentTrade.out);
+
+    game.state.tradeAccepted = true;
+  },
+
+  cancelTrade(game) {
+    game.state.tradeAccepted = false;
+    game.state.currentTrade = { in:null, out:null };
+    for (let p=0; p<game.state.players.length; p++) {
+      game.state.players[p].canAcceptTrade = false;
+    }
+  },
 
   collectResource(game, p, hex) {
     let res = game.board.hexes[hex].resource;
@@ -43,8 +66,8 @@ module.exports = {
     }
   },
 
-  juncGetAdjJuncs : function(board, j) {
-    return funcs.juncGetAdjJuncs(board, j);
+  fortify(game, p, junc) {
+    
   },
 
   getLastSettlement : function(game, p) {
@@ -65,7 +88,40 @@ module.exports = {
     game.state.hasRolled = false;
   },
 
-  paveRoad : function(game, p, road, pay=true) {
+  juncGetAdjJuncs : function(board, j) {
+    return funcs.juncGetAdjJuncs(board, j);
+  },
+
+  offerTrade : function(game, p, trade) {
+    game.state.currentTrade = trade;
+    for (let q=0; q<game.state.players.length; q++) {
+      let partner = game.state.players[q];
+      partner.canAcceptTrade = false;
+      if (p !== q) {
+        partner.canAcceptTrade = funcs.canAfford(partner, trade.out);
+      }
+    }
+    //console.log('offer', trade);
+  },
+
+  parseTrade : function(game, args) {
+    let trade = { in:{}, out:{} },
+      parsing = trade.out,
+      expecting ='int';
+    for (let a=0; a<args.length; a++) {
+      if (args[a]==='=') {
+        parsing = trade.in;
+      } else {
+        let res = module.exports.validateResource(game, args[a+1]),
+          num = funcs.toInt(args[a]);
+        parsing[res] = (parsing[res] ? parsing[res]+num : num);
+        a += 1;
+      }
+    }
+    return trade;
+  },
+
+  pave : function(game, p, road, pay=true) {
     game.state.players[p].roads.push(road.num);
     road.owner = p;
   },
@@ -80,7 +136,7 @@ module.exports = {
     }
     if (!valid)
       throw Error('this junc is not adjacent');
-    module.exports.paveRoad(game,p,road,pay=false);
+    module.exports.pave(game,p,road,pay=false);
   },
 
   roll : function(game, r1, r2) {
@@ -92,20 +148,23 @@ module.exports = {
     console.log('roll='+(r1+r2));
   },
 
-  tradeWithBank : function(game, p, o_num, o_res, i_res) {
-    let player = game.state.players[p], rate = {};
-    rate[o_res] = player.bankTradeRates[o_res];
-    //console.log(rate);
-    if (o_res===i_res)
+  tradeWithBank : function(game, p, trade) {
+    let player = game.state.players[p], rate = {},
+      outResource = Object.keys(trade.out)[0],
+      inResource  = Object.keys(trade.in)[0];
+    rate[outResource] = player.bankTradeRates[outResource];
+
+    if (outResource===inResource)
       throw Error(`can't trade these resources:`);
-    if (o_num < rate[o_res])
+    if (trade.out[outResource]*trade.in[inResource]
+      < rate[outResource]*trade.in[inResource])
       throw Error(`bank rate: `+rate[o_res]);
 
-    spend(player, rate);
-    player.resources[i_res] += 1;
+    spend(player, trade.out);
+    accrue(player, trade.in);
   },
 
-  trySettle : function(game, p, junc, pay=true) {
+  settle : function(game, p, junc, pay=true) {
     if (!junc.isSettleable)
       throw Error('junc cannot be settled');
     game.state.players[p].settlements.push(junc.num);
@@ -116,7 +175,7 @@ module.exports = {
     });
   },
 
-  trySteal : function(game, p, q) {
+  steal : function(game, p, q) {
     let juncs = game.board.hexes[game.board.robber].juncs;
     for (let j=0; j<juncs.length; j++) {
       if (game.board.juncs[juncs[j]].owner === q) {
@@ -167,7 +226,11 @@ module.exports = {
     if (isNaN(r) || r<0 || game.board.roads.length<=r)
       throw Error('invalid road: '+r);
     return game.board.roads[r];
-  }
+  },
 
+  validateTrade : function(game, p, trade) {
+    if (!funcs.canAfford(game.state.players[p], trade.out))
+      throw Error(`can't afford, insufficient funds (`+JSON.stringify(trade.out)+`)`);
+  }
 
 }

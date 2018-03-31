@@ -941,8 +941,13 @@ module.exports = {
       },
       currentPlayerID: 0,
       initialGameConditions : null,
-      players: [],
-      hasRolled : false
+      hasRolled : false,
+      tradeAccepted : false,
+      currentTrade: {
+        in: null,
+        out:null
+      },
+      players: []
     },
     defaultPlayerState: {
 

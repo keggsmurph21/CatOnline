@@ -171,6 +171,7 @@ module.exports = {
       },
       "_v_end_turn": {
          edges: [
+            "_e_accept_trade_partner",
             "_e_take_turn"
          ],
          name: "_v_end_turn",
@@ -180,17 +181,46 @@ module.exports = {
          edges: [],
          name: "_v_end_game",
          label: ""
+      },
+      "_v_accept_trade_partner": {
+         edges: [
+            "_e_after_trade_partner"
+         ],
+         name: "_v_accept_trade_partner",
+         label: ""
       }
    },
    edges: {
       "_e_accept_trade": {
          name: "_e_accept_trade",
          target: "_v_accept_trade",
+         evaluate: function (f) { return f.tradeAccepted; },
+         arguments: "",
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]); _.acceptTradeAsOffer(g,p); },
+         isPriority: true,
+         isMulti: true,
+         isCancel: false,
+         label: ""
+      },
+      "_e_accept_trade_partner": {
+         name: "_e_accept_trade_partner",
+         target: "_v_accept_trade_partner",
          evaluate: function (f) { return f.canAcceptTrade; },
          arguments: "",
-         execute: function (g,a) { throw Error('not implemented'); },
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]); _.acceptTradeAsPartner(g,p); },
          isPriority: false,
-         isMulti: true,
+         isMulti: false,
+         isCancel: false,
+         label: ""
+      },
+      "_e_after_trade_partner": {
+         name: "_e_after_trade_partner",
+         target: "_v_end_turn",
+         evaluate: function (f) { return true; },
+         arguments: "",
+         execute: function (g,a) { console.log('after'); },
+         isPriority: true,
+         isMulti: false,
          isCancel: false,
          label: ""
       },
@@ -198,8 +228,8 @@ module.exports = {
          name: "_e_build_city",
          target: "_v_fortify",
          evaluate: function (f) { return f.hasRolled && f.canBuild.city; },
-         arguments: "",
-         execute: function (g,a) { throw Error('not implemented'); },
+         arguments: "settlement",
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), j=_.validateJunc(g,a[1]); _.fortify(g,p,j) },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -209,7 +239,7 @@ module.exports = {
          name: "_e_build_road",
          target: "_v_pave",
          evaluate: function (f) { return f.hasRolled && f.canBuild.road; },
-         arguments: "",
+         arguments: "road",
          execute: function (g,a) { throw Error('not implemented'); },
          isPriority: false,
          isMulti: false,
@@ -220,7 +250,7 @@ module.exports = {
          name: "_e_build_settlement",
          target: "_v_settle",
          evaluate: function (f) { return f.hasRolled && f.canBuild.settlement; },
-         arguments: "",
+         arguments: "settlement",
          execute: function (g,a) { throw Error('not implemented'); },
          isPriority: false,
          isMulti: false,
@@ -265,7 +295,7 @@ module.exports = {
          target: "_v_root",
          evaluate: function (f) { return true; },
          arguments: "",
-         execute: function (g,a) { throw Error('not implemented'); },
+         execute: function (g,a) { _.cancelTrade(g); },
          isPriority: false,
          isMulti: false,
          isCancel: true,
@@ -353,7 +383,7 @@ module.exports = {
          target: "_v_settle",
          evaluate: function (f) { return f.isFirstTurn || f.isSecondTurn; },
          arguments: "settlement",
-         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), j=_.validateJunc(g,a[1]); _.trySettle(g,p,j,false); },
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), j=_.validateJunc(g,a[1]); _.settle(g,p,j,false); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -385,8 +415,8 @@ module.exports = {
          name: "_e_offer_trade",
          target: "_v_offer_trade",
          evaluate: function (f) { return !f.isFirstTurn && !f.isSecondTurn && f.hasRolled; },
-         arguments: "",
-         execute: function (g,a) { throw Error('not implemented'); },
+         arguments: "*",
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), trade=_.parseTrade(g,a.slice(1)); _.validateTrade(g,p,trade); _.offerTrade(g,p,trade); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -507,7 +537,7 @@ module.exports = {
          target: "_v_steal",
          evaluate: function (f) { return true; },
          arguments: "player",
-         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), q=_.validatePlayer(g,a[1]); if (p===q) throw Error(`you can't steal from youself!`); _.trySteal(g,p,q); },
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), q=_.validatePlayer(g,a[1]); if (p===q) throw Error(`you can't steal from youself!`); _.steal(g,p,q); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -530,7 +560,7 @@ module.exports = {
          evaluate: function (f) { return !f.isFirstTurn; },
          arguments: "",
          execute: function (g,a) { },
-         isPriority: false,
+         isPriority: true,
          isMulti: false,
          isCancel: false,
          label: ""
@@ -539,8 +569,8 @@ module.exports = {
          name: "_e_trade_bank",
          target: "_v_trade_with_bank",
          evaluate: function (f) { return !f.isFirstTurn && !f.isSecondTurn && f.hasRolled && f.canTradeBank; },
-         arguments: "int resource resource",
-         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), o_num=a[1], o_res=_.validateResource(g,a[2]), i_res=_.validateResource(g,a[3]); _.tradeWithBank(g,p,o_num,o_res,i_res); },
+         arguments: "*",
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), trade=_.parseTrade(g,a.slice(1)); _.tradeWithBank(g,p,trade); },
          isPriority: false,
          isMulti: false,
          isCancel: false,

@@ -51,6 +51,11 @@ var GameSchema = mongoose.Schema({
         flair : String } ],
       forWhat: [ [ String ] ]
     },
+    tradeAccepted: Boolean,
+    currentTrade: {
+      in: Object,
+      out:Object
+    },
     currentPlayerID: Number,
     hasRolled: Boolean,
 

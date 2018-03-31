@@ -7,6 +7,14 @@ var fs = require('fs');
 
 module.exports = {
 
+  canAfford(player, cost) {
+    for (let res in cost) {
+      //console.log('need '+cost[res]+' '+res+' have '+player.resources[res]);
+      if (player.resources[res] < cost[res])
+        return false;
+    }
+    return true;
+  },
   getRandomInt : function(min=0, max=1) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   },
@@ -166,6 +174,12 @@ module.exports = {
       }
     }
     return adjs;
+  },
+  toInt : function(str) {
+    let i = parseInt(str);
+    if (isNaN(i))
+      throw Error('unable to parse int: '+str);
+    return i;
   },
 
   User : require('./models/user'),

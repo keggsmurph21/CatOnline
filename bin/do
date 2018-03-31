@@ -99,7 +99,9 @@ function parseInput(line, callback=()=>{}) {
                 resources:	  game.state.players[p].resources }
             }
             break;
+          case ('adj'):
           case ('adjs'):
+          case ('adjacents'):
             func = LOGIC.getAdjacentGameStates;
             break;
           case ('flags'):
@@ -156,8 +158,11 @@ function parseInput(line, callback=()=>{}) {
           case ('history'):
             console.log(JSON.stringify(game.state.history, null, 3));
             break;
+          case ('trade'):
+            console.log(game.state.currentTrade);
+            break;
           default:
-            error('unrecognized arguments:', args);
+            error('unrecognized arguments:'+args);
         }
         break;
 
