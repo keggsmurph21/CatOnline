@@ -144,6 +144,7 @@ module.exports = {
       edge.execute(game, args);
     } catch (e) {
       console.log(edge.name);
+      console.log(e);
       throw e;
     }
 

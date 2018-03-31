@@ -27,10 +27,10 @@ do 1 exec _e_end_turn
 do 0 exec _e_take_turn
 do 0 force _e_roll 4 6
 do 0 exec _e_to_root
-do 0 exec _e_trade_bank four wheat ore
-do 0 exec _e_trade_bank 3 wheat ore
-do 0 exec _e_trade_bank 4 sheep ore
-do 0 exec _e_trade_bank 4 wheat wheat
+#do 0 exec _e_trade_bank four wheat ore
+#do 0 exec _e_trade_bank 3 wheat ore
+#do 0 exec _e_trade_bank 4 sheep ore
+#do 0 exec _e_trade_bank 4 wheat wheat
 do 0 exec _e_trade_bank 4 wheat ore
 #get flags
 get all

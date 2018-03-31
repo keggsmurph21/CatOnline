@@ -540,7 +540,7 @@ module.exports = {
          target: "_v_trade_with_bank",
          evaluate: function (f) { return !f.isFirstTurn && !f.isSecondTurn && f.hasRolled && f.canTradeBank; },
          arguments: "int resource resource",
-         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), o_num=a[1], o_res=_.validateResource(g,a[2]), i_res=_.validateResource(g,a[3]); _.tradeWithBank(o_num, o_res, i_res); },
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), o_num=a[1], o_res=_.validateResource(g,a[2]), i_res=_.validateResource(g,a[3]); _.tradeWithBank(g,p,o_num,o_res,i_res); },
          isPriority: false,
          isMulti: false,
          isCancel: false,

@@ -31,7 +31,7 @@ function getPlayerStringByID(id) {
   return 'player '+id+': '+player.lobbyData.name;
 }
 
-function validatePlayerID(id) {
+function validatePlayer(id) {
   let int = parseInt(id);
   if (isNaN(int))
     throw Error('unable to parse player id `'+id+'`');
@@ -67,7 +67,7 @@ function parseInput(line, callback=()=>{}) {
 
     switch (command) {
       case ('do'):
-        let player_id = validatePlayerID(args[0]);
+        let player_id = validatePlayer(args[0]);
         switch (args[1]) {
           case ('exec'):
           case ('force'):
@@ -186,10 +186,38 @@ function parseInput(line, callback=()=>{}) {
         break;
 
       case ('set'):
-        //player key value
+        let argstring = args.slice(1).join(' ');
+        if (!argstring.length)
+          return error('expected JSON arguments');
+        let values = JSON.parse(JSON.stringify(argstring));
+        console.log('values', JSON.stringify(values));
+
+        switch (args[0]) {
+          case ('state'):
+            game.state = values;
+            break;
+          case ('board'):
+            game.board = values
+            break;
+          case ('player'):
+            argstring = args.slice(2).join(' ');
+            values = (argstring.length ? JSON.parse(argstring) : {});
+            if (args[1]==='all') {
+              for (let p=0; p<game.state.players.length; p++) {
+                game.state.players[p] = values;
+              }
+            } else {
+              let p = validatePlayer(args[1]);
+              game.state.players[p] = values;
+            }
+            break;
+          default:
+            error('unrecognized key: '+args[1]);
+        }
+        break;
 
       default:
-        error('unrecognized command:', command);
+        error('unrecognized command: '+command);
     }
   } catch (e) {
     error(e);
