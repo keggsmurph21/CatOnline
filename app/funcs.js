@@ -175,6 +175,17 @@ module.exports = {
     }
     return adjs;
   },
+  roadGetAdjRoads : function(board, r) {
+    let adjs = new Set();
+    for (let j=0; j<board.roads[r].juncs.length; j++) {
+      for (let k=0; k<board.juncs[ board.roads[r].juncs[j] ].roads.length; k++) {
+        let road = board.juncs[ board.roads[r].juncs[j] ].roads[k];
+        if (road !== r)
+          adjs.add( road );
+      }
+    }
+    return adjs;
+  },
   toInt : function(str) {
     let i = parseInt(str);
     if (isNaN(i))

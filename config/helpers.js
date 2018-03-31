@@ -5,8 +5,30 @@ function accrue(player, windfall) {
     player.resources[res] += windfall[res];
   }
 }
-function getCost(game, item) {
+function calculateLongestRoads(game) {
+  console.log('calc longest road');
+}
+function getCost(game, type, item) {
+  const config = require('../config/catan');
+  if (type==='build') {
+    let costs = config.getBuildObjects(game);
+    return costs[item].cost;
+  } else if (type==='buy') {
+    let costs = config.getBuyObjects(game);
+    return costs[item].cost;
+  }
+  throw Error('unable to get cost to '+type+' '+item);
+}
+function pave(game, player, road, pay=true) {
+  if (pay) {
+    let cost = getCost(game, 'build', 'road');
+    spend(player, cost);
+  }
 
+  player.roads.push(road.num);
+  road.owner = player.playerID;
+
+  calculateLongestRoads(game);
 }
 function spend(player, cost) {
   if (!funcs.canAfford(player, cost))
@@ -18,18 +40,14 @@ function spend(player, cost) {
 
 module.exports = {
 
-  acceptTradeAsOffer(game, p) {
-    let player = game.state.players[p];
-
+  acceptTradeAsOffer(game, player) {
     spend(player, game.state.currentTrade.out);
     accrue(player, game.state.currentTrade.in);
 
     module.exports.cancelTrade(game);
   },
 
-  acceptTradeAsPartner(game, p) {
-    let player = game.state.players[p];
-
+  acceptTradeAsPartner(game, player) {
     spend(player, game.state.currentTrade.in);
     accrue(player, game.state.currentTrade.out);
 
@@ -44,10 +62,10 @@ module.exports = {
     }
   },
 
-  collectResource(game, p, hex) {
+  collectResource(game, player, hex) {
     let res = game.board.hexes[hex].resource;
     if (res !== 'desert')
-      game.state.players[p].resources[res] += 1;
+      player.resources[res] += 1;
   },
 
   collectResources(game) {
@@ -58,20 +76,47 @@ module.exports = {
         for (let j=0; j<hex.juncs.length; j++) {
           let junc = game.board.juncs[hex.juncs[j]];
           if (junc.owner > -1) {
-            console.log( game.state.players[junc.owner].lobbyData.name,'collects a',hex.resource);
-            module.exports.collectResource(game, junc.owner, hex.num);
+            let player = game.state.players[junc.owner];
+            module.exports.collectResource(game, player, hex.num);
+            console.log( player.lobbyData.name,'collects a',hex.resource);
           }
         }
       }
     }
   },
 
-  fortify(game, p, junc) {
-    
+  fortify(game, player, junc) {
+    if (player.settlements.indexOf(junc.num) === -1)
+      throw Error('cities must be built on existing settlements');
+
+    // remove from settlements
+    let index = player.settlements.indexOf(junc.num);
+    player.settlements.splice(index, 1);
+
+    // add to cities
+    player.cities.push(junc.num);
+
+    let cost = getCost(game, 'build', 'city');
+    spend(player, cost);
   },
 
-  getLastSettlement : function(game, p) {
-    return game.state.players[p].settlements.slice(-1).pop();
+  getLastSettlement : function(game, player) {
+    return player.settlements.slice(-1).pop();
+  },
+
+  initPave : function(game, player, road) {
+    if (road.owner > -1)
+      throw Error('road is already owned');
+
+    let valid=false, match=module.exports.getLastSettlement(game,player);
+    for (let j in road.juncs) {
+      if (road.juncs[j] === match)
+        valid=true;
+    }
+    if (!valid)
+      throw Error('this junc is not adjacent');
+
+    pave(game, player, road, pay=false);
   },
 
   iterateTurn : function(game) {
@@ -88,16 +133,12 @@ module.exports = {
     game.state.hasRolled = false;
   },
 
-  juncGetAdjJuncs : function(board, j) {
-    return funcs.juncGetAdjJuncs(board, j);
-  },
-
-  offerTrade : function(game, p, trade) {
+  offerTrade : function(game, player, trade) {
     game.state.currentTrade = trade;
     for (let q=0; q<game.state.players.length; q++) {
       let partner = game.state.players[q];
       partner.canAcceptTrade = false;
-      if (p !== q) {
+      if (player !== partner) {
         partner.canAcceptTrade = funcs.canAfford(partner, trade.out);
       }
     }
@@ -121,22 +162,21 @@ module.exports = {
     return trade;
   },
 
-  pave : function(game, p, road, pay=true) {
-    game.state.players[p].roads.push(road.num);
-    road.owner = p;
-  },
-
-  requireRoadNearLastSettlement : function(game, p, road) {
-    let valid=false, match=module.exports.getLastSettlement(game,p);
+  pave : function(game, player, road) {
     if (road.owner > -1)
       throw Error('road is already owned');
-    for (let j in road.juncs) {
-      if (road.juncs[j] === match)
+
+    let valid = false, adjs = Array.from(
+      funcs.roadGetAdjRoads(game.board, road.num));
+
+    for (let r=0; r<player.roads.length; r++) {
+      if (adjs.indexOf(r) > -1)
         valid=true;
     }
     if (!valid)
-      throw Error('this junc is not adjacent');
-    module.exports.pave(game,p,road,pay=false);
+      throw Error('this road is not adjacent');
+
+    pave(game, player, road);
   },
 
   roll : function(game, r1, r2) {
@@ -148,8 +188,45 @@ module.exports = {
     console.log('roll='+(r1+r2));
   },
 
-  tradeWithBank : function(game, p, trade) {
-    let player = game.state.players[p], rate = {},
+  settle : function(game, player, junc, pay=true) {
+    if (!junc.isSettleable)
+      throw Error('junc cannot be settled');
+
+    if (pay) {
+      let cost = getCost(game, 'build', 'road');
+      spend(player, cost);
+    }
+
+    player.settlements.push(junc.num);
+    junc.owner = player.playerID;
+    
+    junc.isSettleable = false;
+    funcs.juncGetAdjJuncs(game.board, junc.num).forEach( function(adj) {
+      game.board.juncs[adj].isSettleable = false;
+    });
+  },
+
+  steal : function(game, player, from) {
+    let juncs = game.board.hexes[game.board.robber].juncs;
+    for (let j=0; j<juncs.length; j++) {
+      if (game.board.juncs[juncs[j]].owner === from.playerID) {
+        let list = [];
+        for (let res in from.resources) {
+          for (let i=0; i<from.resources[res]; i++) {
+            list.push(res);
+          }
+        }
+        let res = funcs.getRandomChoice(list);
+        player.resources[res] += 1;
+        from.resources[res] -= 1;
+        return;
+      }
+    }
+    throw Error(from.lobbyData.name+' is not adjacent to the robber');
+  },
+
+  tradeWithBank : function(game, player, trade) {
+    let rate = {},
       outResource = Object.keys(trade.out)[0],
       inResource  = Object.keys(trade.in)[0];
     rate[outResource] = player.bankTradeRates[outResource];
@@ -162,36 +239,6 @@ module.exports = {
 
     spend(player, trade.out);
     accrue(player, trade.in);
-  },
-
-  settle : function(game, p, junc, pay=true) {
-    if (!junc.isSettleable)
-      throw Error('junc cannot be settled');
-    game.state.players[p].settlements.push(junc.num);
-    junc.owner = p;
-    junc.isSettleable = false;
-    module.exports.juncGetAdjJuncs(game.board,junc.num).forEach( function(adj) {
-      game.board.juncs[adj].isSettleable = false;
-    });
-  },
-
-  steal : function(game, p, q) {
-    let juncs = game.board.hexes[game.board.robber].juncs;
-    for (let j=0; j<juncs.length; j++) {
-      if (game.board.juncs[juncs[j]].owner === q) {
-        let list = [];
-        for (let res in game.state.players[q].resources) {
-          for (let i=0; i<game.state.players[q].resources[res]; i++) {
-            list.push(res);
-          }
-        }
-        let res = funcs.getRandomChoice(list);
-        game.state.players[p].resources[res] += 1;
-        game.state.players[q].resources[res] -= 1;
-        return;
-      }
-    }
-    throw Error('player '+q+' is not adjacent to the robber');
   },
 
   validateHex : function(game, h) {
@@ -212,7 +259,7 @@ module.exports = {
     p = parseInt(p);
     if (isNaN(p) || p<0 || game.state.players.length<=p)
       throw Error('invalid player: '+p);
-    return p;
+    return game.state.players[p];
   },
 
   validateResource : function(game, res) {
@@ -228,8 +275,8 @@ module.exports = {
     return game.board.roads[r];
   },
 
-  validateTrade : function(game, p, trade) {
-    if (!funcs.canAfford(game.state.players[p], trade.out))
+  validateTrade : function(game, player, trade) {
+    if (!funcs.canAfford(player, trade.out))
       throw Error(`can't afford, insufficient funds (`+JSON.stringify(trade.out)+`)`);
   }
 

@@ -4,7 +4,7 @@ do 0 exec _e_init_settle 22
 do 0 exec _e_init_build_road 25
 do 1 exec _e_take_turn
 do 1 exec _e_init_settle 0
-do 1 exec _e_init_build_road 0
+do 1 exec _e_init_build_road 1
 do 0 exec _e_take_turn
 do 0 exec _e_init_settle 31
 do 0 exec _e_init2_build_road 37
@@ -40,12 +40,18 @@ do 1 exec _e_accept_trade_partner
 do 0 exec _e_end_turn
 do 1 exec _e_take_turn
 do 1 force _e_roll 5 6
-do 1 exec _e_build_city -1
-do 1 exec _e_build_city test
-do 1 exec _e_build_city 55
+#do 1 exec _e_build_city -1
+#do 1 exec _e_build_city test
+#do 1 exec _e_build_city 55
+#do 1 exec _e_build_city 1
 do 1 exec _e_build_city 0
-do 1 exec _e_build_road
-do 1 exec _e_build_settlement
-do 1 exec _e_buy_dc
+do 1 exec _e_build_road -1
+do 1 exec _e_build_road test
+do 1 exec _e_build_road 400
+do 1 exec _e_build_road 1
+do 1 exec _e_build_road 20
+do 1 exec _e_build_road 2
+#do 1 exec _e_build_settlement
+#do 1 exec _e_buy_dc
 get all
 #check history

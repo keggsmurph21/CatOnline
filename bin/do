@@ -95,6 +95,7 @@ function parseInput(line, callback=()=>{}) {
                 vertex:       LOGIC.getFlags(game, p).vertex,
                 adjacents:    LOGIC.getAdjacentGameStates(game, p),
                 settlements:	game.state.players[p].settlements,
+                cities:       game.state.players[p].cities,
                 roads:	      game.state.players[p].roads,
                 resources:	  game.state.players[p].resources }
             }
