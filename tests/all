@@ -1,2 +1,25 @@
+#!/usr/bin/env node
+
+const GRAPH = require( '../config/states.js' );
 const GAMES = require( './example/games.json' );
 const USERS = require( './example/users.json' );
+
+const run = require( '../bin/do' );
+
+function test_all() {
+  let game = GAMES[0], user = USERS[0];
+
+  run.setup({
+    g:    game,
+    u:    user,
+    quiet:true });
+
+  // test all the edges
+  for (let edge in GRAPH.edges) {
+    run('read '+edge, function(err,data) {
+
+    });
+  }
+}
+
+test_all()

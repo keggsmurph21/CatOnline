@@ -10,9 +10,9 @@
 
 const argv   = process.argv.slice(2);
 const chalk  = require( 'chalk' );
-const exec   = require('child_process').exec;
-const fs     = require('fs');
-const read   = require('readline');
+const exec   = require( 'child_process' ).exec;
+const fs     = require( 'fs' );
+const read   = require( 'readline' );
 
 const CONFIG = require( '../config/catan' );
 const FUNCS  = require( '../app/funcs' );
@@ -24,7 +24,7 @@ const USERS  = require( '../tests/example/users' );
 
 const error  = function(msg) { console.log(chalk.red(msg)); }
 
-var game=null, user=null;
+var game=null, user=null, suite='default', quiet=false;
 
 function getPlayerStringByID(id) {
   let player = game.state.players[id];
@@ -50,7 +50,7 @@ function loadUser(id=0) {
   return obj;
 }
 
-function parseInput(line) {
+function parseInput(line, callback=()=>{}) {
 
   try {
 
@@ -60,7 +60,10 @@ function parseInput(line) {
 
     if (command[0] === '#') // comment
       return
-    console.log(chalk.green(' >> '+line));
+
+    if (!quiet)
+      console.log(chalk.green(' >> '+line));
+
 
     switch (command) {
       case ('do'):
@@ -69,11 +72,13 @@ function parseInput(line) {
           case ('exec'):
           case ('force'):
             let edge = args[2]; // undefined if not enough args given
-            let validate = (args[1]=='exec');
+            args = (args[1]=='exec'
+              ? LOGIC.validateArguments(player_id, edge, args.slice(3))
+              : args.slice(3).map(a=>parseInt(a)));
 
             if (!LOGIC.validateEdgeIsAdjacent(game, player_id, edge))
               return error('player '+player_id+' is not adjacent to edge `'+edge+'`');
-            LOGIC.executeEdge(game, player_id, edge, args.slice(3), validate);
+            LOGIC.executeEdge(game, player_id, edge, args);
             break;
 
           default:
@@ -86,11 +91,12 @@ function parseInput(line) {
         switch (args[0]) {
           case ('all'):
             func = function(game, p) {
-              return '\n  vertex:\t'+LOGIC.getFlags(game, p).vertex
-                +'\n  adjacents:\t'+ LOGIC.getAdjacentGameStates(game, p)
-                +'\n  settlements:\t'+ game.state.players[p].settlements
-                +'\n  roads:\t'+ game.state.players[p].roads
-                +'\n  resources:\t'+ JSON.stringify(game.state.players[p].resources);
+              return {
+                vertex:       LOGIC.getFlags(game, p).vertex,
+                adjacents:    LOGIC.getAdjacentGameStates(game, p),
+                settlements:	game.state.players[p].settlements,
+                roads:	      game.state.players[p].roads,
+                resources:	  game.state.players[p].resources }
             }
             break;
           case ('adjs'):
@@ -99,9 +105,12 @@ function parseInput(line) {
           case ('flags'):
             func = LOGIC.getFlags;
             break;
+          case ('players'):
+            func = (game,p) => { return game.state.players[p]; };
+            break;
           case ('resources'):
             func = function(game, p) {
-              return JSON.stringify(game.state.players[p].resources);
+              return game.state.players[p].resources;
             }
             break;
           case ('roads'):
@@ -124,11 +133,17 @@ function parseInput(line) {
         }
 
         console.log('[turn: '+game.state.turn+']');
-        for (let p in game.state.players) {
-          let pstr = getPlayerStringByID(p);
-          let data = func(game, p);
-          console.log(pstr, '\t', data);
+        let data = [];
+        for (let p=0; p<game.state.players.length; p++) {
+          data.push({
+            full: game.state.players,
+            func: func(game, p)
+          })
+          //let pstr = getPlayerStringByID(p);
+          //let data = func(game, p);
+          //console.log(pstr, '\t', data);
         }
+        console.log(JSON.stringify(data.map(p=>p.func), null, 2));
         break;
 
       case ('check'):
@@ -137,6 +152,9 @@ function parseInput(line) {
             let waiting = game.state.waiting;
             console.log('for: ', waiting.forWho.map(o=>o.name).join(', '));
             console.log('what:', waiting.forWhat);
+            break;
+          case ('history'):
+            console.log(JSON.stringify(game.state.history, null, 3));
             break;
           default:
             error('unrecognized arguments:', args);
@@ -147,10 +165,15 @@ function parseInput(line) {
         process.exit(0);
         break;
 
+      case ('raise'):
+        error(suite+' raises '+args.join(' '));
+        break;
+
       case ('read'):
+        suite = args[0];
         read
           .createInterface({
-            input: fs.createReadStream('tests/'+args[0]),
+            input: fs.createReadStream('tests/commands/'+args[0]),
             output: process.stdout,
             terminal: false
           })
@@ -162,6 +185,9 @@ function parseInput(line) {
         user = loadUser();
         break;
 
+      case ('set'):
+        //player key value
+
       default:
         error('unrecognized command:', command);
     }
@@ -170,15 +196,15 @@ function parseInput(line) {
   }
 }
 
-function parse(args) {
+function listen(path) {
 
   game = loadGame();
   user = loadUser();
 
   read
     .createInterface({
-      input: (args.length
-        ? fs.createReadStream('tests/'+args[0])
+      input: (path
+        ? fs.createReadStream(path)
         : process.stdin),
       output: process.stdout,
       terminal: false
@@ -187,4 +213,12 @@ function parse(args) {
 
 }
 
-parse(argv);
+if (require.main === module)
+  listen(argv.length ? 'tests/commands/'+argv[0] : null);
+
+module.exports = parseInput;
+module.exports.setup = function(args) {
+  game = args.g || loadGame();
+  user = args.u || loadUser();
+  quiet= (args.quiet===undefined ? quiet : args.quiet);
+}

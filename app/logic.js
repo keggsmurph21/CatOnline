@@ -1,6 +1,13 @@
 var funcs = require('./funcs.js');
 var config = require('../config/catan.js');
 
+function _getCanTradeBank(player) {
+  for (let res in player.resources) {
+    if (player.resources[res] >= player.bankTradeRates[res])
+      return true;
+  }
+  return false;
+}
 function _getFlags(game, i) {
   let player = game.state.players[i];
   /*console.log('players: ('+game.state.players.length+')');
@@ -17,6 +24,7 @@ function _getFlags(game, i) {
     canPlayDC        : player.canPlayDC,
     canBuild         : player.canBuild,
     canBuy           : player.canBuy,
+    canTradeBank     : _getCanTradeBank(player),
     isHuman          : player.isHuman,
     isCurrentPlayer  : game.state.currentPlayerID===player.playerID,
     isWaitingFor     : false
@@ -35,6 +43,19 @@ function _getAllPlayerData(player, game) {
     }
   }
 }
+function _storeHistory(game, edge, args) {
+  while (game.state.history.length <= game.state.turn) {
+    game.state.history.push([]);
+  }
+  let extra = (args.length > 1 ? ' '+args.slice(1).join(' ') : '')
+  game.state.history[game.state.turn].push( edge.name + extra );
+}
+function _toInt(str) {
+  let i = parseInt(str);
+  if (isNaN(i))
+    throw Error('unable to parse int: '+str);
+  return i;
+}
 function _updateGameStates(game) {
   let waiting = { forWho:[], forWhat:[] };
   for (let i=0; i<game.state.players.length; i++) {
@@ -49,26 +70,6 @@ function _updateGameStates(game) {
     }
   }
   return waiting;
-}
-function _validateArgs(edge,args) {
-  let e_args = edge.arguments.split(' ');
-  for (let a in e_args) {
-    let arg = e_args[a];
-    switch (arg) {
-      case ('int'):
-        let int = parseInt(args[a])
-        if (isNaN(int))
-          throw Error('unable to parse int: '+args[a]);
-        e_args[a] = int;
-        break;
-      case (''):
-        return [];
-      default:
-        throw Error('does this ever happen?');
-        return undefined;
-    }
-  }
-  return e_args;
 }
 
 module.exports = {
@@ -108,22 +109,43 @@ module.exports = {
     let flags = _getFlags(game,p);
     return config.getAdjacentGameStates(flags);
   },
+  validateArguments : function(player, edge, args) {
+    let e_args = config.getStateEdge(edge).arguments.split(' ');
+    for (let a in e_args) {
+      let arg = e_args[a];
+      switch (arg) {
+        case ('int'):
+        case ('hex'):
+        case ('player'):
+        case ('road'):
+        case ('settlement'):
+          e_args[a] = _toInt(args[a]);
+          break;
+        case ('resource'):
+          e_args[a] = args[a];
+          break;
+        case (''):
+          return [];
+        default:
+          throw Error('unrecognized argument type:',arg);
+      }
+    }
+    return e_args;
+  },
   validateEdgeIsAdjacent : function(game, i, edge) {
     return game.state.players[i].adjacents.indexOf(edge) > -1;
   },
-  executeEdge : function(game, p, edge, args, validate=true) {
+  executeEdge : function(game, p, edge, args) {
     let player = game.state.players[p];
     edge = config.getStateEdge(edge);
-    args = (validate ? _validateArgs(edge, args) : args.map(a=>parseInt(a)));
-    args.unshift(p); // add playerid as first arg
-    //console.log(args);
+    args.unshift(p);
     try {
+      _storeHistory(game, edge, args);
       edge.execute(game, args);
     } catch (e) {
       console.log(edge.name);
       throw e;
     }
-    //console.log(game.state.players);
 
     player.vertex = edge.target;
     game.state.waiting = _updateGameStates(game);
@@ -131,7 +153,7 @@ module.exports = {
     for (let a in game.state.players[p].adjacents) {
       let adj = game.state.players[p].adjacents[a];
       if (config.getStateEdge(adj).isPriority)
-        module.exports.executeEdge(game, p, adj, null);
+        module.exports.executeEdge(game, p, adj, []);
     }
 
   }

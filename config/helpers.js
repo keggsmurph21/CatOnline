@@ -1,5 +1,24 @@
 const funcs = require('../app/funcs');
 
+function canAfford(player, cost) {
+  for (let res in cost) {
+    //console.log('need '+cost[res]+' '+res+' have '+player.resources[res]);
+    if (player.resources[res] < cost[res])
+      return false;
+  }
+  return true;
+}
+function getCost(game, item) {
+
+}
+function spend(player, cost) {
+  if (!canAfford(player, cost))
+    throw Error(`can't afford, insufficient funds (`+JSON.stringify(cost)+`)`);
+  for (let res in cost) {
+    player.resources[res] -= cost[res];
+  }
+}
+
 module.exports = {
 
   collectResource(game, p, hex) {
@@ -16,6 +35,7 @@ module.exports = {
         for (let j=0; j<hex.juncs.length; j++) {
           let junc = game.board.juncs[hex.juncs[j]];
           if (junc.owner > -1) {
+            console.log( game.state.players[junc.owner].lobbyData.name,'collects a',hex.resource);
             module.exports.collectResource(game, junc.owner, hex.num);
           }
         }
@@ -45,7 +65,7 @@ module.exports = {
     game.state.hasRolled = false;
   },
 
-  paveRoad : function(game, p, road) {
+  paveRoad : function(game, p, road, pay=true) {
     game.state.players[p].roads.push(road.num);
     road.owner = p;
   },
@@ -60,7 +80,7 @@ module.exports = {
     }
     if (!valid)
       throw Error('this junc is not adjacent');
-    module.exports.paveRoad(game,p,road);
+    module.exports.paveRoad(game,p,road,pay=false);
   },
 
   roll : function(game, r1, r2) {
@@ -72,7 +92,20 @@ module.exports = {
     console.log('roll='+(r1+r2));
   },
 
-  trySettle : function(game, p, junc) {
+  tradeWithBank : function(game, p, o_num, o_res, i_res) {
+    let player = game.state.players[p], rate = {};
+    rate[o_res] = player.bankTradeRates[o_res];
+    //console.log(rate);
+    if (o_res===i_res)
+      throw Error(`can't trade these resources:`);
+    if (o_num < rate[o_res])
+      throw Error(`bank rate: `+rate[o_res]);
+
+    spend(player, rate);
+    player.resources[i_res] += 1;
+  },
+
+  trySettle : function(game, p, junc, pay=true) {
     if (!junc.isSettleable)
       throw Error('junc cannot be settled');
     game.state.players[p].settlements.push(junc.num);
@@ -119,8 +152,14 @@ module.exports = {
   validatePlayer : function(game, p) {
     p = parseInt(p);
     if (isNaN(p) || p<0 || game.state.players.length<=p)
-      throw Error('invalid player: ', p);
+      throw Error('invalid player: '+p);
     return p;
+  },
+
+  validateResource : function(game, res) {
+    if (require('../config/catan.js').validateResource(game, res))
+      return res;
+    throw Error('invalid resource: '+res);
   },
 
   validateRoad : function(game, r) {

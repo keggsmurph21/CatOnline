@@ -346,6 +346,9 @@ module.exports = {
     let colors = _SCENARIOS[game.meta.settings.scenario].colors[i].slice(0);
     funcs.shuffle(colors);
     return colors.slice(0,game.state.players.length);
+  },
+  validateResource : function(game, resource) {
+    return _SCENARIOS[game.meta.settings.scenario].resources.hasOwnProperty(resource);
   }
 
 }

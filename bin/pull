@@ -10,8 +10,8 @@ exact URI) to generate javascript that will eventually be used by building the
 Catonline graph of accessible game states.
 
 usage:
-    $ ./scripts/pull         (-> stdout)
- or $ ./scripts/pull -o      (-> /config/states.js [RECOMMENDED])
+    $ ./scripts/pull           (-> /config/states.js [RECOMMENDED])
+ or $ ./scripts/pull -s        (-> stdout)
 '''
 
 # pip3 install requests
@@ -97,6 +97,12 @@ def get_state_graph( out ):
                 if col_name == 'name':
                     edge_name = replace_name( 'e', line[i] )
                     data['edges'][edge_name] = { 'name':edge_name }
+
+                    # make sure the testing capacity is there
+                    path = os.path.join('tests','commands',edge_name)
+                    with open(path, 'a'):
+                        os.utime(path)
+                        
                 elif col_name == 'source':
                     vertex_name = replace_name( 'v', line[i] )
                     data['vertices'][vertex_name]['edges'].append( edge_name )
