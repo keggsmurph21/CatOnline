@@ -45,13 +45,18 @@ do 1 force _e_roll 5 6
 #do 1 exec _e_build_city 55
 #do 1 exec _e_build_city 1
 do 1 exec _e_build_city 0
-do 1 exec _e_build_road -1
-do 1 exec _e_build_road test
-do 1 exec _e_build_road 400
-do 1 exec _e_build_road 1
-do 1 exec _e_build_road 20
+#do 1 exec _e_build_road -1
+#do 1 exec _e_build_road test
+#do 1 exec _e_build_road 400
+#do 1 exec _e_build_road 1
+#do 1 exec _e_build_road 20
 do 1 exec _e_build_road 2
-#do 1 exec _e_build_settlement
+do 1 exec _e_build_city 40
+#do 1 exec _e_build_settlement -1
+#do 1 exec _e_build_settlement test
+#do 1 exec _e_build_settlement 400
+do 1 exec _e_build_settlement 8
+do 1 exec _e_build_settlement 1
 #do 1 exec _e_buy_dc
 get all
 #check history

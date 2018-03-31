@@ -30,6 +30,23 @@ function pave(game, player, road, pay=true) {
 
   calculateLongestRoads(game);
 }
+function settle(game, player, junc, pay=true) {
+  if (!junc.isSettleable)
+    throw Error('junc cannot be settled');
+
+  if (pay) {
+    let cost = getCost(game, 'build', 'settlement');
+    spend(player, cost);
+  }
+
+  player.settlements.push(junc.num);
+  junc.owner = player.playerID;
+
+  junc.isSettleable = false;
+  funcs.juncGetAdjJuncs(game.board, junc.num).forEach( function(adj) {
+    game.board.juncs[adj].isSettleable = false;
+  });
+}
 function spend(player, cost) {
   if (!funcs.canAfford(player, cost))
     throw Error(`can't afford, insufficient funds (`+JSON.stringify(cost)+`)`);
@@ -119,6 +136,10 @@ module.exports = {
     pave(game, player, road, pay=false);
   },
 
+  initSettle : function(game, player, junc) {
+    settle(game, player, junc, pay=false);
+  },
+
   iterateTurn : function(game) {
     let turnset = (game.state.turn/game.state.players.length);
     game.state.isFirstTurn = false;
@@ -189,21 +210,13 @@ module.exports = {
   },
 
   settle : function(game, player, junc, pay=true) {
-    if (!junc.isSettleable)
-      throw Error('junc cannot be settled');
-
-    if (pay) {
-      let cost = getCost(game, 'build', 'road');
-      spend(player, cost);
+    // check if close to a road
+    for (let r=0; r<junc.roads.length; r++) {
+      let road = game.board.roads[junc.roads[r]];
+      if (road.owner === player.playerID)
+        return settle(game, player, junc);
     }
-
-    player.settlements.push(junc.num);
-    junc.owner = player.playerID;
-    
-    junc.isSettleable = false;
-    funcs.juncGetAdjJuncs(game.board, junc.num).forEach( function(adj) {
-      game.board.juncs[adj].isSettleable = false;
-    });
+    throw Error('you can only settle near your roads');
   },
 
   steal : function(game, player, from) {

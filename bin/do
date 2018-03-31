@@ -92,6 +92,7 @@ function parseInput(line, callback=()=>{}) {
           case ('all'):
             func = function(game, p) {
               return {
+                vp:           game.state.players[p].publicScore+' ('+game.state.players[p].privateScore+')',
                 vertex:       LOGIC.getFlags(game, p).vertex,
                 adjacents:    LOGIC.getAdjacentGameStates(game, p),
                 settlements:	game.state.players[p].settlements,
@@ -131,6 +132,9 @@ function parseInput(line, callback=()=>{}) {
               return LOGIC.getFlags(game, p).vertex;
             }
             break;
+          case ('vp'):
+            func = (game,p) => { return game.state.players[p].publicScore
+              +' ('+game.state.players[p].privateScore+')'; }
           default:
             error('unrecognized arguments:', args);
         }
