@@ -3,7 +3,7 @@ const fs = require('fs');
 
 function filter(path, keys) {const data = require(path)
     .filter( (value,key) => keys.includes(key) );
-  return JSON.stringify(data);
+  return JSON.stringify(data, null, 3);
 }
 
 function setup(collection, keys) {

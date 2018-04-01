@@ -21,6 +21,9 @@ function collectResource(game, player, hex) {
   if (res !== 'desert')
     player.resources[res] += 1;
 }
+function isGameOver(game) {
+  console.log('checking endgame conditions');
+}
 function pave(game, player, road, pay=true) {
   if (pay) {
     let cost = getCost(game, 'build', 'road');
@@ -29,6 +32,7 @@ function pave(game, player, road, pay=true) {
 
   player.roads.push(road.num);
   road.owner = player.playerID;
+  calcLongestRoad(game);
 }
 function settle(game, player, junc, pay=true) {
   if (!junc.isSettleable)
@@ -49,6 +53,8 @@ function settle(game, player, junc, pay=true) {
 
   player.publicScore += 1;
   player.privateScore+= 1;
+  calcLongestRoad(game);
+  isGameOver(game);
 }
 
 
@@ -145,10 +151,12 @@ function storeHistory(game, estring, args, ret) {
   game.state.history[index].push( estring + extra );
 }
 function calcLargestArmy(game) {
-  // console.log('calc largest army');
+  console.log('calc largest army');
+  isGameOver(game);
 }
 function calcLongestRoad(game) {
-  // console.log('calc longest road');
+  console.log('calc longest road');
+  isGameOver(game);
 }
 function updateGameStates(game) {
   let waiting = { forWho:[], forWhat:[] };
@@ -248,9 +256,7 @@ function validateResource(game, res) {
 }
 
 function validateRoad(game, r) {
-  console.log('before',r);
   r = parseInt(r);
-  console.log('after',r);
   if (isNaN(r) || r<0 || game.board.roads.length<=r)
     throw Error('invalid road: '+r);
   return game.board.roads[r];
@@ -280,6 +286,7 @@ const helpers = {
     let dc = game.board.dcdeck.pop(), except = {};
     if (dc === 'vp') {
       player.privateScore += 1;
+      isGameOver(game);
       except.vp = 0;
     } else {
       except[dc] = 1;
@@ -353,6 +360,7 @@ const helpers = {
 
     player.publicScore += 1;
     player.privateScore+= 1;
+    isGameOver(game);
   },
 
   initCollect(game, player) {
@@ -449,7 +457,7 @@ const helpers = {
         player.playedDCs.vp       += 1
         break;
       case ('knight'):
-        // do nothing here, depend on _e_knight_move_robber
+        calcLargestArmy(game);
         break;
       case ('monopoly'):
         let res = args;
@@ -582,9 +590,6 @@ module.exports = {
     player.vertex = edge.target;
     game.state.waiting = updateGameStates(game);
 
-    calcLongestRoad(game);
-    calcLargestArmy(game);
-
     for (let q=0; q<game.state.players.length; q++) {
       updateBuyOptions(game, player);
       updateCanPlay(player);
@@ -649,9 +654,8 @@ module.exports = {
         case ('resource'):
           e_args[a] = validateResource(game, args[a]);
           break;
-        args[a] = funcs.toInt(args[a]);
         case ('int'):
-          e_args[a] = args[a];
+          e_args[a] = funcs.toInt(args[a]);
           break;
         case ('hex'):
           e_args[a] = validateHex(game, args[a]);
@@ -660,7 +664,6 @@ module.exports = {
           e_args[a] = validatePlayer(game, args[a]);
           break;
         case ('road'):
-          console.log(args[a]);
           e_args[a] = validateRoad(game, args[a]);
           break;
         case ('settlement'):
