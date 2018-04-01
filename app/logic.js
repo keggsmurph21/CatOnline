@@ -1,6 +1,12 @@
 var funcs = require('./funcs.js');
 var config = require('../config/catan.js');
 
+function _calcLargestArmy(game) {
+  // console.log('calc largest army');
+}
+function _calcLongestRoad(game) {
+  // console.log('calc longest road');
+}
 function _getCanTradeBank(player) {
   for (let res in player.resources) {
     if (player.resources[res] >= player.bankTradeRates[res])
@@ -19,8 +25,10 @@ function _getFlags(game, i) {
     isRollSeven      : game.state.isRollSeven,
     hasRolled        : game.state.hasRolled,
     canSteal         : game.state.canSteal,
+    waitForDiscard   : game.state.waitForDiscard,
     tradeAccepted    : game.state.tradeAccepted,
     vertex           : player.vertex,
+    discard          : player.discard,
     canAcceptTrade   : player.canAcceptTrade,
     hasHeavyPurse    : player.hasHeavyPurse,
     canPlayDC        : player.canPlayDC,
@@ -52,13 +60,20 @@ function _storeHistory(game, edge, args) {
   let extra = (args.length > 1 ? ' '+args.slice(1).join(' ') : '')
   game.state.history[game.state.turn].push( edge.name + extra );
 }
-function _sumTotalDevCards(player) {
+function _sumDevCards(player) {
   let acc = 0;
   for (let dc in player.unplayedDCs) {
     acc += player.unplayedDCs[dc];
   }
   for (let dc in player.playedDCs) {
     acc += player.playedDCs[dc];
+  }
+  return acc;
+}
+function _sumResources(player) {
+  let acc = 0;
+  for (let res in player.resources) {
+    acc += player.resources[res];
   }
   return acc;
 }
@@ -78,9 +93,12 @@ function _updateGameStates(game) {
   return waiting;
 }
 function _updateBuyOptions(game, player) {
-  let buildable = config.getBuildObjects(game);
-  let buyable   = config.getBuyObjects(game);
 
+  // check if > 7 cards
+  player.hasHeavyPurse = (_sumResources(player) > 7);
+
+  // check build things
+  let buildable = config.getBuildObjects(game);
   for (let build in buildable) {
     let canAfford = funcs.canAfford(player, buildable[build].cost),
       propName = (build=='city' ? 'cities' : build+'s'),
@@ -89,11 +107,13 @@ function _updateBuyOptions(game, player) {
     player.canBuild[build] = canAfford && available;
   }
 
+  // check buy things
+  let buyable   = config.getBuyObjects(game);
   for (let buy in buyable) {
     switch (buy) {
       case ('dc'):
         let canAfford = funcs.canAfford(player, buyable.dc.cost),
-          available = _sumTotalDevCards(player) < buyable.dc.max;
+          available = _sumDevCards(player) < buyable.dc.max;
 
         player.canBuy.dc = canAfford && available;
         break;
@@ -187,6 +207,9 @@ module.exports = {
 
     player.vertex = edge.target;
     game.state.waiting = _updateGameStates(game);
+
+    _calcLongestRoad(game);
+    _calcLargestArmy(game);
 
     for (let q=0; q<game.state.players.length; q++) {
       _updateBuyOptions(game, player);

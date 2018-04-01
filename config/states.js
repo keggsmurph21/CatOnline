@@ -173,7 +173,8 @@ module.exports = {
       },
       "_v_end_turn": {
          edges: [
-            "_e_accept_trade_partner",
+            "_e_accept_trade_other",
+            "_e_roll_discard_other",
             "_e_take_turn"
          ],
          name: "_v_end_turn",
@@ -184,11 +185,11 @@ module.exports = {
          name: "_v_end_game",
          label: ""
       },
-      "_v_accept_trade_partner": {
+      "_v_accept_trade_other": {
          edges: [
-            "_e_after_trade_partner"
+            "_e_after_trade_other"
          ],
-         name: "_v_accept_trade_partner",
+         name: "_v_accept_trade_other",
          label: ""
       },
       "_v_play_rb": {
@@ -205,6 +206,14 @@ module.exports = {
          ],
          name: "_v_choose_2_roads",
          label: ""
+      },
+      "_v_discard_other": {
+         edges: [
+            "_e_roll_discard_other",
+            "_e_after_discard_other"
+         ],
+         name: "_v_discard_other",
+         label: ""
       }
    },
    edges: {
@@ -219,19 +228,19 @@ module.exports = {
          isCancel: false,
          label: ""
       },
-      "_e_accept_trade_partner": {
-         name: "_e_accept_trade_partner",
-         target: "_v_accept_trade_partner",
+      "_e_accept_trade_other": {
+         name: "_e_accept_trade_other",
+         target: "_v_accept_trade_other",
          evaluate: function (f) { return f.canAcceptTrade; },
          arguments: "",
-         execute: function (g,a) { let p=_.validatePlayer(g,a[0]); _.acceptTradeAsPartner(g,p); },
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]); _.acceptTradeAsOther(g,p); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
          label: ""
       },
-      "_e_after_trade_partner": {
-         name: "_e_after_trade_partner",
+      "_e_after_trade_other": {
+         name: "_e_after_trade_other",
          target: "_v_end_turn",
          evaluate: function (f) { return true; },
          arguments: "",
@@ -343,9 +352,9 @@ module.exports = {
       "_e_discard_move_robber": {
          name: "_e_discard_move_robber",
          target: "_v_move_robber",
-         evaluate: function (f) { return f.isCurrentPlayer; },
-         arguments: "",
-         execute: function (g,a) { throw Error('not implemented'); },
+         evaluate: function (f) { return f.isCurrentPlayer && f.isRollSeven && !f.waitForDiscard; },
+         arguments: "hex",
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), h=_.validateHex(g,a[1]); _.moveRobber(g,p,h); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -574,18 +583,29 @@ module.exports = {
       "_e_roll_discard": {
          name: "_e_roll_discard",
          target: "_v_discard",
-         evaluate: function (f) { return f.hasHeavyPurse; },
-         arguments: "",
-         execute: function (g,a) { throw Error('not implemented'); },
-         isPriority: true,
+         evaluate: function (f) { return f.discard > 0; },
+         arguments: "*",
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), trade=_.parseTrade(g,a.slice(1)); _.discard(g,p,trade.out); },
+         isPriority: false,
          isMulti: true,
+         isCancel: false,
+         label: ""
+      },
+      "_e_roll_discard_other": {
+         name: "_e_roll_discard_other",
+         target: "_v_discard_other",
+         evaluate: function (f) { return f.discard > 0; },
+         arguments: "*",
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), trade=_.parseTrade(g,a.slice(1)); _.discard(g,p,trade.out); },
+         isPriority: false,
+         isMulti: false,
          isCancel: false,
          label: ""
       },
       "_e_roll_move_robber": {
          name: "_e_roll_move_robber",
          target: "_v_move_robber",
-         evaluate: function (f) { return f.isCurrentPlayer && f.isWaitingFor && f.isRollSeven; },
+         evaluate: function (f) { return f.isCurrentPlayer && f.isRollSeven && !f.waitForDiscard; },
          arguments: "hex",
          execute: function (g,a) { let p=_.validatePlayer(g,a[0]), h=_.validateHex(g,a[1]); _.moveRobber(g,p,h); },
          isPriority: false,
@@ -598,7 +618,7 @@ module.exports = {
          target: "_v_steal",
          evaluate: function (f) { return f.canSteal; },
          arguments: "player",
-         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), q=_.validatePlayer(g,a[1]); if (p===q) throw Error(`you can't steal from youself!`); _.steal(g,p,q); },
+         execute: function (g,a) { let p=_.validatePlayer(g,a[0]), q=_.validatePlayer(g,a[1]); _.steal(g,p,q); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -619,6 +639,17 @@ module.exports = {
          name: "_e_to_root",
          target: "_v_root",
          evaluate: function (f) { return !f.isFirstTurn; },
+         arguments: "",
+         execute: function (g,a) { },
+         isPriority: true,
+         isMulti: false,
+         isCancel: false,
+         label: ""
+      },
+      "_e_after_discard_other": {
+         name: "_e_after_discard_other",
+         target: "_v_end_turn",
+         evaluate: function (f) { return true; },
          arguments: "",
          execute: function (g,a) { },
          isPriority: true,

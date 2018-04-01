@@ -5,9 +5,6 @@ function accrue(player, windfall) {
     player.resources[res] += windfall[res];
   }
 }
-function calculateLongestRoads(game) {
-  console.log('calc longest road');
-}
 function getCost(game, type, item) {
   const config = require('../config/catan');
   if (type==='build') {
@@ -27,8 +24,6 @@ function pave(game, player, road, pay=true) {
 
   player.roads.push(road.num);
   road.owner = player.playerID;
-
-  calculateLongestRoads(game);
 }
 function settle(game, player, junc, pay=true) {
   if (!junc.isSettleable)
@@ -46,6 +41,9 @@ function settle(game, player, junc, pay=true) {
   funcs.juncGetAdjJuncs(game.board, junc.num).forEach( function(adj) {
     game.board.juncs[adj].isSettleable = false;
   });
+
+  player.publicScore += 1;
+  player.privateScore+= 1;
 }
 function spend(player, cost) {
   if (!funcs.canAfford(player, cost))
@@ -53,6 +51,16 @@ function spend(player, cost) {
   for (let res in cost) {
     player.resources[res] -= cost[res];
   }
+}
+function sumObject(obj) {
+  let acc = 0;
+  for (let key in obj) {
+    acc += obj[key];
+  }
+  return acc;
+}
+function sumResources(player) {
+  return sumObject(player.resources);
 }
 function updateCanPlay(player, except={}) {
   for (let dc in player.unplayedDCs) {
@@ -69,7 +77,7 @@ module.exports = {
     module.exports.cancelTrade(game);
   },
 
-  acceptTradeAsPartner(game, player) {
+  acceptTradeAsOther(game, player) {
     spend(player, game.state.currentTrade.in);
     accrue(player, game.state.currentTrade.out);
 
@@ -123,6 +131,24 @@ module.exports = {
     }
   },
 
+  discard(game, player, cards) {
+    spend(player, cards);
+
+    let discarding = sumObject(cards);
+    if (discarding > player.discard)
+      throw Error('you only need to discard '+player.discard);
+
+    player.discard -= discarding;
+
+    game.state.waitForDiscard = false;
+    if (player.discard) {
+      for (let p=0; p<game.state.players.length; p++) {
+        if (game.state.players[p].discard > 0)
+          game.state.waitForDiscard = true;
+      }
+    }
+  },
+
   end(game) {
     console.log('game is over');
     throw Error('not implemented');
@@ -141,6 +167,9 @@ module.exports = {
 
     let cost = getCost(game, 'build', 'city');
     spend(player, cost);
+
+    player.publicScore += 1;
+    player.privateScore+= 1;
   },
 
   getLastSettlement : function(game, player) {
@@ -197,10 +226,10 @@ module.exports = {
   offerTrade : function(game, player, trade) {
     game.state.currentTrade = trade;
     for (let q=0; q<game.state.players.length; q++) {
-      let partner = game.state.players[q];
-      partner.canAcceptTrade = false;
-      if (player !== partner) {
-        partner.canAcceptTrade = funcs.canAfford(partner, trade.out);
+      let other = game.state.players[q];
+      other.canAcceptTrade = false;
+      if (player !== other) {
+        other.canAcceptTrade = funcs.canAfford(other, trade.out);
       }
     }
     //console.log('offer', trade);
@@ -241,6 +270,9 @@ module.exports = {
   },
 
   playDC(game, player, card, args) {
+    player.unplayedDCs[card]  -= 1;
+    player.playedDCs[card]    += 1;
+
     switch (card) {
       case ('vp'):
         player.publicScore        += 1;
@@ -267,7 +299,6 @@ module.exports = {
           module.exports.pave(game, player, args[1]);
         } catch (e) {
           player.roads = rollback;
-          calculateLongestRoads(game);
           throw e;
         }
         break;
@@ -278,8 +309,6 @@ module.exports = {
       default:
         throw Error('unrecognized development card: '+card);
     }
-    player.unplayedDCs[card]  -= 1;
-    player.playedDCs[card]    += 1;
     updateCanPlay(player);
   },
 
@@ -287,8 +316,19 @@ module.exports = {
     r1 = r1 || funcs.getRandomInt(min=1,max=6);
     r2 = r2 || funcs.getRandomInt(min=1,max=6);
     game.board.dice.values = [r1,r2];
-    game.state.isRollSeven = (r1+r2)===7;
     game.state.hasRolled   = true;
+    game.state.isRollSeven = false;
+    game.state.waitForDiscard = false;
+    if ((r1+r2) === 7) {
+      game.state.isRollSeven = true
+      for (let p=0; p<game.state.players.length; p++) {
+        let player = game.state.players[p];
+        if (player.hasHeavyPurse) {
+          game.state.waitForDiscard = true;
+          player.discard = Math.floor(sumResources(player)/2);
+        }
+      }
+    }
     console.log('roll='+(r1+r2));
   },
 
@@ -303,6 +343,8 @@ module.exports = {
   },
 
   steal : function(game, player, from) {
+    if (p===q)
+      throw Error(`you can't steal from youself!`);
     let juncs = game.board.hexes[game.board.robber].juncs;
     for (let j=0; j<juncs.length; j++) {
       if (game.board.juncs[juncs[j]].owner === from.playerID) {

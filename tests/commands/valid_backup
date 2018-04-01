@@ -36,7 +36,7 @@ do 0 force _e_roll 4 6
 do 0 exec _e_offer_trade 1 ore 1 wheat = 1 brick
 do 0 exec _e_cancel_trade
 do 0 exec _e_offer_trade 1 ore 1 wheat = 1 wood
-do 1 exec _e_accept_trade_other
+do 1 exec _e_accept_trade_partner
 do 0 exec _e_end_turn
 do 1 exec _e_take_turn
 do 1 force _e_roll 5 6
@@ -60,20 +60,42 @@ do 1 exec _e_build_settlement 1
 do 1 exec _e_buy_dc
 do 1 exec _e_end_turn
 do 0 exec _e_take_turn
-do 0 force _e_roll 1 5
-#get flags
-#get resources
-#get adj
-#do 1 exec _e_roll_discard_other 2 wheat 2 ore
-#do 1 exec _e_roll_discard_other 2 wheat 2 sheep
-#get resources
-#do 1 exec _e_roll_discard_other 1 brick
+do 0 force _e_roll 1 6
 do 0 exec _e_end_turn
 do 1 exec _e_take_turn
-do 1 force _e_roll 1 6
-get resources
-do 1 exec _e_roll_discard 2 wheat 2 sheep
-do 1 exec _e_roll_discard 1 brick
-get resources
-do 1 exec _e_discard_move_robber 12
+#do 1 exec _e_play_knight
+#get adjs
+#do 1 exec _e_cancel_knight
+#do 1 exec _e_play_knight
+#do 1 exec _e_knight_move_robber 0
+#do 1 exec _e_knight_move_robber 8
+#do 1 exec _e_steal_robber 0
+#get flags
+#get adj
+#check history
+#do 1 exec _e_play_monopoly
+#do 1 exec _e_cancel_monopoly
+#do 1 exec _e_play_monopoly
+#get resources
+#do 1 exec _e_play_monopoly_choose sheep
+#get resources
+#get adj
+#do 1 exec _e_play_yop
+#do 1 exec _e_cancel_yop
+#do 1 exec _e_play_yop
+#get resources
+#do 1 exec _e_play_yop_choose sheep ore
+#get resources
+#get adj
+do 1 exec _e_play_rb
+do 1 exec _e_cancel_rb
+do 1 exec _e_play_rb
+#get roads
+#do 1 exec _e_play_rb_choose -1 3
+#do 1 exec _e_play_rb_choose test 3
+#do 1 exec _e_play_rb_choose 400 3
+#do 1 exec _e_play_rb_choose 1 3
+#do 1 exec _e_play_rb_choose 2 3
+do 1 exec _e_play_rb_choose 3 4
+#get roads
 get adj

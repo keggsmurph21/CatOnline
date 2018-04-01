@@ -53,6 +53,7 @@ var GameSchema = mongoose.Schema({
     },
     canSteal: Boolean,
     tradeAccepted: Boolean,
+    waitForDiscard: Boolean,
     currentTrade: {
       in: Object,
       out:Object
@@ -80,6 +81,7 @@ var GameSchema = mongoose.Schema({
 
       // values to power flags
       isHuman: Boolean,
+      discard: Number,
       canAcceptTrade : Boolean,
       hasHeavyPurse : Boolean,
       bankTradeRates: Object, // { $RES : Number }

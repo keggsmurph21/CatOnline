@@ -943,6 +943,7 @@ module.exports = {
       initialGameConditions : null,
       hasRolled : false,
       tradeAccepted : false,
+      waitForDiscard : false,
       canSteal : false,
       currentTrade: {
         in: null,
@@ -957,6 +958,7 @@ module.exports = {
       vertex: '_v_end_turn',
 
       isHuman: null,
+      discard: 0,
       canAcceptTrade : false,
       hasHeavyPurse : false,
       bankTradeRates: 4, // build
