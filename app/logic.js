@@ -22,12 +22,16 @@ function collectResource(game, player, hex) {
     player.resources[res] += 1;
 }
 function isGameOver(game) {
-  console.log('checking endgame conditions');
+  for (let p=0; p<game.state.players.length; p++) {
+    if (game.state.players[p].privateScore >= game.meta.settings.victoryPointsGoal)
+      game.state.isGameOver = true;
+  }
 }
 function pave(game, player, road, pay=true) {
   if (pay) {
     let cost = getCost(game, 'build', 'road');
     spend(player, cost);
+    updateBuyOptions(game, player);
   }
 
   player.roads.push(road.num);
@@ -41,6 +45,7 @@ function settle(game, player, junc, pay=true) {
   if (pay) {
     let cost = getCost(game, 'build', 'settlement');
     spend(player, cost);
+    updateBuyOptions(game, player);
   }
 
   player.settlements.push(junc.num);
@@ -94,7 +99,7 @@ function getFlags(game, i) {
     discard          : player.discard,
     canAcceptTrade   : player.canAcceptTrade,
     hasHeavyPurse    : player.hasHeavyPurse,
-    canPlayDC        : player.canPlayDC,
+    canPlayDC        : {},
     canBuild         : player.canBuild,
     canBuy           : player.canBuy,
     canTradeBank     : getCanTradeBank(player),
@@ -103,6 +108,9 @@ function getFlags(game, i) {
     isWaitingFor     : false
   }
   //console.log('flags', data);
+  for (let dc in player.unplayedDCs) {
+    data.canPlayDC[dc] = (player.unplayedDCs[dc] > 0);
+  }
   for (let i=0; i<game.state.waiting.forWho.length; i++) {
     if (funcs.usersCheckEqual(game.state.waiting.forWho[i], player.lobbyData))
       data.isWaitingFor = true;
@@ -129,6 +137,7 @@ function sumObject(obj) {
 }
 function sumDevCards(player) {
   let acc = 0;
+  acc += sumObject(player.unplayableDCs);
   acc += sumObject(player.unplayedDCs);
   acc += sumObject(player.playedDCs);
   return acc;
@@ -147,8 +156,17 @@ function storeHistory(game, estring, args, ret) {
   let index = (estring === '_e_end_turn' ? game.state.turn - 1 : game.state.turn);
   let extra = '';
   if (args) {
-    if (args.length > 1)
-      extra += ' '+args.slice(1).join(' ');
+    try {
+      extra += ' '+args.map((arg)=>{ return (arg.num!==undefined ? arg.num : arg); }).join(' ');
+    } catch (e) { // catch objects (i.e. trades)
+      for (let res in args.out) {
+        extra += ' '+args.out[res]+' '+res;
+      }
+      extra += ' =';
+      for (let res in args.in) {
+        extra += ' '+args.in[res]+' '+res;
+      }
+    }
   }
   if (ret !== undefined)
     extra += ' >> '+JSON.stringify(ret);
@@ -156,7 +174,25 @@ function storeHistory(game, estring, args, ret) {
   game.state.history[index].push( estring + extra );
 }
 function calcLargestArmy(game) {
-  console.log('calc largest army');
+  let la = game.state.hasLargestArmy;
+
+  // first get the largest army (num knights)
+  for (let p=0; p<game.state.players.length; p++) {
+    let player = game.state.players[p];
+    if (player.playedDCs.knight > game.state.largestArmy) {
+      game.state.largestArmy = player.playedDCs.knight;
+      if (la !== player.playerID) {
+        if (la > -1) {
+          game.state.players[la].publicScore -= 2;
+          game.state.players[la].privateScore-= 2;
+        }
+        game.state.hasLargestArmy = player.playerID;
+        player.publicScore += 2;
+        player.privateScore+= 2;
+      }
+    }
+  }
+
   isGameOver(game);
 }
 function calcLongestRoad(game) {
@@ -179,7 +215,7 @@ function updateGameStates(game) {
   return waiting;
 }
 function updateBuyOptions(game, player) {
-
+  //console.log('update buy options');
   // check if > 7 cards
   player.hasHeavyPurse = (sumResources(player) > 7);
 
@@ -208,12 +244,6 @@ function updateBuyOptions(game, player) {
     }
   }
 }
-function updateCanPlay(player, except={}) {
-  for (let dc in player.unplayedDCs) {
-    player.canPlayDC[dc] = (player.unplayedDCs[dc] - (except[dc]||0) > 0);
-  }
-}
-
 
 
 function parseTrade(game, args) {
@@ -273,6 +303,7 @@ const helpers = {
   acceptTradeAsOffer(game, player) {
     spend(player, game.state.currentTrade.out);
     accrue(player, game.state.currentTrade.in);
+    updateBuyOptions(game, player);
 
     helpers.cancelTrade(game);
   },
@@ -280,6 +311,7 @@ const helpers = {
   acceptTradeAsOther(game, player) {
     spend(player, game.state.currentTrade.in);
     accrue(player, game.state.currentTrade.out);
+    updateBuyOptions(game, player);
 
     game.state.tradeAccepted = true;
   },
@@ -287,18 +319,18 @@ const helpers = {
   buyDevCard(game, player) {
     let cost = getCost(game, 'buy', 'dc');
     spend(player, cost);
+    updateBuyOptions(game, player);
 
-    let dc = game.board.dcdeck.pop(), except = {};
+    if (!game.board.dcdeck.length)
+      throw Error('no more dev cards');
+    let dc = game.board.dcdeck.pop();
     if (dc === 'vp') {
+      player.unplayedDCs[dc] += 1;
       player.privateScore += 1;
       isGameOver(game);
-      except.vp = 0;
     } else {
-      except[dc] = 1;
+      player.unplayableDCs[dc] += 1;
     }
-
-    player.unplayedDCs[dc] += 1;
-    updateCanPlay(player, except);
   },
 
   cancelTrade(game) {
@@ -319,6 +351,7 @@ const helpers = {
           if (junc.owner > -1) {
             let player = game.state.players[junc.owner];
             collectResource(game, player, hex.num);
+            updateBuyOptions(game, player);
             //console.log( player.lobbyData.name,'collects a',hex.resource);
           }
         }
@@ -327,11 +360,12 @@ const helpers = {
   },
 
   discard(game, player, cards) {
-    spend(player, cards);
-
     let discarding = sumObject(cards);
     if (discarding > player.discard)
       throw Error('you only need to discard '+player.discard);
+
+    spend(player, cards);
+    updateBuyOptions(game, player);
 
     player.discard -= discarding;
 
@@ -362,6 +396,7 @@ const helpers = {
 
     let cost = getCost(game, 'build', 'city');
     spend(player, cost);
+    updateBuyOptions(game, player);
 
     player.publicScore += 1;
     player.privateScore+= 1;
@@ -373,6 +408,7 @@ const helpers = {
     for (let h in game.board.juncs[j].hexes) {
       collectResource(game, player, game.board.juncs[j].hexes[h]);
     }
+    updateBuyOptions(game, player);
   },
 
   initPave(game, player, road) {
@@ -394,18 +430,27 @@ const helpers = {
     settle(game, player, junc, pay=false);
   },
 
-  iterateTurn(game) {
+  iterateTurn(game, player) {
     let turnset = (game.state.turn/game.state.players.length);
-    game.state.isFirstTurn = false;
-    game.state.isSecondTurn = false;
     if (turnset < 1) {
       game.state.isFirstTurn  = true;
+      game.state.isSecondTurn = false;
+      game.state.currentPlayerID = game.state.turn % game.state.players.length;
     } else if (turnset < 2) {
+      game.state.isFirstTurn  = false;
       game.state.isSecondTurn = true;
+      game.state.currentPlayerID-= game.state.turn % game.state.players.length;
+    } else {
+      game.state.isFirstTurn  = false;
+      game.state.isSecondTurn = false;
+      game.state.currentPlayerID = game.state.turn % game.state.players.length;
     }
-    game.state.currentPlayerID = game.state.turn % game.state.players.length;
     game.state.turn += 1;
     game.state.hasRolled = false;
+    for (let dc in player.unplayableDCs) {
+      player.unplayedDCs[dc] += player.unplayableDCs[dc];
+      player.unplayableDCs[dc] = 0;
+    }
   },
 
   moveRobber(game, player, hex) {
@@ -428,7 +473,7 @@ const helpers = {
       let other = game.state.players[q];
       other.canAcceptTrade = false;
       if (player !== other) {
-        other.canAcceptTrade = funcs.canAfford(other, trade.out);
+        other.canAcceptTrade = funcs.canAfford(other, trade.in);
       }
     }
     //console.log('offer', trade);
@@ -457,19 +502,20 @@ const helpers = {
     switch (card) {
       case ('vp'):
         player.publicScore        += 1;
-        player.unplayedDCs.vp     -= 1;
-        player.playedDCs.vp       += 1
-        break;
+        return;
+
       case ('knight'):
         calcLargestArmy(game);
         break;
       case ('monopoly'):
         let res = args;
         for (let p=0; p<game.state.players.length; p++) {
-          if (p !== player.playerID) {
-            let from = game.state.players[p];
-            player.resources[res] += from.resources[res];
-            from.resources[res]    = 0;
+          let other = game.state.players[p];
+          if (other !== player) {
+            player.resources[res] += other.resources[res];
+            other.resources[res]    = 0;
+            updateBuyOptions(game, player);
+            updateBuyOptions(game, other);
           }
         }
         break;
@@ -486,11 +532,18 @@ const helpers = {
       case ('yop'):
         player.resources[args[0]] += 1;
         player.resources[args[1]] += 1;
+        updateBuyOptions(game, player);
         break;
+
       default:
         throw Error('unrecognized development card: '+card);
     }
-    updateCanPlay(player);
+    for (let dc in player.unplayedDCs) {
+      if (dc !== 'vp') {
+        player.unplayableDCs[dc] += player.unplayedDCs[dc];
+        player.unplayedDCs[dc] = 0;
+      }
+    }
   },
 
   roll(game, r1, r2) {
@@ -510,7 +563,7 @@ const helpers = {
         }
       }
     }
-    return r1+r2;
+    return game.board.dice.values;
     //console.log('roll='+(r1+r2));
   },
 
@@ -524,21 +577,25 @@ const helpers = {
     throw Error('you can only settle near your roads');
   },
 
-  steal(game, player, from) {
-    if (p===q)
+  steal(game, player, other) {
+    if (player === other)
       throw Error(`you can't steal from youself!`);
     let juncs = game.board.hexes[game.board.robber].juncs;
     for (let j=0; j<juncs.length; j++) {
-      if (game.board.juncs[juncs[j]].owner === from.playerID) {
+      if (game.board.juncs[juncs[j]].owner === other.playerID) {
         let list = [];
-        for (let res in from.resources) {
-          for (let i=0; i<from.resources[res]; i++) {
+        for (let res in other.resources) {
+          for (let i=0; i<other.resources[res]; i++) {
             list.push(res);
           }
         }
         let res = funcs.getRandomChoice(list);
         player.resources[res] += 1;
-        from.resources[res] -= 1;
+        other.resources[res] -= 1;
+
+        updateBuyOptions(game, player);
+        updateBuyOptions(game, other);
+
         return;
       }
     }
@@ -559,6 +616,7 @@ const helpers = {
 
     spend(player, trade.out);
     accrue(player, trade.in);
+    updateBuyOptions(game, player);
   },
 
   validateTrade(game, player, trade) {
@@ -595,9 +653,7 @@ module.exports = {
     game.state.waiting = updateGameStates(game);
 
     for (let q=0; q<game.state.players.length; q++) {
-      updateBuyOptions(game, player);
-      updateCanPlay(player);
-      for (let a in game.state.players[q].adjacents) {
+      for (let a=0; a<game.state.players[q].adjacents.length; a++) {
         let adj_estring = game.state.players[q].adjacents[a];
         if (config.getStateEdge(adj_estring).isPriority)
           module.exports.execute(game, q, adj_estring, []);

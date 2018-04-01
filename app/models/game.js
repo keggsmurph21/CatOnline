@@ -61,6 +61,11 @@ var GameSchema = mongoose.Schema({
     currentPlayerID: Number,
     hasRolled: Boolean,
 
+    largestArmy: Number,
+    hasLargestArmy: Number,
+    longestRoad: Number,
+    hasLongestRoad: Number,
+
     // player-specific state-values
     players: [ {
 
@@ -91,20 +96,20 @@ var GameSchema = mongoose.Schema({
 
       // other data
       playerID: Number,       // assign at launch
+      color: String,
+
       unplayableDCs: Object,  // { $DC : Number }
       unplayedDCs: Object,    // { $DC : Number }
       playedDCs: Object,      // { $DC : Number }
-      playedKnights: Number,
-      hasLargestArmy: Boolean,
+
       resources: Object,      // { $RES : Number }
       settlements: [ Number ],
       cities: [ Number ],
       roads: [ Number ],
       longestRoad: Number,
-      hasLongestRoad: Boolean,
+
       publicScore: Number,
-      privateScore: Number,
-      color: String
+      privateScore: Number
 
      } ]
   },

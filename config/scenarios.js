@@ -949,6 +949,10 @@ module.exports = {
         in: null,
         out:null
       },
+      largestArmy: 2,
+      hasLargestArmy: -1,
+      longestRoad: 4,
+      hasLongestRoad: -1,
       players: []
     },
     defaultPlayerState: {
@@ -969,14 +973,13 @@ module.exports = {
       unplayableDCs: 0, // build
       unplayedDCs: 0,		// build
       playedDCs: 0,		 // build
-      playedKnights: 0,
-      hasLargestArmy: false,
+
       resources: 0,		// build
       settlements: [],
       cities: [],
       roads: [],
       longestRoad: 0,
-      hasLongestRoad: false,
+
       publicScore: 0,
       privateScore: 0,
     },
