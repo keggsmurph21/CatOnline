@@ -145,8 +145,13 @@ function storeHistory(game, estring, args, ret) {
     game.state.history.push([]);
   }
   let index = (estring === '_e_end_turn' ? game.state.turn - 1 : game.state.turn);
-  let extra = (args.length > 1 ? ' '+args.slice(1).join(' ') : '')
-    + (ret===undefined ? '' : ' >> '+JSON.stringify(ret));
+  let extra = '';
+  if (args) {
+    if (args.length > 1)
+      extra += ' '+args.slice(1).join(' ');
+  }
+  if (ret !== undefined)
+    extra += ' >> '+JSON.stringify(ret);
 
   game.state.history[index].push( estring + extra );
 }
@@ -433,8 +438,7 @@ const helpers = {
     if (road.owner > -1)
       throw Error('road is already owned');
 
-    let valid = false, adjs = Array.from(
-      funcs.roadGetAdjRoads(game.board, road.num));
+    let valid = false, adjs = funcs.roadGetAdjRoads(game.board, road.num);
 
     for (let r=0; r<player.roads.length; r++) {
       if (adjs.indexOf(r) > -1)
@@ -594,9 +598,9 @@ module.exports = {
       updateBuyOptions(game, player);
       updateCanPlay(player);
       for (let a in game.state.players[q].adjacents) {
-        let adj = game.state.players[q].adjacents[a];
-        if (config.getStateEdge(adj).isPriority)
-          module.exports.execute(game, q, adj, []);
+        let adj_estring = game.state.players[q].adjacents[a];
+        if (config.getStateEdge(adj_estring).isPriority)
+          module.exports.execute(game, q, adj_estring, []);
       }
     }
 

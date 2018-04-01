@@ -162,7 +162,7 @@ module.exports = {
           adjs.add( hex );
       }
     }
-    return adjs;
+    return Array.from(adjs);
   },
   juncGetAdjJuncs : function(board, j) {
     let adjs = new Set();
@@ -173,7 +173,7 @@ module.exports = {
           adjs.add( junc );
       }
     }
-    return adjs;
+    return Array.from(adjs);
   },
   roadGetAdjRoads : function(board, r) {
     let adjs = new Set();
@@ -184,7 +184,7 @@ module.exports = {
           adjs.add( road );
       }
     }
-    return adjs;
+    return Array.from(adjs);
   },
   toInt : function(str) {
     let i = parseInt(str);

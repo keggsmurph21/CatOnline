@@ -36,7 +36,7 @@ var GameSchema = mongoose.Schema({
     initialGameConditions: Object,
     status: String,
     turn: Number,
-    history: [ Object ],
+    history: [ [ String ] ],
     isFirstTurn: Boolean,
     isSecondTurn: Boolean,
     isGameOver: Boolean,

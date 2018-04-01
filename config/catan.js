@@ -1,4 +1,5 @@
-// get core functionsconst funcs = require('../app/funcs.js');
+// get core functions
+const funcs = require('../app/funcs.js');
 
 // load config files
 const _NEW_GAME_FORM  = require('./newgame.js');
@@ -239,7 +240,7 @@ function buildInitialPlayerState(user, settings, isHuman, num) {
   let scenario = _SCENARIOS[settings.scenario],
     playerState = Object.assign({}, scenario.defaultPlayerState),
     bankTradeRates={}, canPlayDC={}, canBuild={}, canBuy={},
-    unplayableDCs, unplayedDCs={}, playedDCs={}, resources={};
+    unplayableDCs={}, unplayedDCs={}, playedDCs={}, resources={};
 
   for (let resource in scenario.resources) {
     if (!scenario.resources[resource].ignore) {
