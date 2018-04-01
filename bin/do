@@ -65,8 +65,9 @@ function parseInput(line, callback=()=>{}) {
 
 
     switch (command) {
+
       case ('do'):
-        let player_id = validatePlayer(args[0]);
+        let p = args[0];
         switch (args[1]) {
           case ('exec'):
           case ('force'):
@@ -75,9 +76,9 @@ function parseInput(line, callback=()=>{}) {
               ? LOGIC.validateEdgeArgs(game, edge, args.slice(3))
               : args.slice(3).map(a=>parseInt(a)));
 
-            if (!LOGIC.validateEdgeIsAdjacent(game, player_id, edge))
-              return error('player '+player_id+' is not adjacent to edge `'+edge+'`');
-            LOGIC.execute(game, player_id, edge, args);
+            if (!LOGIC.validateEdgeIsAdjacent(game, p, edge))
+              return error('player '+p+' is not adjacent to edge `'+edge+'`');
+            LOGIC.execute(game, p, edge, args);
             break;
 
           default:
@@ -108,7 +109,9 @@ function parseInput(line, callback=()=>{}) {
           case ('dc'):
           case ('dev cards'):
             func = (game,p) => {
-              return { unplayed:game.state.players[p].unplayedDCs,
+              return {
+                unplayable:game.state.players[p].unplayableDCs,
+                unplayed:game.state.players[p].unplayedDCs,
                 played:game.state.players[p].playedDCs };
             }
             break;
@@ -206,29 +209,24 @@ function parseInput(line, callback=()=>{}) {
         break;
 
       case ('set'):
-        let argstring = args.slice(1).join(' ');
-        if (!argstring.length)
-          return error('expected JSON arguments');
-        let values = JSON.parse(JSON.stringify(argstring));
-        console.log('values', JSON.stringify(values));
 
         switch (args[0]) {
           case ('state'):
-            game.state = values;
             break;
           case ('board'):
-            game.board = values
             break;
           case ('player'):
-            argstring = args.slice(2).join(' ');
-            values = (argstring.length ? JSON.parse(argstring) : {});
-            if (args[1]==='all') {
-              for (let p=0; p<game.state.players.length; p++) {
-                game.state.players[p] = values;
-              }
-            } else {
-              let p = validatePlayer(args[1]);
-              game.state.players[p] = values;
+            let player = LOGIC.helpers.validatePlayer(game, args[1]);
+
+            switch (args[2]) {
+              case ('resources'):
+                let set = LOGIC.helpers.parseTrade(game, args.slice(3)).out;
+                for (res in player.resources) {
+                  player.resources[res] = (set[res] || 0);
+                }
+                break;
+              default:
+                error('unrecognized set-player: '+args[2]);
             }
             break;
           default:

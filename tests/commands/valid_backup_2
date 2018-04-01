@@ -1,0 +1,145 @@
+#get all
+#do 0 exec _e_take_turn
+set player 1 resources 7 ore 5 brick 5 wood 6 wheat 5 sheep
+do 0 exec _e_init_settle 22
+do 0 exec _e_init_build_road 25
+#do 1 exec _e_take_turn
+do 1 exec _e_init_settle 0
+do 1 exec _e_init_build_road 1
+#do 0 exec _e_take_turn
+#do 1 exec _e_take_turn
+do 1 exec _e_init_settle 40
+do 1 exec _e_init2_build_road 57
+do 0 exec _e_init_settle 31
+do 0 exec _e_init2_build_road 37
+#do 0 exec _e_take_turn
+#do 0 exec _e_offer_trade
+#do 0 exec _e_trade_bank
+#do 0 exec _e_roll
+do 0 force _e_roll 4 1
+#do 0 exec _e_roll_move_robber 0
+#do 0 exec _e_steal_robber 1
+#do 0 exec _e_to_root
+do 0 exec _e_end_turn
+#do 1 exec _e_take_turn
+do 1 force _e_roll 4 1
+#do 1 exec _e_to_root
+do 1 exec _e_end_turn
+#do 0 exec _e_take_turn
+do 0 force _e_roll 4 6
+#do 0 exec _e_to_root
+#do 0 exec _e_trade_bank four wheat ore
+#do 0 exec _e_trade_bank 3 wheat ore
+#do 0 exec _e_trade_bank 4 sheep ore
+#do 0 exec _e_trade_bank 4 wheat wheat
+#do 0 exec _e_trade_bank 4 wheat = 1 ore
+#do 0 exec _e_to_root
+#do 0 exec _e_offer_trade 1 ore 1 wheat = 1 brick
+#do 0 exec _e_cancel_trade
+#do 0 exec _e_offer_trade 1 ore 1 wheat = 1 wood
+#do 1 exec _e_accept_trade_other
+do 0 exec _e_end_turn
+#do 1 exec _e_take_turn
+do 1 force _e_roll 5 6
+#do 1 exec _e_build_city -1
+#do 1 exec _e_build_city test
+#do 1 exec _e_build_city 55
+#do 1 exec _e_build_city 1
+do 1 exec _e_build_city 0
+#do 1 exec _e_build_road -1
+#do 1 exec _e_build_road test
+#do 1 exec _e_build_road 400
+#do 1 exec _e_build_road 1
+#do 1 exec _e_build_road 20
+do 1 exec _e_build_road 2
+do 1 exec _e_build_city 40
+#do 1 exec _e_build_settlement -1
+#do 1 exec _e_build_settlement test
+#do 1 exec _e_build_settlement 400
+#do 1 exec _e_build_settlement 8
+do 1 exec _e_build_settlement 1
+#get resources
+do 1 exec _e_buy_dc
+do 1 exec _e_end_turn
+#do 0 exec _e_take_turn
+do 0 force _e_roll 1 5
+#get flags
+#get resources
+#get adj
+#do 1 exec _e_roll_discard_other 2 wheat 2 ore
+#do 1 exec _e_roll_discard_other 2 wheat 2 sheep
+#get resources
+#do 1 exec _e_roll_discard_other 1 brick
+do 0 exec _e_end_turn
+#do 1 exec _e_take_turn
+set player 1 resources 5 wheat 5 sheep 5 ore
+do 1 force _e_roll 1 4
+#get resources
+#do 1 exec _e_roll_discard 3 brick 2 wood
+#get resources
+#get resources
+#get adj
+#do 1 exec _e_discard_move_robber 12
+do 1 exec _e_buy_dc
+do 1 exec _e_buy_dc
+do 1 exec _e_buy_dc
+do 1 exec _e_buy_dc
+do 1 exec _e_buy_dc
+#get adj
+#check history
+do 1 exec _e_play_vp
+do 1 exec _e_end_turn
+do 0 force _e_roll 1 2
+do 0 exec _e_end_turn
+do 1 exec _e_play_knight
+do 1 exec _e_knight_move_robber 7
+do 1 force _e_roll 1 1
+do 1 exec _e_end_turn
+do 0 force _e_roll 2 2
+do 0 exec _e_end_turn
+do 1 exec _e_play_vp
+do 1 exec _e_play_monopoly
+do 1 exec _e_play_monopoly_choose wheat
+do 1 force _e_roll 6 6
+do 1 exec _e_offer_trade 1 wheat = 1 ore
+do 0 exec _e_accept_trade_other
+do 1 exec _e_buy_dc
+do 1 exec _e_end_turn
+do 0 force _e_roll 6 4
+do 0 exec _e_end_turn
+do 1 force _e_roll 6 3
+do 1 exec _e_play_yop
+do 1 exec _e_play_yop_choose ore ore
+do 1 exec _e_buy_dc
+do 1 exec _e_end_turn
+do 0 force _e_roll 6 2
+do 0 exec _e_end_turn
+do 1 force _e_roll 4 2
+do 1 exec _e_play_knight
+do 1 exec _e_knight_move_robber 8
+do 1 exec _e_steal_robber 0
+do 1 exec _e_offer_trade 1 brick = 1 wheat 1 sheep
+do 0 exec _e_accept_trade_other
+do 1 exec _e_buy_dc
+do 1 exec _e_end_turn
+do 0 force _e_roll 6 5
+do 0 exec _e_end_turn
+do 1 force _e_roll 4 1
+do 1 exec _e_play_yop
+do 1 exec _e_play_yop_choose ore ore
+get resources
+do 1 exec _e_buy_dc
+do 1 exec _e_end_turn
+do 0 force _e_roll 3 1
+do 0 exec _e_end_turn
+do 1 force _e_roll 2 1
+do 1 exec _e_offer_trade 1 brick = 1 wheat 1 ore
+do 0 exec _e_accept_trade_other
+do 1 exec _e_play_vp
+do 1 exec _e_end_turn
+do 0 force _e_roll 1 1
+do 0 exec _e_end_turn
+get dc
+get resources
+get adj
+#get flags

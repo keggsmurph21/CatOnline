@@ -1,21 +1,14 @@
-#get all
-#do 0 exec _e_take_turn
 set player 0 resources 15 ore 15 wheat 15 sheep
 set player 1 resources 15 ore 15 wheat 15 sheep
-get vp
 do 0 exec _e_init_settle 22
 do 0 exec _e_init_build_road 25
-#do 1 exec _e_take_turn
 do 1 exec _e_init_settle 0
 do 1 exec _e_init_build_road 1
-#do 0 exec _e_take_turn
-#do 1 exec _e_take_turn
 do 1 exec _e_init_settle 40
 do 1 exec _e_init2_build_road 57
 do 0 exec _e_init_settle 31
 do 0 exec _e_init2_build_road 37
 do 0 force _e_roll 2 4
-get vp
 do 0 exec _e_buy_dc
 do 0 exec _e_buy_dc
 do 0 exec _e_buy_dc
@@ -52,7 +45,6 @@ do 1 force _e_roll 6 6
 do 1 exec _e_play_knight
 do 1 exec _e_knight_move_robber 2
 do 1 exec _e_end_turn
-get vp
 do 0 force _e_roll 6 6
 do 0 exec _e_play_knight
 do 0 exec _e_knight_move_robber 0
@@ -61,7 +53,6 @@ do 1 force _e_roll 6 6
 do 1 exec _e_play_knight
 do 1 exec _e_knight_move_robber 2
 do 1 exec _e_end_turn
-get vp
 do 0 force _e_roll 6 6
 do 0 exec _e_play_knight
 do 0 exec _e_knight_move_robber 0
@@ -70,7 +61,6 @@ do 1 force _e_roll 6 6
 do 1 exec _e_play_knight
 do 1 exec _e_knight_move_robber 2
 do 1 exec _e_end_turn
-get vp
 do 0 force _e_roll 6 6
 do 0 exec _e_play_knight
 do 0 exec _e_knight_move_robber 0
@@ -79,14 +69,8 @@ do 1 force _e_roll 6 6
 do 1 exec _e_play_knight
 do 1 exec _e_knight_move_robber 2
 do 1 exec _e_end_turn
-get vp
 do 0 force _e_roll 6 6
-#do 0 exec _e_play_knight
-#do 0 exec _e_knight_move_robber 0
 do 0 exec _e_end_turn
 do 1 force _e_roll 6 6
 do 1 exec _e_play_knight
 do 1 exec _e_knight_move_robber 3
-get vp
-#get resources
-#get adj

@@ -1,35 +1,35 @@
 [
    {
       "_id": {
-         "$oid": "5ac03d590bd1a11564a80de9"
+         "$oid": "5ac1442be41fe902d0f97a3c"
       },
       "board": {
          "dcdeck": [
             "knight",
-            "yop",
+            "knight",
+            "knight",
+            "knight",
+            "knight",
+            "knight",
             "knight",
             "knight",
             "vp",
-            "yop",
+            "knight",
+            "knight",
             "knight",
             "monopoly",
             "knight",
-            "knight",
-            "knight",
-            "vp",
-            "vp",
-            "vp",
             "vp",
             "rb",
+            "vp",
             "knight",
+            "yop",
+            "yop",
             "knight",
-            "knight",
-            "knight",
-            "knight",
-            "knight",
+            "rb",
+            "vp",
             "monopoly",
-            "knight",
-            "rb"
+            "vp"
          ],
          "dice": {
             "values": [
@@ -40,11 +40,11 @@
          "hexes": [
             {
                "num": 0,
-               "resource": "brick",
-               "roll": 3,
-               "dots": 2,
+               "resource": "sheep",
+               "roll": 5,
+               "dots": 4,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e7b"
+                  "$oid": "5ac1442be41fe902d0f97ace"
                },
                "juncs": [
                   0,
@@ -57,11 +57,11 @@
             },
             {
                "num": 1,
-               "resource": "wood",
-               "roll": 4,
-               "dots": 3,
+               "resource": "brick",
+               "roll": 11,
+               "dots": 2,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e7a"
+                  "$oid": "5ac1442be41fe902d0f97acd"
                },
                "juncs": [
                   1,
@@ -75,10 +75,10 @@
             {
                "num": 2,
                "resource": "wood",
-               "roll": 9,
-               "dots": 4,
+               "roll": 3,
+               "dots": 2,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e79"
+                  "$oid": "5ac1442be41fe902d0f97acc"
                },
                "juncs": [
                   2,
@@ -91,11 +91,11 @@
             },
             {
                "num": 3,
-               "resource": "brick",
-               "roll": 5,
-               "dots": 4,
+               "resource": "sheep",
+               "roll": 8,
+               "dots": 5,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e78"
+                  "$oid": "5ac1442be41fe902d0f97acb"
                },
                "juncs": [
                   7,
@@ -112,7 +112,7 @@
                "roll": 10,
                "dots": 3,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e77"
+                  "$oid": "5ac1442be41fe902d0f97aca"
                },
                "juncs": [
                   8,
@@ -125,11 +125,11 @@
             },
             {
                "num": 5,
-               "resource": "wood",
-               "roll": 6,
-               "dots": 5,
+               "resource": "sheep",
+               "roll": 5,
+               "dots": 4,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e76"
+                  "$oid": "5ac1442be41fe902d0f97ac9"
                },
                "juncs": [
                   9,
@@ -142,11 +142,11 @@
             },
             {
                "num": 6,
-               "resource": "sheep",
-               "roll": 5,
-               "dots": 4,
+               "resource": "wood",
+               "roll": 8,
+               "dots": 5,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e75"
+                  "$oid": "5ac1442be41fe902d0f97ac8"
                },
                "juncs": [
                   10,
@@ -159,11 +159,11 @@
             },
             {
                "num": 7,
-               "resource": "wood",
-               "roll": 8,
-               "dots": 5,
+               "resource": "wheat",
+               "roll": 4,
+               "dots": 3,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e74"
+                  "$oid": "5ac1442be41fe902d0f97ac7"
                },
                "juncs": [
                   16,
@@ -176,11 +176,11 @@
             },
             {
                "num": 8,
-               "resource": "sheep",
-               "roll": 12,
-               "dots": 1,
+               "resource": "ore",
+               "roll": 3,
+               "dots": 2,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e73"
+                  "$oid": "5ac1442be41fe902d0f97ac6"
                },
                "juncs": [
                   17,
@@ -193,11 +193,11 @@
             },
             {
                "num": 9,
-               "resource": "ore",
-               "roll": 10,
-               "dots": 3,
+               "resource": "wheat",
+               "roll": 9,
+               "dots": 4,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e72"
+                  "$oid": "5ac1442be41fe902d0f97ac5"
                },
                "juncs": [
                   18,
@@ -214,7 +214,7 @@
                "roll": 0,
                "dots": 0,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e71"
+                  "$oid": "5ac1442be41fe902d0f97ac4"
                },
                "juncs": [
                   19,
@@ -227,11 +227,11 @@
             },
             {
                "num": 11,
-               "resource": "wheat",
-               "roll": 6,
-               "dots": 5,
+               "resource": "wood",
+               "roll": 2,
+               "dots": 1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e70"
+                  "$oid": "5ac1442be41fe902d0f97ac3"
                },
                "juncs": [
                   20,
@@ -244,11 +244,11 @@
             },
             {
                "num": 12,
-               "resource": "wheat",
-               "roll": 2,
-               "dots": 1,
+               "resource": "ore",
+               "roll": 11,
+               "dots": 2,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e6f"
+                  "$oid": "5ac1442be41fe902d0f97ac2"
                },
                "juncs": [
                   28,
@@ -261,11 +261,11 @@
             },
             {
                "num": 13,
-               "resource": "wheat",
-               "roll": 11,
-               "dots": 2,
+               "resource": "brick",
+               "roll": 9,
+               "dots": 4,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e6e"
+                  "$oid": "5ac1442be41fe902d0f97ac1"
                },
                "juncs": [
                   29,
@@ -278,11 +278,11 @@
             },
             {
                "num": 14,
-               "resource": "brick",
-               "roll": 9,
-               "dots": 4,
+               "resource": "sheep",
+               "roll": 4,
+               "dots": 3,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e6d"
+                  "$oid": "5ac1442be41fe902d0f97ac0"
                },
                "juncs": [
                   30,
@@ -295,11 +295,11 @@
             },
             {
                "num": 15,
-               "resource": "ore",
-               "roll": 4,
+               "resource": "wheat",
+               "roll": 10,
                "dots": 3,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e6c"
+                  "$oid": "5ac1442be41fe902d0f97abf"
                },
                "juncs": [
                   31,
@@ -312,11 +312,11 @@
             },
             {
                "num": 16,
-               "resource": "sheep",
-               "roll": 8,
+               "resource": "ore",
+               "roll": 6,
                "dots": 5,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e6b"
+                  "$oid": "5ac1442be41fe902d0f97abe"
                },
                "juncs": [
                   39,
@@ -329,11 +329,11 @@
             },
             {
                "num": 17,
-               "resource": "ore",
-               "roll": 3,
-               "dots": 2,
+               "resource": "brick",
+               "roll": 12,
+               "dots": 1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e6a"
+                  "$oid": "5ac1442be41fe902d0f97abd"
                },
                "juncs": [
                   40,
@@ -346,11 +346,11 @@
             },
             {
                "num": 18,
-               "resource": "sheep",
-               "roll": 11,
-               "dots": 2,
+               "resource": "wood",
+               "roll": 6,
+               "dots": 5,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e69"
+                  "$oid": "5ac1442be41fe902d0f97abc"
                },
                "juncs": [
                   41,
@@ -369,7 +369,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e68"
+                  "$oid": "5ac1442be41fe902d0f97abb"
                },
                "hexes": [
                   0
@@ -389,7 +389,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e67"
+                  "$oid": "5ac1442be41fe902d0f97aba"
                },
                "hexes": [
                   1
@@ -409,7 +409,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e66"
+                  "$oid": "5ac1442be41fe902d0f97ab9"
                },
                "hexes": [
                   2
@@ -425,7 +425,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e65"
+                  "$oid": "5ac1442be41fe902d0f97ab8"
                },
                "hexes": [
                   0
@@ -445,7 +445,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e64"
+                  "$oid": "5ac1442be41fe902d0f97ab7"
                },
                "hexes": [
                   0,
@@ -463,7 +463,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e63"
+                  "$oid": "5ac1442be41fe902d0f97ab6"
                },
                "hexes": [
                   1,
@@ -485,7 +485,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e62"
+                  "$oid": "5ac1442be41fe902d0f97ab5"
                },
                "hexes": [
                   2
@@ -505,7 +505,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e61"
+                  "$oid": "5ac1442be41fe902d0f97ab4"
                },
                "hexes": [
                   0,
@@ -523,7 +523,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e60"
+                  "$oid": "5ac1442be41fe902d0f97ab3"
                },
                "hexes": [
                   0,
@@ -542,7 +542,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e5f"
+                  "$oid": "5ac1442be41fe902d0f97ab2"
                },
                "hexes": [
                   1,
@@ -561,7 +561,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e5e"
+                  "$oid": "5ac1442be41fe902d0f97ab1"
                },
                "hexes": [
                   2,
@@ -583,7 +583,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e5d"
+                  "$oid": "5ac1442be41fe902d0f97ab0"
                },
                "hexes": [
                   3
@@ -599,7 +599,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e5c"
+                  "$oid": "5ac1442be41fe902d0f97aaf"
                },
                "hexes": [
                   0,
@@ -618,7 +618,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e5b"
+                  "$oid": "5ac1442be41fe902d0f97aae"
                },
                "hexes": [
                   1,
@@ -637,7 +637,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e5a"
+                  "$oid": "5ac1442be41fe902d0f97aad"
                },
                "hexes": [
                   2,
@@ -660,7 +660,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e59"
+                  "$oid": "5ac1442be41fe902d0f97aac"
                },
                "hexes": [
                   6
@@ -676,7 +676,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e58"
+                  "$oid": "5ac1442be41fe902d0f97aab"
                },
                "hexes": [
                   3,
@@ -694,7 +694,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e57"
+                  "$oid": "5ac1442be41fe902d0f97aaa"
                },
                "hexes": [
                   3,
@@ -713,7 +713,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e56"
+                  "$oid": "5ac1442be41fe902d0f97aa9"
                },
                "hexes": [
                   4,
@@ -732,7 +732,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e55"
+                  "$oid": "5ac1442be41fe902d0f97aa8"
                },
                "hexes": [
                   5,
@@ -755,7 +755,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e54"
+                  "$oid": "5ac1442be41fe902d0f97aa7"
                },
                "hexes": [
                   6,
@@ -777,7 +777,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e53"
+                  "$oid": "5ac1442be41fe902d0f97aa6"
                },
                "hexes": [
                   7
@@ -793,7 +793,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e52"
+                  "$oid": "5ac1442be41fe902d0f97aa5"
                },
                "hexes": [
                   3,
@@ -812,7 +812,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e51"
+                  "$oid": "5ac1442be41fe902d0f97aa4"
                },
                "hexes": [
                   4,
@@ -831,7 +831,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e50"
+                  "$oid": "5ac1442be41fe902d0f97aa3"
                },
                "hexes": [
                   5,
@@ -850,7 +850,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e4f"
+                  "$oid": "5ac1442be41fe902d0f97aa2"
                },
                "hexes": [
                   6,
@@ -869,7 +869,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e4e"
+                  "$oid": "5ac1442be41fe902d0f97aa1"
                },
                "hexes": [
                   11
@@ -889,7 +889,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e4d"
+                  "$oid": "5ac1442be41fe902d0f97aa0"
                },
                "hexes": [
                   7
@@ -905,7 +905,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e4c"
+                  "$oid": "5ac1442be41fe902d0f97a9f"
                },
                "hexes": [
                   7,
@@ -924,7 +924,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e4b"
+                  "$oid": "5ac1442be41fe902d0f97a9e"
                },
                "hexes": [
                   8,
@@ -943,7 +943,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e4a"
+                  "$oid": "5ac1442be41fe902d0f97a9d"
                },
                "hexes": [
                   9,
@@ -962,7 +962,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e49"
+                  "$oid": "5ac1442be41fe902d0f97a9c"
                },
                "hexes": [
                   10,
@@ -981,7 +981,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e48"
+                  "$oid": "5ac1442be41fe902d0f97a9b"
                },
                "hexes": [
                   11
@@ -997,7 +997,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e47"
+                  "$oid": "5ac1442be41fe902d0f97a9a"
                },
                "hexes": [
                   7,
@@ -1015,7 +1015,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e46"
+                  "$oid": "5ac1442be41fe902d0f97a99"
                },
                "hexes": [
                   8,
@@ -1034,7 +1034,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e45"
+                  "$oid": "5ac1442be41fe902d0f97a98"
                },
                "hexes": [
                   9,
@@ -1053,7 +1053,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e44"
+                  "$oid": "5ac1442be41fe902d0f97a97"
                },
                "hexes": [
                   10,
@@ -1076,7 +1076,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e43"
+                  "$oid": "5ac1442be41fe902d0f97a96"
                },
                "hexes": [
                   11,
@@ -1098,7 +1098,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e42"
+                  "$oid": "5ac1442be41fe902d0f97a95"
                },
                "hexes": [
                   12
@@ -1114,7 +1114,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e41"
+                  "$oid": "5ac1442be41fe902d0f97a94"
                },
                "hexes": [
                   12,
@@ -1133,7 +1133,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e40"
+                  "$oid": "5ac1442be41fe902d0f97a93"
                },
                "hexes": [
                   13,
@@ -1152,7 +1152,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e3f"
+                  "$oid": "5ac1442be41fe902d0f97a92"
                },
                "hexes": [
                   14,
@@ -1175,7 +1175,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e3e"
+                  "$oid": "5ac1442be41fe902d0f97a91"
                },
                "hexes": [
                   15
@@ -1195,7 +1195,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e3d"
+                  "$oid": "5ac1442be41fe902d0f97a90"
                },
                "hexes": [
                   12,
@@ -1213,7 +1213,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e3c"
+                  "$oid": "5ac1442be41fe902d0f97a8f"
                },
                "hexes": [
                   13,
@@ -1232,7 +1232,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e3b"
+                  "$oid": "5ac1442be41fe902d0f97a8e"
                },
                "hexes": [
                   14,
@@ -1251,7 +1251,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e3a"
+                  "$oid": "5ac1442be41fe902d0f97a8d"
                },
                "hexes": [
                   15,
@@ -1269,7 +1269,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e39"
+                  "$oid": "5ac1442be41fe902d0f97a8c"
                },
                "hexes": [
                   16
@@ -1289,7 +1289,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e38"
+                  "$oid": "5ac1442be41fe902d0f97a8b"
                },
                "hexes": [
                   16,
@@ -1307,7 +1307,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e37"
+                  "$oid": "5ac1442be41fe902d0f97a8a"
                },
                "hexes": [
                   17,
@@ -1329,7 +1329,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e36"
+                  "$oid": "5ac1442be41fe902d0f97a89"
                },
                "hexes": [
                   18
@@ -1345,7 +1345,7 @@
                "port": null,
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e35"
+                  "$oid": "5ac1442be41fe902d0f97a88"
                },
                "hexes": [
                   16
@@ -1365,7 +1365,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e34"
+                  "$oid": "5ac1442be41fe902d0f97a87"
                },
                "hexes": [
                   17
@@ -1385,7 +1385,7 @@
                },
                "isSettleable": true,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e33"
+                  "$oid": "5ac1442be41fe902d0f97a86"
                },
                "hexes": [
                   18
@@ -1401,7 +1401,7 @@
                "num": 0,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e32"
+                  "$oid": "5ac1442be41fe902d0f97a85"
                },
                "juncs": [
                   3,
@@ -1412,7 +1412,7 @@
                "num": 1,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e31"
+                  "$oid": "5ac1442be41fe902d0f97a84"
                },
                "juncs": [
                   0,
@@ -1423,7 +1423,7 @@
                "num": 2,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e30"
+                  "$oid": "5ac1442be41fe902d0f97a83"
                },
                "juncs": [
                   4,
@@ -1434,7 +1434,7 @@
                "num": 3,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e2f"
+                  "$oid": "5ac1442be41fe902d0f97a82"
                },
                "juncs": [
                   1,
@@ -1445,7 +1445,7 @@
                "num": 4,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e2e"
+                  "$oid": "5ac1442be41fe902d0f97a81"
                },
                "juncs": [
                   5,
@@ -1456,7 +1456,7 @@
                "num": 5,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e2d"
+                  "$oid": "5ac1442be41fe902d0f97a80"
                },
                "juncs": [
                   2,
@@ -1467,7 +1467,7 @@
                "num": 6,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e2c"
+                  "$oid": "5ac1442be41fe902d0f97a7f"
                },
                "juncs": [
                   3,
@@ -1478,7 +1478,7 @@
                "num": 7,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e2b"
+                  "$oid": "5ac1442be41fe902d0f97a7e"
                },
                "juncs": [
                   4,
@@ -1489,7 +1489,7 @@
                "num": 8,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e2a"
+                  "$oid": "5ac1442be41fe902d0f97a7d"
                },
                "juncs": [
                   5,
@@ -1500,7 +1500,7 @@
                "num": 9,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e29"
+                  "$oid": "5ac1442be41fe902d0f97a7c"
                },
                "juncs": [
                   6,
@@ -1511,7 +1511,7 @@
                "num": 10,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e28"
+                  "$oid": "5ac1442be41fe902d0f97a7b"
                },
                "juncs": [
                   11,
@@ -1522,7 +1522,7 @@
                "num": 11,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e27"
+                  "$oid": "5ac1442be41fe902d0f97a7a"
                },
                "juncs": [
                   7,
@@ -1533,7 +1533,7 @@
                "num": 12,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e26"
+                  "$oid": "5ac1442be41fe902d0f97a79"
                },
                "juncs": [
                   12,
@@ -1544,7 +1544,7 @@
                "num": 13,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e25"
+                  "$oid": "5ac1442be41fe902d0f97a78"
                },
                "juncs": [
                   8,
@@ -1555,7 +1555,7 @@
                "num": 14,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e24"
+                  "$oid": "5ac1442be41fe902d0f97a77"
                },
                "juncs": [
                   13,
@@ -1566,7 +1566,7 @@
                "num": 15,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e23"
+                  "$oid": "5ac1442be41fe902d0f97a76"
                },
                "juncs": [
                   9,
@@ -1577,7 +1577,7 @@
                "num": 16,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e22"
+                  "$oid": "5ac1442be41fe902d0f97a75"
                },
                "juncs": [
                   14,
@@ -1588,7 +1588,7 @@
                "num": 17,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e21"
+                  "$oid": "5ac1442be41fe902d0f97a74"
                },
                "juncs": [
                   10,
@@ -1599,7 +1599,7 @@
                "num": 18,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e20"
+                  "$oid": "5ac1442be41fe902d0f97a73"
                },
                "juncs": [
                   11,
@@ -1610,7 +1610,7 @@
                "num": 19,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e1f"
+                  "$oid": "5ac1442be41fe902d0f97a72"
                },
                "juncs": [
                   12,
@@ -1621,7 +1621,7 @@
                "num": 20,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e1e"
+                  "$oid": "5ac1442be41fe902d0f97a71"
                },
                "juncs": [
                   13,
@@ -1632,7 +1632,7 @@
                "num": 21,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e1d"
+                  "$oid": "5ac1442be41fe902d0f97a70"
                },
                "juncs": [
                   14,
@@ -1643,7 +1643,7 @@
                "num": 22,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e1c"
+                  "$oid": "5ac1442be41fe902d0f97a6f"
                },
                "juncs": [
                   15,
@@ -1654,7 +1654,7 @@
                "num": 23,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e1b"
+                  "$oid": "5ac1442be41fe902d0f97a6e"
                },
                "juncs": [
                   21,
@@ -1665,7 +1665,7 @@
                "num": 24,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e1a"
+                  "$oid": "5ac1442be41fe902d0f97a6d"
                },
                "juncs": [
                   16,
@@ -1676,7 +1676,7 @@
                "num": 25,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e19"
+                  "$oid": "5ac1442be41fe902d0f97a6c"
                },
                "juncs": [
                   22,
@@ -1687,7 +1687,7 @@
                "num": 26,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e18"
+                  "$oid": "5ac1442be41fe902d0f97a6b"
                },
                "juncs": [
                   17,
@@ -1698,7 +1698,7 @@
                "num": 27,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e17"
+                  "$oid": "5ac1442be41fe902d0f97a6a"
                },
                "juncs": [
                   23,
@@ -1709,7 +1709,7 @@
                "num": 28,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e16"
+                  "$oid": "5ac1442be41fe902d0f97a69"
                },
                "juncs": [
                   18,
@@ -1720,7 +1720,7 @@
                "num": 29,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e15"
+                  "$oid": "5ac1442be41fe902d0f97a68"
                },
                "juncs": [
                   24,
@@ -1731,7 +1731,7 @@
                "num": 30,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e14"
+                  "$oid": "5ac1442be41fe902d0f97a67"
                },
                "juncs": [
                   19,
@@ -1742,7 +1742,7 @@
                "num": 31,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e13"
+                  "$oid": "5ac1442be41fe902d0f97a66"
                },
                "juncs": [
                   25,
@@ -1753,7 +1753,7 @@
                "num": 32,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e12"
+                  "$oid": "5ac1442be41fe902d0f97a65"
                },
                "juncs": [
                   20,
@@ -1764,7 +1764,7 @@
                "num": 33,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e11"
+                  "$oid": "5ac1442be41fe902d0f97a64"
                },
                "juncs": [
                   21,
@@ -1775,7 +1775,7 @@
                "num": 34,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e10"
+                  "$oid": "5ac1442be41fe902d0f97a63"
                },
                "juncs": [
                   22,
@@ -1786,7 +1786,7 @@
                "num": 35,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e0f"
+                  "$oid": "5ac1442be41fe902d0f97a62"
                },
                "juncs": [
                   23,
@@ -1797,7 +1797,7 @@
                "num": 36,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e0e"
+                  "$oid": "5ac1442be41fe902d0f97a61"
                },
                "juncs": [
                   24,
@@ -1808,7 +1808,7 @@
                "num": 37,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e0d"
+                  "$oid": "5ac1442be41fe902d0f97a60"
                },
                "juncs": [
                   25,
@@ -1819,7 +1819,7 @@
                "num": 38,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e0c"
+                  "$oid": "5ac1442be41fe902d0f97a5f"
                },
                "juncs": [
                   26,
@@ -1830,7 +1830,7 @@
                "num": 39,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e0b"
+                  "$oid": "5ac1442be41fe902d0f97a5e"
                },
                "juncs": [
                   27,
@@ -1841,7 +1841,7 @@
                "num": 40,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e0a"
+                  "$oid": "5ac1442be41fe902d0f97a5d"
                },
                "juncs": [
                   33,
@@ -1852,7 +1852,7 @@
                "num": 41,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e09"
+                  "$oid": "5ac1442be41fe902d0f97a5c"
                },
                "juncs": [
                   28,
@@ -1863,7 +1863,7 @@
                "num": 42,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e08"
+                  "$oid": "5ac1442be41fe902d0f97a5b"
                },
                "juncs": [
                   34,
@@ -1874,7 +1874,7 @@
                "num": 43,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e07"
+                  "$oid": "5ac1442be41fe902d0f97a5a"
                },
                "juncs": [
                   29,
@@ -1885,7 +1885,7 @@
                "num": 44,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e06"
+                  "$oid": "5ac1442be41fe902d0f97a59"
                },
                "juncs": [
                   35,
@@ -1896,7 +1896,7 @@
                "num": 45,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e05"
+                  "$oid": "5ac1442be41fe902d0f97a58"
                },
                "juncs": [
                   30,
@@ -1907,7 +1907,7 @@
                "num": 46,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e04"
+                  "$oid": "5ac1442be41fe902d0f97a57"
                },
                "juncs": [
                   36,
@@ -1918,7 +1918,7 @@
                "num": 47,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e03"
+                  "$oid": "5ac1442be41fe902d0f97a56"
                },
                "juncs": [
                   31,
@@ -1929,7 +1929,7 @@
                "num": 48,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e02"
+                  "$oid": "5ac1442be41fe902d0f97a55"
                },
                "juncs": [
                   37,
@@ -1940,7 +1940,7 @@
                "num": 49,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e01"
+                  "$oid": "5ac1442be41fe902d0f97a54"
                },
                "juncs": [
                   33,
@@ -1951,7 +1951,7 @@
                "num": 50,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80e00"
+                  "$oid": "5ac1442be41fe902d0f97a53"
                },
                "juncs": [
                   34,
@@ -1962,7 +1962,7 @@
                "num": 51,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80dff"
+                  "$oid": "5ac1442be41fe902d0f97a52"
                },
                "juncs": [
                   35,
@@ -1973,7 +1973,7 @@
                "num": 52,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80dfe"
+                  "$oid": "5ac1442be41fe902d0f97a51"
                },
                "juncs": [
                   36,
@@ -1984,7 +1984,7 @@
                "num": 53,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80dfd"
+                  "$oid": "5ac1442be41fe902d0f97a50"
                },
                "juncs": [
                   37,
@@ -1995,7 +1995,7 @@
                "num": 54,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80dfc"
+                  "$oid": "5ac1442be41fe902d0f97a4f"
                },
                "juncs": [
                   38,
@@ -2006,7 +2006,7 @@
                "num": 55,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80dfb"
+                  "$oid": "5ac1442be41fe902d0f97a4e"
                },
                "juncs": [
                   43,
@@ -2017,7 +2017,7 @@
                "num": 56,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80dfa"
+                  "$oid": "5ac1442be41fe902d0f97a4d"
                },
                "juncs": [
                   39,
@@ -2028,7 +2028,7 @@
                "num": 57,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df9"
+                  "$oid": "5ac1442be41fe902d0f97a4c"
                },
                "juncs": [
                   44,
@@ -2039,7 +2039,7 @@
                "num": 58,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df8"
+                  "$oid": "5ac1442be41fe902d0f97a4b"
                },
                "juncs": [
                   40,
@@ -2050,7 +2050,7 @@
                "num": 59,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df7"
+                  "$oid": "5ac1442be41fe902d0f97a4a"
                },
                "juncs": [
                   45,
@@ -2061,7 +2061,7 @@
                "num": 60,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df6"
+                  "$oid": "5ac1442be41fe902d0f97a49"
                },
                "juncs": [
                   41,
@@ -2072,7 +2072,7 @@
                "num": 61,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df5"
+                  "$oid": "5ac1442be41fe902d0f97a48"
                },
                "juncs": [
                   46,
@@ -2083,7 +2083,7 @@
                "num": 62,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df4"
+                  "$oid": "5ac1442be41fe902d0f97a47"
                },
                "juncs": [
                   43,
@@ -2094,7 +2094,7 @@
                "num": 63,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df3"
+                  "$oid": "5ac1442be41fe902d0f97a46"
                },
                "juncs": [
                   44,
@@ -2105,7 +2105,7 @@
                "num": 64,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df2"
+                  "$oid": "5ac1442be41fe902d0f97a45"
                },
                "juncs": [
                   45,
@@ -2116,7 +2116,7 @@
                "num": 65,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df1"
+                  "$oid": "5ac1442be41fe902d0f97a44"
                },
                "juncs": [
                   46,
@@ -2127,7 +2127,7 @@
                "num": 66,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80df0"
+                  "$oid": "5ac1442be41fe902d0f97a43"
                },
                "juncs": [
                   47,
@@ -2138,7 +2138,7 @@
                "num": 67,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80def"
+                  "$oid": "5ac1442be41fe902d0f97a42"
                },
                "juncs": [
                   51,
@@ -2149,7 +2149,7 @@
                "num": 68,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80dee"
+                  "$oid": "5ac1442be41fe902d0f97a41"
                },
                "juncs": [
                   48,
@@ -2160,7 +2160,7 @@
                "num": 69,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80ded"
+                  "$oid": "5ac1442be41fe902d0f97a40"
                },
                "juncs": [
                   52,
@@ -2171,7 +2171,7 @@
                "num": 70,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80dec"
+                  "$oid": "5ac1442be41fe902d0f97a3f"
                },
                "juncs": [
                   49,
@@ -2182,7 +2182,7 @@
                "num": 71,
                "owner": -1,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80deb"
+                  "$oid": "5ac1442be41fe902d0f97a3e"
                },
                "juncs": [
                   53,
@@ -2195,7 +2195,14 @@
       "state": {
          "status": "in-progress",
          "turn": 1,
-         "history": [],
+         "history": [
+            [],
+            [
+               [
+                  "_e_take_turn"
+               ]
+            ]
+         ],
          "isFirstTurn": true,
          "isSecondTurn": false,
          "isGameOver": false,
@@ -2203,18 +2210,18 @@
          "waiting": {
             "forWhat": [
                [
-                  "_e_take_turn"
+                  "_e_init_settle"
                ]
             ],
             "forWho": [
                {
                   "_id": {
-                     "$oid": "5ac03d6d0bd1a11564a80e7d"
+                     "$oid": "5ac14447e41fe902d0f97ad1"
                   },
-                  "id": "5a98c48230589500160b4318",
-                  "name": "ricky",
-                  "isAdmin": false,
-                  "isSuperAdmin": false,
+                  "id": "5a88f82d931f760c16c3417c",
+                  "name": "superadmin",
+                  "isAdmin": true,
+                  "isSuperAdmin": true,
                   "isMuted": false,
                   "flair": ""
                }
@@ -2224,30 +2231,30 @@
          "initialGameConditions": {
             "dcdeck": [
                "knight",
-               "yop",
+               "knight",
+               "knight",
+               "knight",
+               "knight",
+               "knight",
                "knight",
                "knight",
                "vp",
-               "yop",
+               "knight",
+               "knight",
                "knight",
                "monopoly",
                "knight",
-               "knight",
-               "knight",
-               "vp",
-               "vp",
-               "vp",
                "vp",
                "rb",
+               "vp",
                "knight",
+               "yop",
+               "yop",
                "knight",
-               "knight",
-               "knight",
-               "knight",
-               "knight",
+               "rb",
+               "vp",
                "monopoly",
-               "knight",
-               "rb"
+               "vp"
             ],
             "ports": [
                {
@@ -2307,28 +2314,24 @@
             ],
             "hexes": [
                {
-                  "roll": 3,
-                  "resource": "brick"
-               },
-               {
-                  "roll": 4,
-                  "resource": "wood"
-               },
-               {
-                  "roll": 9,
-                  "resource": "wood"
-               },
-               {
                   "roll": 5,
+                  "resource": "sheep"
+               },
+               {
+                  "roll": 11,
                   "resource": "brick"
+               },
+               {
+                  "roll": 3,
+                  "resource": "wood"
+               },
+               {
+                  "roll": 8,
+                  "resource": "sheep"
                },
                {
                   "roll": 10,
                   "resource": "wheat"
-               },
-               {
-                  "roll": 6,
-                  "resource": "wood"
                },
                {
                   "roll": 5,
@@ -2339,28 +2342,28 @@
                   "resource": "wood"
                },
                {
-                  "roll": 12,
-                  "resource": "sheep"
+                  "roll": 4,
+                  "resource": "wheat"
                },
                {
-                  "roll": 10,
+                  "roll": 3,
                   "resource": "ore"
+               },
+               {
+                  "roll": 9,
+                  "resource": "wheat"
                },
                {
                   "roll": 0,
                   "resource": "desert"
                },
                {
-                  "roll": 6,
-                  "resource": "wheat"
-               },
-               {
                   "roll": 2,
-                  "resource": "wheat"
+                  "resource": "wood"
                },
                {
                   "roll": 11,
-                  "resource": "wheat"
+                  "resource": "ore"
                },
                {
                   "roll": 9,
@@ -2368,19 +2371,23 @@
                },
                {
                   "roll": 4,
-                  "resource": "ore"
-               },
-               {
-                  "roll": 8,
                   "resource": "sheep"
                },
                {
-                  "roll": 3,
+                  "roll": 10,
+                  "resource": "wheat"
+               },
+               {
+                  "roll": 6,
                   "resource": "ore"
                },
                {
-                  "roll": 11,
-                  "resource": "sheep"
+                  "roll": 12,
+                  "resource": "brick"
+               },
+               {
+                  "roll": 6,
+                  "resource": "wood"
                }
             ]
          },
@@ -2392,10 +2399,15 @@
             "in": null,
             "out": null
          },
+         "largestArmy": 2,
+         "hasLargestArmy": -1,
+         "longestRoad": 4,
+         "hasLongestRoad": -1,
          "players": [
             {
-               "vertex": "_v_end_turn",
+               "vertex": "_v_root",
                "isHuman": true,
+               "discard": 0,
                "canAcceptTrade": false,
                "hasHeavyPurse": false,
                "bankTradeRates": {
@@ -2420,6 +2432,13 @@
                "canBuy": {
                   "dc": false
                },
+               "unplayableDCs": {
+                  "yop": 0,
+                  "rb": 0,
+                  "monopoly": 0,
+                  "knight": 0,
+                  "vp": 0
+               },
                "unplayedDCs": {
                   "yop": 0,
                   "rb": 0,
@@ -2434,8 +2453,6 @@
                   "knight": 0,
                   "vp": 0
                },
-               "playedKnights": 0,
-               "hasLargestArmy": false,
                "resources": {
                   "ore": 0,
                   "brick": 0,
@@ -2444,18 +2461,17 @@
                   "sheep": 0
                },
                "longestRoad": 0,
-               "hasLongestRoad": false,
                "publicScore": 0,
                "privateScore": 0,
                "playerID": 0,
                "_id": {
-                  "$oid": "5ac03d590bd1a11564a80dea"
+                  "$oid": "5ac1442be41fe902d0f97a3d"
                },
                "roads": [],
                "cities": [],
                "settlements": [],
                "adjacents": [
-                  "_e_take_turn"
+                  "_e_init_settle"
                ],
                "lobbyData": {
                   "id": "5a88f82d931f760c16c3417c",
@@ -2465,7 +2481,7 @@
                   "isMuted": false,
                   "flair": ""
                },
-               "color": "blue",
+               "color": "orange",
                "flags": {
                   "isGameOver": false,
                   "isFirstTurn": true,
@@ -2473,9 +2489,10 @@
                   "isRollSeven": false,
                   "hasRolled": false,
                   "canSteal": false,
-                  "waitForDiscard": null,
+                  "waitForDiscard": false,
                   "tradeAccepted": false,
-                  "vertex": "_v_end_turn",
+                  "vertex": "_v_root",
+                  "discard": 0,
                   "canAcceptTrade": false,
                   "hasHeavyPurse": false,
                   "canPlayDC": {
@@ -2496,12 +2513,13 @@
                   "canTradeBank": false,
                   "isHuman": true,
                   "isCurrentPlayer": true,
-                  "isWaitingFor": false
+                  "isWaitingFor": true
                }
             },
             {
                "vertex": "_v_end_turn",
                "isHuman": true,
+               "discard": 0,
                "canAcceptTrade": false,
                "hasHeavyPurse": false,
                "bankTradeRates": {
@@ -2526,6 +2544,13 @@
                "canBuy": {
                   "dc": false
                },
+               "unplayableDCs": {
+                  "yop": 0,
+                  "rb": 0,
+                  "monopoly": 0,
+                  "knight": 0,
+                  "vp": 0
+               },
                "unplayedDCs": {
                   "yop": 0,
                   "rb": 0,
@@ -2540,22 +2565,19 @@
                   "knight": 0,
                   "vp": 0
                },
-               "playedKnights": 0,
-               "hasLargestArmy": false,
                "resources": {
-                  "ore": 5,
-                  "brick": 5,
-                  "wood": 5,
-                  "wheat": 5,
-                  "sheep": 5
+                  "ore": 0,
+                  "brick": 0,
+                  "wood": 0,
+                  "wheat": 0,
+                  "sheep": 0
                },
                "longestRoad": 0,
-               "hasLongestRoad": false,
                "publicScore": 0,
                "privateScore": 0,
                "playerID": 1,
                "_id": {
-                  "$oid": "5ac03d6a0bd1a11564a80e7c"
+                  "$oid": "5ac14439e41fe902d0f97acf"
                },
                "roads": [],
                "cities": [],
@@ -2569,7 +2591,7 @@
                   "isMuted": false,
                   "flair": ""
                },
-               "color": "white",
+               "color": "red",
                "flags": {
                   "isGameOver": false,
                   "isFirstTurn": true,
@@ -2577,9 +2599,10 @@
                   "isRollSeven": false,
                   "hasRolled": false,
                   "canSteal": false,
-                  "waitForDiscard": null,
+                  "waitForDiscard": false,
                   "tradeAccepted": false,
                   "vertex": "_v_end_turn",
+                  "discard": 0,
                   "canAcceptTrade": false,
                   "hasHeavyPurse": false,
                   "canPlayDC": {
@@ -2615,10 +2638,10 @@
             "flair": ""
          },
          "created": {
-            "$date": "2018-04-01T02:00:57.869Z"
+            "$date": "2018-04-01T20:42:19.666Z"
          },
          "updated": {
-            "$date": "2018-04-01T02:01:17.737Z"
+            "$date": "2018-04-01T20:42:47.183Z"
          },
          "settings": {
             "scenario": "standard",
