@@ -82,7 +82,7 @@ function parseInput(line, callback=()=>{}) {
             break;
 
           default:
-            error('unrecognized arguments:', args);
+            error('unrecognized arguments: '+args);
         }
         break;
 
@@ -105,6 +105,13 @@ function parseInput(line, callback=()=>{}) {
           case ('adjs'):
           case ('adjacents'):
             func = LOGIC.getAdjacentGameStates;
+            break;
+          case ('dc'):
+          case ('dev cards'):
+            func = (game,p) => {
+              return { unplayed:game.state.players[p].unplayedDCs,
+                played:game.state.players[p].playedDCs };
+            }
             break;
           case ('flags'):
             func = LOGIC.getFlags;
@@ -135,8 +142,9 @@ function parseInput(line, callback=()=>{}) {
           case ('vp'):
             func = (game,p) => { return game.state.players[p].publicScore
               +' ('+game.state.players[p].privateScore+')'; }
+            break;
           default:
-            error('unrecognized arguments:', args);
+            error('unrecognized arguments: '+args);
         }
 
         console.log('[turn: '+game.state.turn+']');
@@ -165,6 +173,9 @@ function parseInput(line, callback=()=>{}) {
             break;
           case ('trade'):
             console.log(game.state.currentTrade);
+            break;
+          case ('robber'):
+            console.log(game.board.robber);
             break;
           default:
             error('unrecognized arguments:'+args);

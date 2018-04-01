@@ -943,6 +943,7 @@ module.exports = {
       initialGameConditions : null,
       hasRolled : false,
       tradeAccepted : false,
+      canSteal : false,
       currentTrade: {
         in: null,
         out:null

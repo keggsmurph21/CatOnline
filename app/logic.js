@@ -18,6 +18,7 @@ function _getFlags(game, i) {
     isSecondTurn     : game.state.isSecondTurn,
     isRollSeven      : game.state.isRollSeven,
     hasRolled        : game.state.hasRolled,
+    canSteal         : game.state.canSteal,
     tradeAccepted    : game.state.tradeAccepted,
     vertex           : player.vertex,
     canAcceptTrade   : player.canAcceptTrade,
@@ -101,6 +102,11 @@ function _updateBuyOptions(game, player) {
     }
   }
 }
+function _updateCanPlay(player, except={}) {
+  for (let dc in player.unplayedDCs) {
+    player.canPlayDC[dc] = (player.unplayedDCs[dc] - (except[dc]||0) > 0);
+  }
+}
 
 module.exports = {
 
@@ -158,7 +164,7 @@ module.exports = {
         case (''):
           return [];
         default:
-          throw Error('unrecognized argument type:',arg);
+          throw Error('unrecognized argument type: '+arg);
       }
     }
     return e_args;
@@ -184,6 +190,7 @@ module.exports = {
 
     for (let q=0; q<game.state.players.length; q++) {
       _updateBuyOptions(game, player);
+      _updateCanPlay(player);
       for (let a in game.state.players[q].adjacents) {
         let adj = game.state.players[q].adjacents[a];
         if (config.getStateEdge(adj).isPriority)

@@ -54,6 +54,11 @@ function spend(player, cost) {
     player.resources[res] -= cost[res];
   }
 }
+function updateCanPlay(player, except={}) {
+  for (let dc in player.unplayedDCs) {
+    player.canPlayDC[dc] = (player.unplayedDCs[dc] - (except[dc]||0) > 0);
+  }
+}
 
 module.exports = {
 
@@ -69,6 +74,22 @@ module.exports = {
     accrue(player, game.state.currentTrade.out);
 
     game.state.tradeAccepted = true;
+  },
+
+  buyDevCard(game, player) {
+    let cost = getCost(game, 'buy', 'dc');
+    spend(player, cost);
+
+    let dc = game.board.dcdeck.pop(), except = {};
+    if (dc === 'vp') {
+      player.privateScore += 1;
+      except.vp = 0;
+    } else {
+      except[dc] = 1;
+    }
+
+    player.unplayedDCs[dc] += 1;
+    updateCanPlay(player, except);
   },
 
   cancelTrade(game) {
@@ -100,6 +121,11 @@ module.exports = {
         }
       }
     }
+  },
+
+  end(game) {
+    console.log('game is over');
+    throw Error('not implemented');
   },
 
   fortify(game, player, junc) {
@@ -154,6 +180,20 @@ module.exports = {
     game.state.hasRolled = false;
   },
 
+  moveRobber(game, player, hex) {
+
+    if (hex.num===game.board.robber)
+      throw Error('robber is already here');
+    game.board.robber=hex.num;
+
+    // check if there is anyone to steal from
+    let juncs = game.board.hexes[game.board.robber].juncs;
+    for (let j=0; j<juncs.length; j++) {
+      let owner = game.board.juncs[juncs[j]].owner;
+      game.state.canSteal = (owner > -1 && owner !== player.playerID);
+    }
+  },
+
   offerTrade : function(game, player, trade) {
     game.state.currentTrade = trade;
     for (let q=0; q<game.state.players.length; q++) {
@@ -198,6 +238,49 @@ module.exports = {
       throw Error('this road is not adjacent');
 
     pave(game, player, road);
+  },
+
+  playDC(game, player, card, args) {
+    switch (card) {
+      case ('vp'):
+        player.publicScore        += 1;
+        player.unplayedDCs.vp     -= 1;
+        player.playedDCs.vp       += 1
+        break;
+      case ('knight'):
+        // do nothing here, depend on _e_knight_move_robber
+        break;
+      case ('monopoly'):
+        let res = args;
+        for (let p=0; p<game.state.players.length; p++) {
+          if (p !== player.playerID) {
+            let from = game.state.players[p];
+            player.resources[res] += from.resources[res];
+            from.resources[res]    = 0;
+          }
+        }
+        break;
+      case ('rb'):
+        let rollback = player.roads.slice(0);
+        try {
+          module.exports.pave(game, player, args[0]);
+          module.exports.pave(game, player, args[1]);
+        } catch (e) {
+          player.roads = rollback;
+          calculateLongestRoads(game);
+          throw e;
+        }
+        break;
+      case ('yop'):
+        player.resources[args[0]] += 1;
+        player.resources[args[1]] += 1;
+        break;
+      default:
+        throw Error('unrecognized development card: '+card);
+    }
+    player.unplayedDCs[card]  -= 1;
+    player.playedDCs[card]    += 1;
+    updateCanPlay(player);
   },
 
   roll : function(game, r1, r2) {

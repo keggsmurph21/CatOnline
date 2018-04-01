@@ -51,6 +51,7 @@ var GameSchema = mongoose.Schema({
         flair : String } ],
       forWhat: [ [ String ] ]
     },
+    canSteal: Boolean,
     tradeAccepted: Boolean,
     currentTrade: {
       in: Object,
