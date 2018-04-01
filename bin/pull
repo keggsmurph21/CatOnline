@@ -102,7 +102,7 @@ def get_state_graph( out ):
                     path = os.path.join('tests','commands',edge_name)
                     with open(path, 'a'):
                         os.utime(path)
-                        
+
                 elif col_name == 'source':
                     vertex_name = replace_name( 'v', line[i] )
                     data['vertices'][vertex_name]['edges'].append( edge_name )
@@ -114,8 +114,11 @@ def get_state_graph( out ):
                 elif col_name not in ignoreList:
                     data['edges'][edge_name][col_name] = line[i]
 
+
     # coerce the dict -> JSON -> js
     data = json.dumps(data,indent=3)
+    #
+    data = re.sub(r'_\.', r'require(`../app/logic`).helpers.', data);
     for item in [   'vertices', 'edges', 'evaluate',
                     'execute', 'isMulti', 'isPriority',
                     'isCancel', 'target', 'label',
@@ -124,7 +127,7 @@ def get_state_graph( out ):
     data = re.sub(r'"(func.*\})"', r'\1', data)
 
     # "roll that shit, write that shit, smoke it" - Method Man
-    out.write( 'const _=require("./helpers");\nmodule.exports = %s' % data )
+    out.write( 'module.exports = %s' % data )
 
 def replace_name( prefix, name ):
     '''

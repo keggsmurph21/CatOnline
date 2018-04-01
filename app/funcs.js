@@ -75,7 +75,7 @@ module.exports = {
       return next('require: Invalid user id '+id);
     }
   },
-  requireGameById : function(id, next) {
+$1(id, next) {
     // success: next( null, user )
     // failure: next( err|message )
     // note: fails on database error AND null result
