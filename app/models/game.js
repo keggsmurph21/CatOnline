@@ -91,6 +91,7 @@ var GameSchema = mongoose.Schema({
 
       // other data
       playerID: Number,       // assign at launch
+      unplayableDCs: Object,  // { $DC : Number }
       unplayedDCs: Object,    // { $DC : Number }
       playedDCs: Object,      // { $DC : Number }
       playedKnights: Number,

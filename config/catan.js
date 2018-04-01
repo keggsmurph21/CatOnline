@@ -238,8 +238,8 @@ function saveInitialGameBoardToState(game) {
 function buildInitialPlayerState(user, settings, isHuman, num) {
   let scenario = _SCENARIOS[settings.scenario],
     playerState = Object.assign({}, scenario.defaultPlayerState),
-    bankTradeRates={}, canPlayDC={}, canBuild={},
-    canBuy={}, unplayedDCs={}, playedDCs={}, resources={};
+    bankTradeRates={}, canPlayDC={}, canBuild={}, canBuy={},
+    unplayableDCs, unplayedDCs={}, playedDCs={}, resources={};
 
   for (let resource in scenario.resources) {
     if (!scenario.resources[resource].ignore) {
@@ -249,6 +249,7 @@ function buildInitialPlayerState(user, settings, isHuman, num) {
   }
   for (let dc in scenario.playObjects.dcs) {
     canPlayDC[dc] = playerState.canPlayDC;
+    unplayableDCs[dc] = playerState.unplayableDCs;
     unplayedDCs[dc] = playerState.unplayedDCs;
     playedDCs[dc] = playerState.playedDCs;
   }
@@ -265,6 +266,7 @@ function buildInitialPlayerState(user, settings, isHuman, num) {
   playerState.canPlayDC = canPlayDC;
   playerState.canBuild = canBuild;
   playerState.canBuy = canBuy;
+  playerState.unplayableDCs = unplayableDCs;
   playerState.unplayedDCs = unplayedDCs;
   playerState.playedDCs = playedDCs;
   playerState.resources = resources;

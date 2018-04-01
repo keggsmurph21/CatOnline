@@ -966,6 +966,7 @@ module.exports = {
       canBuild: false,   // build
       canBuy: false,		// build
 
+      unplayableDCs: 0, // build
       unplayedDCs: 0,		// build
       playedDCs: 0,		 // build
       playedKnights: 0,
