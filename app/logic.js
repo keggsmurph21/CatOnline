@@ -14,6 +14,13 @@ function spend(player, cost) {
   }
 }
 
+
+
+function collectResource(game, player, hex) {
+  let res = game.board.hexes[hex].resource;
+  if (res !== 'desert')
+    player.resources[res] += 1;
+}
 function pave(game, player, road, pay=true) {
   if (pay) {
     let cost = getCost(game, 'build', 'road');
@@ -43,6 +50,9 @@ function settle(game, player, junc, pay=true) {
   player.publicScore += 1;
   player.privateScore+= 1;
 }
+
+
+
 
 function getCanTradeBank(player) {
   for (let res in player.resources) {
@@ -101,6 +111,9 @@ function getAllPlayerData(player, game) {
   }
 }
 
+
+
+
 function sumObject(obj) {
   let acc = 0;
   for (let key in obj) {
@@ -118,12 +131,18 @@ function sumResources(player) {
   return sumObject(player.resources);
 }
 
-function storeHistory(game, edge, args) {
+
+
+
+function storeHistory(game, estring, args, ret) {
   while (game.state.history.length <= game.state.turn) {
     game.state.history.push([]);
   }
+  let index = (estring === '_e_end_turn' ? game.state.turn - 1 : game.state.turn);
   let extra = (args.length > 1 ? ' '+args.slice(1).join(' ') : '')
-  game.state.history[game.state.turn].push( edge.name + extra );
+    + (ret===undefined ? '' : ' >> '+JSON.stringify(ret));
+
+  game.state.history[index].push( estring + extra );
 }
 function calcLargestArmy(game) {
   // console.log('calc largest army');
@@ -182,6 +201,63 @@ function updateCanPlay(player, except={}) {
   }
 }
 
+
+
+function parseTrade(game, args) {
+  let trade = { in:{}, out:{} },
+    parsing = trade.out,
+    expecting ='int';
+  for (let a=0; a<args.length; a++) {
+    if (args[a]==='=') {
+      parsing = trade.in;
+    } else {
+      let res = helpers.validateResource(game, args[a+1]),
+        num = funcs.toInt(args[a]);
+      parsing[res] = (parsing[res] ? parsing[res]+num : num);
+      a += 1;
+    }
+  }
+  return trade;
+}
+
+function validateHex(game, h) {
+  h = parseInt(h);
+  if (isNaN(h) || h<0 || game.board.hexes.length<=h)
+    throw Error('invalid hex: '+h);
+  return game.board.hexes[h];
+}
+
+function validateJunc(game, j) {
+  j = parseInt(j);
+  if (isNaN(j) || j<0 || game.board.juncs.length<=j)
+    throw Error('invalid junc: '+j);
+  return game.board.juncs[j];
+}
+
+function validatePlayer(game, p) {
+  p = parseInt(p);
+  if (isNaN(p) || p<0 || game.state.players.length<=p)
+    throw Error('invalid player: '+p);
+  return game.state.players[p];
+}
+
+function validateResource(game, res) {
+  if (config.validateResource(game, res))
+    return res;
+  throw Error('invalid resource: '+res);
+}
+
+function validateRoad(game, r) {
+  console.log('before',r);
+  r = parseInt(r);
+  console.log('after',r);
+  if (isNaN(r) || r<0 || game.board.roads.length<=r)
+    throw Error('invalid road: '+r);
+  return game.board.roads[r];
+}
+
+
+
 const helpers = {
   acceptTradeAsOffer(game, player) {
     spend(player, game.state.currentTrade.out);
@@ -221,12 +297,6 @@ const helpers = {
     }
   },
 
-  collectResource(game, player, hex) {
-    let res = game.board.hexes[hex].resource;
-    if (res !== 'desert')
-      player.resources[res] += 1;
-  },
-
   collectResources(game) {
     let sum = game.board.dice.values.reduce((acc,i)=>(acc+=i));
     for (let h=0; h<game.board.hexes.length; h++) {
@@ -236,8 +306,8 @@ const helpers = {
           let junc = game.board.juncs[hex.juncs[j]];
           if (junc.owner > -1) {
             let player = game.state.players[junc.owner];
-            helpers.collectResource(game, player, hex.num);
-            console.log( player.lobbyData.name,'collects a',hex.resource);
+            collectResource(game, player, hex.num);
+            //console.log( player.lobbyData.name,'collects a',hex.resource);
           }
         }
       }
@@ -285,15 +355,18 @@ const helpers = {
     player.privateScore+= 1;
   },
 
-  getLastSettlement(game, player) {
-    return player.settlements.slice(-1).pop();
+  initCollect(game, player) {
+    let j = player.settlements.slice(0).pop();
+    for (let h in game.board.juncs[j].hexes) {
+      collectResource(game, player, game.board.juncs[j].hexes[h]);
+    }
   },
 
   initPave(game, player, road) {
     if (road.owner > -1)
       throw Error('road is already owned');
 
-    let valid=false, match=helpers.getLastSettlement(game,player);
+    let valid=false, match=player.settlements.slice(0).pop();
     for (let j in road.juncs) {
       if (road.juncs[j] === match)
         valid=true;
@@ -346,23 +419,6 @@ const helpers = {
       }
     }
     //console.log('offer', trade);
-  },
-
-  parseTrade(game, args) {
-    let trade = { in:{}, out:{} },
-      parsing = trade.out,
-      expecting ='int';
-    for (let a=0; a<args.length; a++) {
-      if (args[a]==='=') {
-        parsing = trade.in;
-      } else {
-        let res = helpers.validateResource(game, args[a+1]),
-          num = funcs.toInt(args[a]);
-        parsing[res] = (parsing[res] ? parsing[res]+num : num);
-        a += 1;
-      }
-    }
-    return trade;
   },
 
   pave(game, player, road) {
@@ -442,7 +498,8 @@ const helpers = {
         }
       }
     }
-    console.log('roll='+(r1+r2));
+    return r1+r2;
+    //console.log('roll='+(r1+r2));
   },
 
   settle(game, player, junc, pay=true) {
@@ -492,55 +549,74 @@ const helpers = {
     accrue(player, trade.in);
   },
 
-  validateHex(game, h) {
-    h = parseInt(h);
-    if (isNaN(h) || h<0 || game.board.hexes.length<=h)
-      throw Error('invalid hex: '+h);
-    return game.board.hexes[h];
-  },
-
-  validateJunc(game, j) {
-    j = parseInt(j);
-    if (isNaN(j) || j<0 || game.board.juncs.length<=j)
-      throw Error('invalid junc: '+j);
-    return game.board.juncs[j];
-  },
-
-  validatePlayer(game, p) {
-    p = parseInt(p);
-    if (isNaN(p) || p<0 || game.state.players.length<=p)
-      throw Error('invalid player: '+p);
-    return game.state.players[p];
-  },
-
-  validateResource(game, res) {
-    if (config.validateResource(game, res))
-      return res;
-    throw Error('invalid resource: '+res);
-  },
-
-  validateRoad(game, r) {
-    r = parseInt(r);
-    if (isNaN(r) || r<0 || game.board.roads.length<=r)
-      throw Error('invalid road: '+r);
-    return game.board.roads[r];
-  },
-
   validateTrade(game, player, trade) {
+    //console.log(trade);
     if (!funcs.canAfford(player, trade.out))
       throw Error(`can't afford, insufficient funds (`+JSON.stringify(trade.out)+`)`);
-  }
+  },
+
+
+
+
+  parseTrade : parseTrade,
+  validateHex : validateHex,
+  validateJunc : validateJunc,
+  validatePlayer : validatePlayer,
+  validateResource : validateResource,
+  validateRoad : validateRoad
+
 
 }
 
+
 module.exports = {
 
+  execute(game, p, estring, args) {
+
+    let player = validatePlayer(game, p);//game.state.players[p];
+    edge = config.getStateEdge(estring);
+
+    let ret = edge.execute(game, player, args);
+    storeHistory(game, estring, args, ret);
+
+    player.vertex = edge.target;
+    game.state.waiting = updateGameStates(game);
+
+    calcLongestRoad(game);
+    calcLargestArmy(game);
+
+    for (let q=0; q<game.state.players.length; q++) {
+      updateBuyOptions(game, player);
+      updateCanPlay(player);
+      for (let a in game.state.players[q].adjacents) {
+        let adj = game.state.players[q].adjacents[a];
+        if (config.getStateEdge(adj).isPriority)
+          module.exports.execute(game, q, adj, []);
+      }
+    }
+
+  },
+  helpers : helpers,
+
+  getAdjacentGameStates(game,p) {
+    let flags = getFlags(game,p);
+    return config.getAdjacentGameStates(flags);
+  },
+  getFlags(game,p) { return getFlags(game,p); },
+  getGameData(user, game) {
+    return {
+      public  : game.getPublicGameData(),
+      private : game.getPrivateGameData(user)
+    };
+  },
+
   launch(game, next) {
+
+    console.log('launching');
     for (let i=0; i<game.meta.settings.numCPUs; i++) {
       game.state.players.push( config.getNewPlayerData(user,game,false) );
     }
 
-    console.log('launching');
     funcs.shuffle(game.state.players);
     colors = config.getColors(game);
 
@@ -556,35 +632,39 @@ module.exports = {
     game.state.status = 'in-progress';
     game.meta.updated = new Date;
 
+    module.exports.execute(game, 0, '_e_take_turn', null);
+
     return next(null);
   },
-  getGameData(user, game) {
-    console.log("getting game data");
-    return {
-      public  : game.getPublicGameData(),
-      private : game.getPrivateGameData(user)
-    };
-  },
-  getFlags(game,p) { return getFlags(game,p); },
-  getAdjacentGameStates(game,p) {
-    let flags = getFlags(game,p);
-    return config.getAdjacentGameStates(flags);
-  },
-  validateArguments(player, edge, args) {
+
+  validateEdgeArgs(game, edge, args) {
     let e_args = config.getStateEdge(edge).arguments.split(' ');
-    if (e_args[0] === '*') return args; // opt out of this scheme for complex args (for now?)
+    if (e_args[0] === 'trade') {
+      return parseTrade(game, args.slice(0));
+    }
+
     for (let a in e_args) {
       let arg = e_args[a];
       switch (arg) {
-        case ('int'):
-        case ('hex'):
-        case ('player'):
-        case ('road'):
-        case ('settlement'):
-          e_args[a] = funcs.toInt(args[a]);
-          break;
         case ('resource'):
+          e_args[a] = validateResource(game, args[a]);
+          break;
+        args[a] = funcs.toInt(args[a]);
+        case ('int'):
           e_args[a] = args[a];
+          break;
+        case ('hex'):
+          e_args[a] = validateHex(game, args[a]);
+          break;
+        case ('player'):
+          e_args[a] = validatePlayer(game, args[a]);
+          break;
+        case ('road'):
+          console.log(args[a]);
+          e_args[a] = validateRoad(game, args[a]);
+          break;
+        case ('settlement'):
+          e_args[a] = validateJunc(game, args[a]);
           break;
         case (''):
           return [];
@@ -596,38 +676,6 @@ module.exports = {
   },
   validateEdgeIsAdjacent(game, i, edge) {
     return game.state.players[i].adjacents.indexOf(edge) > -1;
-  },
-  executeEdge(game, p, edge, args) {
-    let player = game.state.players[p];
-    edge = config.getStateEdge(edge);
-    args.unshift(p);
-    try {
-      storeHistory(game, edge, args);
-      edge.execute(game, args);
-    } catch (e) {
-      console.log(edge.name);
-      console.log(e);
-      throw e;
-    }
-
-    player.vertex = edge.target;
-    game.state.waiting = updateGameStates(game);
-
-    calcLongestRoad(game);
-    calcLargestArmy(game);
-
-    for (let q=0; q<game.state.players.length; q++) {
-      updateBuyOptions(game, player);
-      updateCanPlay(player);
-      for (let a in game.state.players[q].adjacents) {
-        let adj = game.state.players[q].adjacents[a];
-        if (config.getStateEdge(adj).isPriority)
-          module.exports.executeEdge(game, q, adj, []);
-      }
-    }
-
-  },
-
-  helpers : helpers
+  }
 
 }

@@ -1,30 +1,30 @@
-# get all
+#get all
 do 0 exec _e_take_turn
 do 0 exec _e_init_settle 22
 do 0 exec _e_init_build_road 25
-do 1 exec _e_take_turn
+#do 1 exec _e_take_turn
 do 1 exec _e_init_settle 0
 do 1 exec _e_init_build_road 1
-do 0 exec _e_take_turn
+#do 0 exec _e_take_turn
 do 0 exec _e_init_settle 31
 do 0 exec _e_init2_build_road 37
-do 1 exec _e_take_turn
+#do 1 exec _e_take_turn
 do 1 exec _e_init_settle 40
 do 1 exec _e_init2_build_road 57
-do 0 exec _e_take_turn
-# do 0 exec _e_offer_trade
-# do 0 exec _e_trade_bank
+#do 0 exec _e_take_turn
+#do 0 exec _e_offer_trade
+#do 0 exec _e_trade_bank
 #do 0 exec _e_roll
 do 0 force _e_roll 4 1
 #do 0 exec _e_roll_move_robber 0
 #do 0 exec _e_steal_robber 1
 #do 0 exec _e_to_root
 do 0 exec _e_end_turn
-do 1 exec _e_take_turn
+#do 1 exec _e_take_turn
 do 1 force _e_roll 4 1
 #do 1 exec _e_to_root
 do 1 exec _e_end_turn
-do 0 exec _e_take_turn
+#do 0 exec _e_take_turn
 do 0 force _e_roll 4 6
 #do 0 exec _e_to_root
 #do 0 exec _e_trade_bank four wheat ore
@@ -38,7 +38,7 @@ do 0 exec _e_cancel_trade
 do 0 exec _e_offer_trade 1 ore 1 wheat = 1 wood
 do 1 exec _e_accept_trade_other
 do 0 exec _e_end_turn
-do 1 exec _e_take_turn
+#do 1 exec _e_take_turn
 do 1 force _e_roll 5 6
 #do 1 exec _e_build_city -1
 #do 1 exec _e_build_city test
@@ -59,7 +59,7 @@ do 1 exec _e_build_city 40
 do 1 exec _e_build_settlement 1
 do 1 exec _e_buy_dc
 do 1 exec _e_end_turn
-do 0 exec _e_take_turn
+#do 0 exec _e_take_turn
 do 0 force _e_roll 1 5
 #get flags
 #get resources
@@ -69,11 +69,12 @@ do 0 force _e_roll 1 5
 #get resources
 #do 1 exec _e_roll_discard_other 1 brick
 do 0 exec _e_end_turn
-do 1 exec _e_take_turn
+#do 1 exec _e_take_turn
 do 1 force _e_roll 1 6
-get resources
+#get resources
 do 1 exec _e_roll_discard 2 wheat 2 sheep
 do 1 exec _e_roll_discard 1 brick
-get resources
+#get resources
 do 1 exec _e_discard_move_robber 12
-get adj
+#get adj
+check history

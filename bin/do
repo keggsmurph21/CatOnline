@@ -72,12 +72,12 @@ function parseInput(line, callback=()=>{}) {
           case ('force'):
             let edge = args[2]; // undefined if not enough args given
             args = (args[1]=='exec'
-              ? LOGIC.validateArguments(player_id, edge, args.slice(3))
+              ? LOGIC.validateEdgeArgs(game, edge, args.slice(3))
               : args.slice(3).map(a=>parseInt(a)));
 
             if (!LOGIC.validateEdgeIsAdjacent(game, player_id, edge))
               return error('player '+player_id+' is not adjacent to edge `'+edge+'`');
-            LOGIC.executeEdge(game, player_id, edge, args);
+            LOGIC.execute(game, player_id, edge, args);
             break;
 
           default:
