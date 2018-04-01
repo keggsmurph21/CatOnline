@@ -18,7 +18,6 @@ const CONFIG = require( '../config/catan' );
 const FUNCS  = require( '../app/funcs' );
 const GAMES  = require( '../tests/example/games' );
 const LOGIC  = require( '../app/logic' );
-const SOCKETS= require( '../app/sockets' );
 const STATES = require( '../config/states' );
 const USERS  = require( '../tests/example/users' );
 

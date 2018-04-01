@@ -2,8 +2,8 @@
 // keep functions here that are not necessarily strictly game logic
 
 // setup logs
-var dateformat = require('dateformat');
-var fs = require('fs');
+const dateformat = require('dateformat');
+const fs = require('fs');
 
 module.exports = {
 
@@ -75,7 +75,7 @@ module.exports = {
       return next('require: Invalid user id '+id);
     }
   },
-$1(id, next) {
+  requireGameById : function(id, next) {
     // success: next( null, user )
     // failure: next( err|message )
     // note: fails on database error AND null result

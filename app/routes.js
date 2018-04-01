@@ -1,8 +1,8 @@
 // load stuff
-var funcs = require('./funcs.js');
-var logic = require('./logic.js');
-var config = require('../config/catan.js');
-//var config= require('../config/new-game-form.json');
+const funcs = require('./funcs.js');
+const logic = require('./logic.js');
+const config = require('../config/catan.js');
+const config= require('../config/new-game-form.json');
 
 // app/routes.js
 module.exports = function(app, passport) {

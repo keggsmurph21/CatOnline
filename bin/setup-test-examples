@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-
 const fs = require('fs');
 
-function filter(path, keys) {
-  let data = require(path)
+function filter(path, keys) {const data = require(path)
     .filter( (value,key) => keys.includes(key) );
   return JSON.stringify(data);
 }

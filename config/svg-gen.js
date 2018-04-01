@@ -91,7 +91,7 @@ var minX=0, maxX=0, minY=0, maxY=0;
 module.exports = function(game) {
 
   // get the svg data
-  svg = require('../guis.js').svg[ game.meta.settings.scenario ];
+  const svg = require('../guis.js').svg[ game.meta.settings.scenario ];
 
   data = {
     tiles: [],

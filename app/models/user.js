@@ -1,8 +1,8 @@
 // app/models/user.js
 
 // load stuff
-var mongoose = require('mongoose');
-var bcrypt   = require('bcrypt-nodejs');
+const mongoose = require('mongoose');
+const bcrypt   = require('bcrypt-nodejs');
 
 // define the schema for our user model
 var UserSchema = mongoose.Schema({
@@ -51,7 +51,7 @@ UserSchema.methods.getExtendedLobbyData = function() {
 }
 
 UserSchema.methods.resetPassword = function() {
-  
+
 }
 
 // create the model for users and expose it to our app

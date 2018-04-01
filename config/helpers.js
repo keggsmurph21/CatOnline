@@ -5,8 +5,7 @@ function accrue(player, windfall) {
     player.resources[res] += windfall[res];
   }
 }
-function getCost(game, type, item) {
-  const config = require('../config/catan');
+function getCost(game, type, item) {const config = require('../config/catan');
   if (type==='build') {
     let costs = config.getBuildObjects(game);
     return costs[item].cost;

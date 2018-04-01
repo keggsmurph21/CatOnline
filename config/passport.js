@@ -1,8 +1,8 @@
 // config/passport.js
 
 // load stuff
-var LocalStrategy = require('passport-local').Strategy;
-var funcs = require('../app/funcs.js')
+const LocalStrategy = require('passport-local').Strategy;
+const funcs = require('../app/funcs.js')
 
 // expose this function to our app using module.exports
 module.exports = function(passport) {

@@ -1,8 +1,8 @@
 // app/models/game.js
 
 // load stuff
-var mongoose = require('mongoose');
-var dateformat = require('dateformat');
+const mongoose   = require('mongoose');
+const dateformat = require('dateformat');
 
 // define the schema for our game model
 var GameSchema = mongoose.Schema({

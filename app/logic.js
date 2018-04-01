@@ -1,5 +1,5 @@
-var funcs = require('./funcs.js');
-var config = require('../config/catan.js');
+const funcs  = require('./funcs');
+const config = require('../config/catan.js');
 
 function accrue(player, windfall) {
   for (let res in windfall) {

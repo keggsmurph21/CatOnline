@@ -1,5 +1,4 @@
-// get core functions
-const funcs = require('../app/funcs.js');
+// get core functionsconst funcs = require('../app/funcs.js');
 
 // load config files
 const _NEW_GAME_FORM  = require('./newgame.js');

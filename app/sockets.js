@@ -1,8 +1,7 @@
 // game/sockets.js
-var funcs = require('./funcs.js');
-var logic = require('./logic.js');
-var config = require('../config/catan.js');
-//var DEFUNCTS = require('./DEFUNCTS.js');
+const funcs = require('./funcs.js');
+const logic = require('./logic.js');
+const config = require('../config/catan.js');
 
 // socket helper functions
 function socketAuthorizationCallback(handshake, sessionStore, next) {
