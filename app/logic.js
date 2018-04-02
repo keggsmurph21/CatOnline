@@ -199,9 +199,111 @@ function calcLargestArmy(game) {
   }
 }
 function calcLongestRoad(game) {
-  console.log('calc longest road');
-  //throw new NotImplementedError();
-  isGameOver(game);
+  let lr = game.state.hasLongestRoad;
+
+  for (let p=0; p<game.state.players.length; p++) {
+    let player = game.state.players[p];
+    let longest= calcPlayerLongestRoad(game, player);
+    player.longestRoad = longest;
+
+    if (longest > game.state.longestRoad) {
+      game.state.longestRoad = longest;
+
+      if (lr !== player.playerID) {
+        if (lr > -1) {
+          game.state.players[lr].publicScore -= 2;
+          game.state.players[lr].privateScore+= 2;
+        }
+        game.state.hasLongestRoad = player.playerID;
+        player.publicScore += 2;
+        player.privateScore+= 2;
+
+        isGameOver(game);
+      }
+    }
+  }
+}
+function calcComponentLongestRoad(game, player, component) {
+
+  // loop thru starting at each road and get max distances
+  // to the other nodes in this component
+  let localmax = 0;
+  for (let c=0; c<component.length; c++) {
+    let s = component[c], distances = {},
+      visited = new Set(), stack = [s];
+
+    visited.add(s);
+
+    // set up distances
+    for (let r=0; r<player.roads.length; r++) {
+      distances[player.roads[r]] = 1;
+    }
+
+    while (stack.length) {
+      let current = stack.pop();
+      let distance= distances[current];
+
+      let neighbors = funcs.roadGetAdjRoads(game.board, current);
+      for (let i=0; i<neighbors.length; i++) {
+        let n = neighbors[i];
+        if (game.board.roads[n].owner === player.playerID) {
+
+          if (!visited.has(n)) {
+            visited.add(n);
+            distances[n] = Math.max( distances[n], distance+1 );
+            stack.push(n);
+          }
+
+        }
+      }
+
+      //console.log(distances);
+      localmax = Math.max(localmax
+        , Math.max(...Object.values(distances)));
+    }
+  }
+
+  return localmax;
+}
+function calcPlayerLongestRoad(game, player) {
+
+  // split into connected components and get a localmax for each
+  let localmax = 0, components = [],
+    visited = new Set();
+
+  while (visited.size < player.roads.length) {
+    for (let r=0; r<player.roads.length; r++) {
+      let R = player.roads[r];
+      if (!visited.has(R)) {
+
+        // make a new component
+        let component = new Set();
+        component.add(R);
+        visited.add(R);
+        for (let s=0; s<player.roads.length; s++) {
+          let S = player.roads[s];
+
+          // if it's reachable, add it to this component
+          if (funcs.roadsGetDistance(game.board, player, R, S) < Infinity) {
+            component.add(S);
+            visited.add(S);
+          }
+        }
+
+        components.push(component);
+      }
+    }
+  }
+  //console.log('roads: '+player.roads.join(', '), '\ncomps:', components);
+
+  // for each component, calculate its individual longest road
+  for (let c=0; c<components.length; c++) {
+    let component = Array.from(components[c]),
+      componentmax = calcComponentLongestRoad(game,player,component);
+    localmax = Math.max(localmax, componentmax);
+  }
+
+  return localmax;
 }
 function updateGameStates(game) {
   let waiting = { forWho:[], forWhat:[] };
@@ -250,64 +352,66 @@ function updateBuyOptions(game, player) {
 }
 
 
-function parseTrade(game, args) {
-  if (!args.length)
-    throw new EdgeArgumentError('trade',[],'Nothing to trade.');
-  let trade = { in:{}, out:{} },
-    parsing = trade.out,
-    expecting ='int';
-  for (let a=0; a<args.length; a++) {
-    if (args[a]==='=') {
-      parsing = trade.in;
-    } else {
-      let res = validateResource(game, args[a+1]),
-        num = funcs.toInt(args[a]);
-      parsing[res] = (parsing[res] ? parsing[res]+num : num);
-      a += 1;
+const parse = {
+  trade(game, args) {
+    if (!args.length)
+      throw new EdgeArgumentError('trade',[],'Nothing to trade.');
+    let trade = { in:{}, out:{} },
+      parsing = trade.out,
+      expecting ='int';
+    for (let a=0; a<args.length; a++) {
+      if (args[a]==='=') {
+        parsing = trade.in;
+      } else {
+        let res = parse.resource(game, args[a+1]),
+          num = funcs.toInt(args[a]);
+        parsing[res] = (parsing[res] ? parsing[res]+num : num);
+        a += 1;
+      }
     }
+    return trade;
+  },
+  hex(game, h) {
+    let hex = parseInt(h);
+    if (isNaN(hex))
+      throw new EdgeArgumentError('hex',h,h+' is not a number.');
+    if (hex<0 || game.board.hexes.length<=hex)
+      throw new EdgeArgumentError('hex',h,'Value must be between 0 and '
+        + game.board.hexes.length-1 + '.');
+    return game.board.hexes[hex];
+  },
+  junc(game, j) {
+    let junc = parseInt(j);
+    if (isNaN(junc))
+      throw new EdgeArgumentError('junc',j,j+' is not a number.');
+    if (junc<0 || game.board.juncs.length<=junc)
+      throw new EdgeArgumentError('junc',j,'Value must be between 0 and '
+        + game.board.juncs.length-1 + '.');
+    return game.board.juncs[junc];
+  },
+  player(game, p) {
+    let player = parseInt(p);
+    if (isNaN(p))
+      throw new GetPlayerError(p, p+' is not a number.');
+    if (player<0 || game.state.players.length<=player)
+      throw new GetPlayerError(p, 'Value must be between 0 and '
+        + game.state.players.length-1 + '.');
+    return game.state.players[player];
+  },
+  resource(game, res) {
+    if (config.validateResource(game, res))
+      return res;
+    throw new EdgeArgumentError('res',res,res+' is not a resource.');
+  },
+  road(game, r) {
+    let road = parseInt(r);
+    if (isNaN(road))
+      throw new EdgeArgumentError('road',r,r+' is not a number.');
+    if (road<0 || game.board.roads.length<=road)
+      throw new EdgeArgumentError('road',r,'Value must be between 0 and '
+        + game.board.roads.length-1 + '.');
+    return game.board.roads[road];
   }
-  return trade;
-}
-function validateHex(game, h) {
-  let hex = parseInt(h);
-  if (isNaN(hex))
-    throw new EdgeArgumentError('hex',h,h+' is not a number.');
-  if (hex<0 || game.board.hexes.length<=hex)
-    throw new EdgeArgumentError('hex',h,'Value must be between 0 and '
-      + game.board.hexes.length-1 + '.');
-  return game.board.hexes[hex];
-}
-function validateJunc(game, j) {
-  let junc = parseInt(j);
-  if (isNaN(junc))
-    throw new EdgeArgumentError('junc',j,j+' is not a number.');
-  if (junc<0 || game.board.juncs.length<=junc)
-    throw new EdgeArgumentError('junc',j,'Value must be between 0 and '
-      + game.board.juncs.length-1 + '.');
-  return game.board.juncs[junc];
-}
-function validatePlayer(game, p) {
-  let player = parseInt(p);
-  if (isNaN(p))
-    throw new GetPlayerError(p, p+' is not a number.');
-  if (player<0 || game.state.players.length<=player)
-    throw new GetPlayerError(p, 'Value must be between 0 and '
-      + game.state.players.length-1 + '.');
-  return game.state.players[player];
-}
-function validateResource(game, res) {
-  if (config.validateResource(game, res))
-    return res;
-  throw new EdgeArgumentError('res',res,res+' is not a resource.');
-}
-function validateRoad(game, r) {
-  let road = parseInt(r);
-  if (isNaN(road))
-    throw new EdgeArgumentError('road',r,r+' is not a number.');
-  if (road<0 || game.board.roads.length<=road)
-    throw new EdgeArgumentError('road',r,'Value must be between 0 and '
-      + game.board.roads.length-1 + '.');
-  return game.board.roads[road];
 }
 
 
@@ -501,11 +605,11 @@ const helpers = {
       throw new InvalidChoiceError('road',road,'Someone has already paved here.');
 
     let valid = false, adjs = funcs.roadGetAdjRoads(game.board, road.num);
-
-    for (let r=0; r<player.roads.length; r++) {
-      if (adjs.indexOf(r) > -1)
-        valid=true;
+    for (let a=0; a<adjs.length; a++) {
+      if (game.board.roads[adjs[a]].owner === player.playerID)
+        valid = true;
     }
+
     if (!valid)
       throw new InvalidChoiceError('road',road,'You can only pave near roads and settlements you own.');
 
@@ -646,13 +750,7 @@ const helpers = {
 
 
 
-  parseTrade : parseTrade,
-  validateHex : validateHex,
-  validateJunc : validateJunc,
-  validatePlayer : validatePlayer,
-  validateResource : validateResource,
-  validateRoad : validateRoad
-
+  parse : parse
 
 }
 
@@ -661,7 +759,7 @@ module.exports = {
 
   execute(game, p, estring, args) {
 
-    let player = validatePlayer(game, p);//game.state.players[p];
+    let player = parse.player(game, p);//game.state.players[p];
     edge = config.getStateEdge(estring);
 
     let ret = edge.execute(game, player, args);
@@ -730,7 +828,7 @@ module.exports = {
       let arg = e_args[a];
       switch (arg) {
         case ('resource'):
-          e_args[a] = validateResource(game, args[a]);
+          e_args[a] = parse.resource(game, args[a]);
           break;
         case ('int'):
           try {
@@ -740,16 +838,16 @@ module.exports = {
           }
           break;
         case ('hex'):
-          e_args[a] = validateHex(game, args[a]);
+          e_args[a] = parse.hex(game, args[a]);
           break;
         case ('player'):
-          e_args[a] = validatePlayer(game, args[a]);
+          e_args[a] = parse.player(game, args[a]);
           break;
         case ('road'):
-          e_args[a] = validateRoad(game, args[a]);
+          e_args[a] = parse.road(game, args[a]);
           break;
         case ('settlement'):
-          e_args[a] = validateJunc(game, args[a]);
+          e_args[a] = parse.junc(game, args[a]);
           break;
         case (''):
           return [];

@@ -30,15 +30,6 @@ function getPlayerStringByID(id) {
   return 'player '+id+': '+player.lobbyData.name;
 }
 
-function validatePlayer(id) {
-  let int = parseInt(id);
-  if (isNaN(int))
-    throw Error('unable to parse player id `'+id+'`');
-  if (int < 0 || game.state.players.length <= int)
-    throw Error('player id out of bounds `'+id+'`');
-  return int;
-}
-
 function loadGame(id=0) {
   return Object.assign({}, GAMES[id]);
 }
@@ -117,6 +108,9 @@ function parseInput(line, callback=()=>{}) {
             break;
           case ('flags'):
             func = LOGIC.getFlags;
+            break;
+          case ('longest'):
+            func = (game, p) => { return game.state.players[p].longestRoad; }
             break;
           case ('players'):
             func = (game,p) => { return game.state.players[p]; };
@@ -216,11 +210,11 @@ function parseInput(line, callback=()=>{}) {
           case ('board'):
             break;
           case ('player'):
-            let player = LOGIC.helpers.validatePlayer(game, args[1]);
+            let player = LOGIC.helpers.parse.player(game, args[1]);
 
             switch (args[2]) {
               case ('resources'):
-                let set = LOGIC.helpers.parseTrade(game, args.slice(3)).out;
+                let set = LOGIC.helpers.parse.trade(game, args.slice(3)).out;
                 for (res in player.resources) {
                   player.resources[res] = (set[res] || 0);
                 }

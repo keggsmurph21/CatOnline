@@ -178,15 +178,87 @@ module.exports = {
     return Array.from(adjs);
   },
   roadGetAdjRoads : function(board, r) {
-    let adjs = new Set();
-    for (let j=0; j<board.roads[r].juncs.length; j++) {
-      for (let k=0; k<board.juncs[ board.roads[r].juncs[j] ].roads.length; k++) {
-        let road = board.juncs[ board.roads[r].juncs[j] ].roads[k];
-        if (road !== r)
-          adjs.add( road );
+    let adjs = new Set(), road = board.roads[r];
+    for (let j=0; j<road.juncs.length; j++) {
+      let junc = board.juncs[ road.juncs[j] ];
+      if ( junc.owner === road.owner
+        || junc.owner === -1
+        || road.owner === -1 ) {
+        for (let s=0; s<junc.roads.length; s++) {
+          adjs.add(junc.roads[s]);
+        }
       }
     }
+    adjs.delete(r);
     return Array.from(adjs);
+
+  },
+  roadGetAdjAvailableRoads : function(board, r) {
+    let adjs = new Set(), road = board.roads[r];
+    for (let j=0; j<road.juncs.length; j++) {
+      let junc = board.juncs[ road.juncs[j] ];
+      if (junc.owner === road.owner || junc.owner === -1) {
+        for (let s=0; s<junc.roads.length; s++) {
+          adjs.add(s);
+        }
+      }
+    }
+    adjs.delete(r);
+    return Array.from(adjs);
+  },
+  roadsGetDistance : function(board, player, r1, r2) {
+    let path = module.exports.roadsShortestPath(board, player, r1, r2);
+    return ( path === null
+      ? Infinity
+      : (path.length-1) );
+  },
+  roadsGetJunc : function(board, r1, r2) {
+    for (let j=0; j<board.roads[r1].juncs.length; j++) {
+      let junc = board.roads[r1].juncs[j];
+      if (board.roads[r2].juncs.indexOf(j) > -1)
+        return board.juncs[j];
+    }
+    return null;
+  },
+  roadsShortestPath : function(board, player, s, t) {
+    let visited = new Set(),
+      previous = {}, queue = [];
+
+    visited.add(s);
+    queue.push(s);
+
+    while (queue.length) {
+      let current = queue.pop();
+
+      let neighbors = module.exports.roadGetAdjRoads(board, current);
+      for (let i=0; i<neighbors.length; i++) {
+        let n = neighbors[i];
+        if (board.roads[n].owner === player.playerID) {
+
+          if (!visited.has(n)) {
+            visited.add(n);
+            previous[n] = current;
+            queue.unshift(n);
+          }
+
+          if (n === t) {
+
+            // reconstruct path
+            current = n;
+            let path = [ current ];
+            while (previous[current] !== undefined) {
+              current = previous[current];
+              path.unshift(current);
+            }
+            return path;
+
+          }
+        }
+      }
+    }
+
+    // if we can't find a path between the nodes
+    return null;
   },
   toInt : function(str) {
     let i = parseInt(str);
