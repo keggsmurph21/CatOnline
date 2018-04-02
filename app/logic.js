@@ -1,6 +1,8 @@
 const funcs  = require('./funcs');
 const config = require('../config/catan.js');
 
+require('./errors'); // get all your tasty errors here
+
 function accrue(player, windfall) {
   for (let res in windfall) {
     player.resources[res] += windfall[res];
@@ -8,13 +10,11 @@ function accrue(player, windfall) {
 }
 function spend(player, cost) {
   if (!funcs.canAfford(player, cost))
-    throw Error(`can't afford, insufficient funds (`+JSON.stringify(cost)+`)`);
+    throw new PovertyError(player, cost);
   for (let res in cost) {
     player.resources[res] -= cost[res];
   }
 }
-
-
 
 function collectResource(game, player, hex) {
   let res = game.board.hexes[hex].resource;
@@ -40,7 +40,7 @@ function pave(game, player, road, pay=true) {
 }
 function settle(game, player, junc, pay=true) {
   if (!junc.isSettleable)
-    throw Error('junc cannot be settled');
+    throw new InvalidChoiceError('junc', junc, 'Someone has already settled here.');
 
   if (pay) {
     let cost = getCost(game, 'build', 'settlement');
@@ -80,7 +80,7 @@ function getCost(game, type, item) {
     let costs = config.getBuyObjects(game);
     return costs[item].cost;
   }
-  throw Error('unable to get cost to '+type+' '+item);
+  throw new GameLogicError();
 }
 function getFlags(game, i) {
   let player = game.state.players[i];
@@ -176,27 +176,31 @@ function storeHistory(game, estring, args, ret) {
 function calcLargestArmy(game) {
   let la = game.state.hasLargestArmy;
 
-  // first get the largest army (num knights)
   for (let p=0; p<game.state.players.length; p++) {
     let player = game.state.players[p];
+
+    // only change on strictly gt
     if (player.playedDCs.knight > game.state.largestArmy) {
       game.state.largestArmy = player.playedDCs.knight;
+
+      // if it's a change
       if (la !== player.playerID) {
-        if (la > -1) {
+        if (la > -1) { // la initialized to -1 (no leader to start)
           game.state.players[la].publicScore -= 2;
           game.state.players[la].privateScore-= 2;
         }
         game.state.hasLargestArmy = player.playerID;
         player.publicScore += 2;
         player.privateScore+= 2;
+
+        isGameOver(game);
       }
     }
   }
-
-  isGameOver(game);
 }
 function calcLongestRoad(game) {
   console.log('calc longest road');
+  //throw new NotImplementedError();
   isGameOver(game);
 }
 function updateGameStates(game) {
@@ -237,16 +241,18 @@ function updateBuyOptions(game, player) {
         let canAfford = funcs.canAfford(player, buyable.dc.cost),
           available = sumDevCards(player) < buyable.dc.max;
 
-        player.canBuy.dc = canAfford && available;
+        player.canBuy.dc = canAfford && available && game.board.dcdeck.length;
         break;
       default:
-        throw Error('unrecognized `buy` item: '+buy);
+        throw new GameLogicError();
     }
   }
 }
 
 
 function parseTrade(game, args) {
+  if (!args.length)
+    throw new EdgeArgumentError('trade',[],'Nothing to trade.');
   let trade = { in:{}, out:{} },
     parsing = trade.out,
     expecting ='int';
@@ -254,7 +260,7 @@ function parseTrade(game, args) {
     if (args[a]==='=') {
       parsing = trade.in;
     } else {
-      let res = helpers.validateResource(game, args[a+1]),
+      let res = validateResource(game, args[a+1]),
         num = funcs.toInt(args[a]);
       parsing[res] = (parsing[res] ? parsing[res]+num : num);
       a += 1;
@@ -262,41 +268,47 @@ function parseTrade(game, args) {
   }
   return trade;
 }
-
 function validateHex(game, h) {
-  h = parseInt(h);
-  if (isNaN(h) || h<0 || game.board.hexes.length<=h)
-    throw Error('invalid hex: '+h);
-  return game.board.hexes[h];
+  let hex = parseInt(h);
+  if (isNaN(hex))
+    throw new EdgeArgumentError('hex',h,h+' is not a number.');
+  if (hex<0 || game.board.hexes.length<=hex)
+    throw new EdgeArgumentError('hex',h,'Value must be between 0 and '
+      + game.board.hexes.length-1 + '.');
+  return game.board.hexes[hex];
 }
-
 function validateJunc(game, j) {
-  j = parseInt(j);
-  if (isNaN(j) || j<0 || game.board.juncs.length<=j)
-    throw Error('invalid junc: '+j);
-  return game.board.juncs[j];
+  let junc = parseInt(j);
+  if (isNaN(junc))
+    throw new EdgeArgumentError('junc',j,j+' is not a number.');
+  if (junc<0 || game.board.juncs.length<=junc)
+    throw new EdgeArgumentError('junc',j,'Value must be between 0 and '
+      + game.board.juncs.length-1 + '.');
+  return game.board.juncs[junc];
 }
-
 function validatePlayer(game, p) {
-  p = parseInt(p);
-  if (isNaN(p) || p<0 || game.state.players.length<=p)
-    throw Error('invalid player: '+p);
-  return game.state.players[p];
+  let player = parseInt(p);
+  if (isNaN(p))
+    throw new GetPlayerError(p, p+' is not a number.');
+  if (player<0 || game.state.players.length<=player)
+    throw new GetPlayerError(p, 'Value must be between 0 and '
+      + game.state.players.length-1 + '.');
+  return game.state.players[player];
 }
-
 function validateResource(game, res) {
   if (config.validateResource(game, res))
     return res;
-  throw Error('invalid resource: '+res);
+  throw new EdgeArgumentError('res',res,res+' is not a resource.');
 }
-
 function validateRoad(game, r) {
-  r = parseInt(r);
-  if (isNaN(r) || r<0 || game.board.roads.length<=r)
-    throw Error('invalid road: '+r);
-  return game.board.roads[r];
+  let road = parseInt(r);
+  if (isNaN(road))
+    throw new EdgeArgumentError('road',r,r+' is not a number.');
+  if (road<0 || game.board.roads.length<=road)
+    throw new EdgeArgumentError('road',r,'Value must be between 0 and '
+      + game.board.roads.length-1 + '.');
+  return game.board.roads[road];
 }
-
 
 
 const helpers = {
@@ -322,7 +334,7 @@ const helpers = {
     updateBuyOptions(game, player);
 
     if (!game.board.dcdeck.length)
-      throw Error('no more dev cards');
+      throw new GameLogicError('No more development cards.');
     let dc = game.board.dcdeck.pop();
     if (dc === 'vp') {
       player.unplayedDCs[dc] += 1;
@@ -362,7 +374,8 @@ const helpers = {
   discard(game, player, cards) {
     let discarding = sumObject(cards);
     if (discarding > player.discard)
-      throw Error('you only need to discard '+player.discard);
+      throw new InvalidChoiceError('resources',cards,'You only need to discard '
+        +player.discard+' card'+(player.discard>1 ? 's' : '')+'.');
 
     spend(player, cards);
     updateBuyOptions(game, player);
@@ -380,12 +393,12 @@ const helpers = {
 
   end(game) {
     console.log('game is over');
-    throw Error('not implemented');
+    throw new NotImplementedError();
   },
 
   fortify(game, player, junc) {
     if (player.settlements.indexOf(junc.num) === -1)
-      throw Error('cities must be built on existing settlements');
+      throw new InvalidChoiceError('junc',junc,'Cities must be built on existing settlements.');
 
     // remove from settlements
     let index = player.settlements.indexOf(junc.num);
@@ -412,8 +425,10 @@ const helpers = {
   },
 
   initPave(game, player, road) {
+    if (road.owner === player.playerID)
+      throw new InvalidChoiceError('road',road,'You\'ve already paved here!');
     if (road.owner > -1)
-      throw Error('road is already owned');
+      throw new InvalidChoiceError('road',road,'Someone has already paved here.');
 
     let valid=false, match=player.settlements.slice(0).pop();
     for (let j in road.juncs) {
@@ -421,7 +436,7 @@ const helpers = {
         valid=true;
     }
     if (!valid)
-      throw Error('this junc is not adjacent');
+      throw new InvalidChoiceError('road',road,'You must pave a road next to your last settlement.');
 
     pave(game, player, road, pay=false);
   },
@@ -456,7 +471,7 @@ const helpers = {
   moveRobber(game, player, hex) {
 
     if (hex.num===game.board.robber)
-      throw Error('robber is already here');
+      throw new InvalidChoiceError('robber',hex,'The robber is already here.');
     game.board.robber=hex.num;
 
     // check if there is anyone to steal from
@@ -480,8 +495,10 @@ const helpers = {
   },
 
   pave(game, player, road) {
+    if (road.owner === player.playerID)
+      throw new InvalidChoiceError('road',road,'You\'ve already paved here!');
     if (road.owner > -1)
-      throw Error('road is already owned');
+      throw new InvalidChoiceError('road',road,'Someone has already paved here.');
 
     let valid = false, adjs = funcs.roadGetAdjRoads(game.board, road.num);
 
@@ -490,7 +507,7 @@ const helpers = {
         valid=true;
     }
     if (!valid)
-      throw Error('this road is not adjacent');
+      throw new InvalidChoiceError('road',road,'You can only pave near roads and settlements you own.');
 
     pave(game, player, road);
   },
@@ -536,7 +553,7 @@ const helpers = {
         break;
 
       default:
-        throw Error('unrecognized development card: '+card);
+        throw new GameLogicError('Unrecognized development card: '+card);
     }
     for (let dc in player.unplayedDCs) {
       if (dc !== 'vp') {
@@ -574,12 +591,12 @@ const helpers = {
       if (road.owner === player.playerID)
         return settle(game, player, junc);
     }
-    throw Error('you can only settle near your roads');
+    throw new InvalidChoiceError('junc',junc,'You need to build a road here before you can settle.');
   },
 
   steal(game, player, other) {
     if (player === other)
-      throw Error(`you can't steal from youself!`);
+      throw new InvalidChoiceError('player',other,'You can\'t steal from yourself!');
     let juncs = game.board.hexes[game.board.robber].juncs;
     for (let j=0; j<juncs.length; j++) {
       if (game.board.juncs[juncs[j]].owner === other.playerID) {
@@ -599,7 +616,7 @@ const helpers = {
         return;
       }
     }
-    throw Error(from.lobbyData.name+' is not adjacent to the robber');
+    throw new InvalidChoiceError('player',other,other.lobbyData.name+' is not adjacent to the robber.');
   },
 
   tradeWithBank(game, player, trade) {
@@ -609,10 +626,11 @@ const helpers = {
     rate[outResource] = player.bankTradeRates[outResource];
 
     if (outResource===inResource)
-      throw Error(`can't trade these resources:`);
+      throw new InvalidChoiceError('trade',trade,'You can\'t trade these resources.');
     if (trade.out[outResource]*trade.in[inResource]
       < rate[outResource]*trade.in[inResource])
-      throw Error(`bank rate: `+rate[o_res]);
+      throw new InvalidChoiceError('trade',trade,'The bank will trade you ' + outResource
+        + ' at a ' + rate[outResource] + '-to-1 rate.');
 
     spend(player, trade.out);
     accrue(player, trade.in);
@@ -622,7 +640,7 @@ const helpers = {
   validateTrade(game, player, trade) {
     //console.log(trade);
     if (!funcs.canAfford(player, trade.out))
-      throw Error(`can't afford, insufficient funds (`+JSON.stringify(trade.out)+`)`);
+      throw new PovertyError(player, trade.out);
   },
 
 
@@ -715,7 +733,11 @@ module.exports = {
           e_args[a] = validateResource(game, args[a]);
           break;
         case ('int'):
-          e_args[a] = funcs.toInt(args[a]);
+          try {
+            e_args[a] = funcs.toInt(args[a]);
+          } catch (e) {
+            throw new EdgeArgumentError('int',args[a],e.message);
+          }
           break;
         case ('hex'):
           e_args[a] = validateHex(game, args[a]);
@@ -732,7 +754,7 @@ module.exports = {
         case (''):
           return [];
         default:
-          throw Error('unrecognized argument type: '+arg);
+          throw new EdgeArgumentError(null,arg,'Unrecognized argument type: '+arg);
       }
     }
     return e_args;

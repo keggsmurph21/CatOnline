@@ -5,6 +5,8 @@
 const dateformat = require('dateformat');
 const fs = require('fs');
 
+require('./errors');
+
 module.exports = {
 
   canAfford(player, cost) {
@@ -189,7 +191,7 @@ module.exports = {
   toInt : function(str) {
     let i = parseInt(str);
     if (isNaN(i))
-      throw Error('unable to parse int: '+str);
+      throw new CatonlineError('Unable to parse int: '+str);
     return i;
   },
 
