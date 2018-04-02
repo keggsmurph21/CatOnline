@@ -1,0 +1,9 @@
+#!/bin/sh
+
+for filename in tests/commands/edges/*;
+do
+  echo $filename \
+  | sed 's/tests\/commands\/edges\//raise tests for </' \
+  | sed 's/$/> not implemented/' \
+  > $filename;
+done;

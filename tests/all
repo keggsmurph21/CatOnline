@@ -5,6 +5,7 @@ const GAMES = require( './example/games.json' );
 const USERS = require( './example/users.json' );
 
 const run = require( '../bin/do' );
+require('../app/errors');
 
 function test_all() {
   let game = GAMES[0], user = USERS[0];
@@ -16,9 +17,7 @@ function test_all() {
 
   // test all the edges
   for (let edge in GRAPH.edges) {
-    run('read '+edge, function(err,data) {
-
-    });
+    run('read edges/'+edge);
   }
 }
 

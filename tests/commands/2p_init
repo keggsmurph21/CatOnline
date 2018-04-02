@@ -1,0 +1,10 @@
+set player 0 resources 25 ore 25 wheat 25 sheep 25 brick 25 wood
+set player 1 resources 25 ore 25 wheat 25 sheep 25 brick 25 wood
+do 0 exec _e_init_settle 22
+do 0 exec _e_init_build_road 25
+do 1 exec _e_init_settle 0
+do 1 exec _e_init_build_road 1
+do 1 exec _e_init_settle 40
+do 1 exec _e_init2_build_road 57
+do 0 exec _e_init_settle 31
+do 0 exec _e_init2_build_road 37
