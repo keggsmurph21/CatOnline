@@ -193,7 +193,7 @@ module.exports = {
     return Array.from(adjs);
 
   },
-  roadGetAdjAvailableRoads : function(board, r) {
+  /*roadGetAdjAvailableRoads : function(board, r) {
     let adjs = new Set(), road = board.roads[r];
     for (let j=0; j<road.juncs.length; j++) {
       let junc = board.juncs[ road.juncs[j] ];
@@ -210,7 +210,7 @@ module.exports = {
     let path = module.exports.roadsShortestPath(board, player, r1, r2);
     return ( path === null
       ? Infinity
-      : (path.length-1) );
+      : path.length );
   },
   roadsGetJunc : function(board, r1, r2) {
     for (let j=0; j<board.roads[r1].juncs.length; j++) {
@@ -259,7 +259,7 @@ module.exports = {
 
     // if we can't find a path between the nodes
     return null;
-  },
+  },*/
   toInt : function(str) {
     let i = parseInt(str);
     if (isNaN(i))

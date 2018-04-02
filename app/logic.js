@@ -223,87 +223,40 @@ function calcLongestRoad(game) {
     }
   }
 }
-function calcComponentLongestRoad(game, player, component) {
+function DFS(game, player, node, visited) {
 
-  // loop thru starting at each road and get max distances
-  // to the other nodes in this component
-  let localmax = 0;
-  for (let c=0; c<component.length; c++) {
-    let s = component[c], distances = {},
-      visited = new Set(), stack = [s];
+  // visit our current node
+  visited.add(node);
 
-    visited.add(s);
+  // check each neighbor
+  let neighbors = funcs.roadGetAdjRoads(game.board, node);
+  for (let i=0; i<neighbors.length; i++) {
+    let n = neighbors[i];
+    if (game.board.roads[n].owner === player.playerID) {
 
-    // set up distances
-    for (let r=0; r<player.roads.length; r++) {
-      distances[player.roads[r]] = 1;
-    }
-
-    while (stack.length) {
-      let current = stack.pop();
-      let distance= distances[current];
-
-      let neighbors = funcs.roadGetAdjRoads(game.board, current);
-      for (let i=0; i<neighbors.length; i++) {
-        let n = neighbors[i];
-        if (game.board.roads[n].owner === player.playerID) {
-
-          if (!visited.has(n)) {
-            visited.add(n);
-            distances[n] = Math.max( distances[n], distance+1 );
-            stack.push(n);
-          }
-
-        }
-      }
-
-      //console.log(distances);
-      localmax = Math.max(localmax
-        , Math.max(...Object.values(distances)));
+      // this node is in our road network, so recursively
+      // visit it if we haven't already
+      if (!visited.has(n))
+        return 1 + DFS(game, player, n, visited);
     }
   }
 
-  return localmax;
+  // base case, have visited everything reachable from here
+  return 1;
 }
 function calcPlayerLongestRoad(game, player) {
+  let max = 0;
 
-  // split into connected components and get a localmax for each
-  let localmax = 0, components = [],
-    visited = new Set();
+  // start a DFS from each road in our network
+  for (let r=0; r<player.roads.length; r++) {
+    let source = player.roads[r],
+      visited  = new Set(),
+      localmax = DFS(game, player, source, visited);
 
-  while (visited.size < player.roads.length) {
-    for (let r=0; r<player.roads.length; r++) {
-      let R = player.roads[r];
-      if (!visited.has(R)) {
-
-        // make a new component
-        let component = new Set();
-        component.add(R);
-        visited.add(R);
-        for (let s=0; s<player.roads.length; s++) {
-          let S = player.roads[s];
-
-          // if it's reachable, add it to this component
-          if (funcs.roadsGetDistance(game.board, player, R, S) < Infinity) {
-            component.add(S);
-            visited.add(S);
-          }
-        }
-
-        components.push(component);
-      }
-    }
-  }
-  //console.log('roads: '+player.roads.join(', '), '\ncomps:', components);
-
-  // for each component, calculate its individual longest road
-  for (let c=0; c<components.length; c++) {
-    let component = Array.from(components[c]),
-      componentmax = calcComponentLongestRoad(game,player,component);
-    localmax = Math.max(localmax, componentmax);
+    max = Math.max(max, localmax);
   }
 
-  return localmax;
+  return max;
 }
 function updateGameStates(game) {
   let waiting = { forWho:[], forWhat:[] };

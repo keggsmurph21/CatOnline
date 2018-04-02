@@ -4,21 +4,18 @@ do 0 exec _e_init_settle 34
 do 0 exec _e_init_build_road 42
 do 1 exec _e_init_settle 7
 do 1 exec _e_init_build_road 11
-do 1 exec _e_init_settle 9
-do 1 exec _e_init2_build_road 14
+do 1 exec _e_init_settle 8
+do 1 exec _e_init2_build_road 12
 do 0 exec _e_init_settle 37
 do 0 exec _e_init2_build_road 47
 do 0 force _e_roll 1 1
-do 0 exec _e_build_road 46
-do 0 exec _e_build_road 45
-do 0 exec _e_build_road 44
 do 0 exec _e_end_turn
 do 1 force _e_roll 1 1
-do 1 exec _e_build_road 20
-do 1 exec _e_build_road 28
-do 1 exec _e_build_road 36
-do 1 exec _e_build_settlement 30
-do 1 exec _e_build_road 8
+do 1 exec _e_build_road 6
+do 1 exec _e_build_road 7
+do 1 exec _e_build_road 0
+do 1 exec _e_build_road 1
+do 1 exec _e_build_road 19
 do 1 exec _e_end_turn
 do 0 force _e_roll 1 1
 get settlements
