@@ -4,7 +4,6 @@ const funcs = require('../app/funcs.js');
 // load config files
 const _NEW_GAME_FORM  = require('./newgame.js');
 const _SCENARIOS      = require('./scenarios.js');
-const _STATE_GRAPH    = require('./states.js');
 const _GUIS           = require('./guis.js');
 
 // helper function generate/validate new game forms
@@ -326,32 +325,6 @@ module.exports = {
   },
   getNewPlayerData : function(user, game, human=true) {
     return buildInitialPlayerState(user, game.meta.settings, human, game.state.players.length);
-  },
-  getAdjacentGameStates : function(flags) {
-    let edges = [];
-    for (let e=0; e<_STATE_GRAPH.vertices[flags.vertex].edges.length; e++) {
-      let ename = _STATE_GRAPH.vertices[flags.vertex].edges[e];
-      let edge = _STATE_GRAPH.edges[ename];
-      //console.log((edge.isImportant?'!!':'')+ename+'\t\t'+edge.evaluate(flags));
-      if (edge.evaluate(flags)) {
-        if (edge.isPriority)
-          return [ename];
-        edges.push(ename);
-      }
-    }
-    return edges;
-  },
-  getStateVertices : function() {
-    return _STATE_GRAPH.vertices;
-  },
-  getStateEdge : function(edge) {
-    let e = _STATE_GRAPH.edges[edge];
-    if (e === undefined)
-      throw new GameLogicError('Invalid edge name: '+edge);
-    return e;
-  },
-  getStateEdges : function() {
-    return _STATE_GRAPH.edges;
   },
   getColors : function(game) {
     let colors = _SCENARIOS[game.meta.settings.scenario].colors[i].slice(0);

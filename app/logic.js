@@ -1,6 +1,8 @@
 const funcs  = require('./funcs');
 const config = require('../config/catan.js');
 
+const _STATE_GRAPH = require('../config/states.js');
+
 function accrue(player, windfall) {
   for (let res in windfall) {
     player.resources[res] += windfall[res];
@@ -262,7 +264,7 @@ function updateGameStates(game) {
     let player = game.state.players[i];
     let flags = getFlags(game, i);
     player.flags = flags;
-    let adjacents = config.getAdjacentGameStates(flags);
+    let adjacents = getAdjacentGameStates(flags);
     player.adjacents = adjacents;
     if (adjacents.length) {
       waiting.forWho.push( player.lobbyData );
@@ -531,9 +533,11 @@ const helpers = {
 
     // check if there is anyone to steal from
     let juncs = game.board.hexes[game.board.robber].juncs;
+    game.state.canSteal = false;
     for (let j=0; j<juncs.length; j++) {
       let owner = game.board.juncs[juncs[j]].owner;
-      game.state.canSteal = (owner > -1 && owner !== player.playerID);
+      if (owner > -1 && owner !== player.playerID)
+        game.state.canSteal = true;
     }
   },
 
@@ -705,13 +709,33 @@ const helpers = {
 
 }
 
+function getAdjacentGameStates(flags) {
+  let edges = [];
+  for (let e=0; e<_STATE_GRAPH.vertices[flags.vertex].edges.length; e++) {
+    let ename = _STATE_GRAPH.vertices[flags.vertex].edges[e];
+    let edge = _STATE_GRAPH.edges[ename];
+    if (edge.evaluate(flags)) {
+      if (edge.isPriority)
+        return [ename];
+      edges.push(ename);
+    }
+  }
+  return edges;
+}
+function getStateEdge(edge) {
+  let e = _STATE_GRAPH.edges[edge];
+  if (e === undefined)
+    throw new GameLogicError('Invalid edge name: '+edge);
+  return e;
+}
+
 
 module.exports = {
 
   execute(game, p, estring, args) {
 
     let player = parse.player(game, p);//game.state.players[p];
-    edge = config.getStateEdge(estring);
+    edge = getStateEdge(estring);
 
     let ret = edge.execute(game, player, args);
     storeHistory(game, estring, args, ret);
@@ -722,7 +746,7 @@ module.exports = {
     for (let q=0; q<game.state.players.length; q++) {
       for (let a=0; a<game.state.players[q].adjacents.length; a++) {
         let adj_estring = game.state.players[q].adjacents[a];
-        if (config.getStateEdge(adj_estring).isPriority)
+        if (getStateEdge(adj_estring).isPriority)
           module.exports.execute(game, q, adj_estring, []);
       }
     }
@@ -732,9 +756,11 @@ module.exports = {
 
   getAdjacentGameStates(game,p) {
     let flags = getFlags(game,p);
-    return config.getAdjacentGameStates(flags);
+    return getAdjacentGameStates(flags);
   },
-  getFlags(game,p) { return getFlags(game,p); },
+  getFlags(game,p) {
+    return getFlags(game,p);
+  },
   getGameData(user, game) {
     return {
       public  : game.getPublicGameData(),
@@ -770,7 +796,7 @@ module.exports = {
   },
 
   validateEdgeArgs(game, edge, args) {
-    let e_args = config.getStateEdge(edge).arguments.split(' ');
+    let e_args = getStateEdge(edge).arguments.split(' ');
     if (e_args[0] === 'trade') {
       return parseTrade(game, args.slice(0));
     }
@@ -810,6 +836,7 @@ module.exports = {
   },
   validateEdgeIsAdjacent(game, i, edge) {
     return game.state.players[i].adjacents.indexOf(edge) > -1;
-  }
+  },
+
 
 }

@@ -1,19 +1,25 @@
 module.exports = {
    vertices: {
-      "_v_init_collect": {
+      "_v_accept_trade": {
          edges: [
-            "_e_init2_build_road"
+            "_e_to_root"
          ],
-         name: "_v_init_collect",
+         name: "_v_accept_trade",
          label: ""
       },
-      "_v_roll": {
+      "_v_accept_trade_other": {
          edges: [
-            "_e_roll_collect",
-            "_e_roll_discard",
-            "_e_roll_move_robber"
+            "_e_after_trade_other"
          ],
-         name: "_v_roll",
+         name: "_v_accept_trade_other",
+         label: ""
+      },
+      "_v_buy_dc": {
+         edges: [
+            "_e_end_game",
+            "_e_to_root"
+         ],
+         name: "_v_buy_dc",
          label: ""
       },
       "_v_collect": {
@@ -31,96 +37,26 @@ module.exports = {
          name: "_v_discard",
          label: ""
       },
-      "_v_move_robber": {
+      "_v_discard_other": {
          edges: [
-            "_e_no_steal_robber",
-            "_e_steal_robber"
+            "_e_after_discard_other",
+            "_e_roll_discard_other"
          ],
-         name: "_v_move_robber",
+         name: "_v_discard_other",
          label: ""
       },
-      "_v_steal": {
-         edges: [
-            "_e_to_root"
-         ],
-         name: "_v_steal",
+      "_v_end_game": {
+         edges: [],
+         name: "_v_end_game",
          label: ""
       },
-      "_v_trade_with_bank": {
+      "_v_end_turn": {
          edges: [
-            "_e_to_root"
+            "_e_accept_trade_other",
+            "_e_roll_discard_other",
+            "_e_take_turn"
          ],
-         name: "_v_trade_with_bank",
-         label: ""
-      },
-      "_v_offer_trade": {
-         edges: [
-            "_e_accept_trade",
-            "_e_cancel_trade"
-         ],
-         name: "_v_offer_trade",
-         label: ""
-      },
-      "_v_accept_trade": {
-         edges: [
-            "_e_to_root"
-         ],
-         name: "_v_accept_trade",
-         label: ""
-      },
-      "_v_play_vp": {
-         edges: [
-            "_e_end_game",
-            "_e_to_root"
-         ],
-         name: "_v_play_vp",
-         label: ""
-      },
-      "_v_play_knight": {
-         edges: [
-            "_e_cancel_knight",
-            "_e_end_game",
-            "_e_knight_move_robber"
-         ],
-         name: "_v_play_knight",
-         label: ""
-      },
-      "_v_play_yop": {
-         edges: [
-            "_e_cancel_yop",
-            "_e_play_yop_choose"
-         ],
-         name: "_v_play_yop",
-         label: ""
-      },
-      "_v_choose_2_resources": {
-         edges: [
-            "_e_to_root"
-         ],
-         name: "_v_choose_2_resources",
-         label: ""
-      },
-      "_v_play_monopoly": {
-         edges: [
-            "_e_cancel_monopoly",
-            "_e_play_monopoly_choose"
-         ],
-         name: "_v_play_monopoly",
-         label: ""
-      },
-      "_v_choose_resource_type": {
-         edges: [
-            "_e_to_root"
-         ],
-         name: "_v_choose_resource_type",
-         label: ""
-      },
-      "_v_buy_dc": {
-         edges: [
-            "_e_end_game",
-            "_e_to_root"
-         ],
-         name: "_v_buy_dc",
+         name: "_v_end_turn",
          label: ""
       },
       "_v_fortify": {
@@ -129,6 +65,29 @@ module.exports = {
             "_e_to_root"
          ],
          name: "_v_fortify",
+         label: ""
+      },
+      "_v_init_collect": {
+         edges: [
+            "_e_init2_build_road"
+         ],
+         name: "_v_init_collect",
+         label: ""
+      },
+      "_v_move_robber": {
+         edges: [
+            "_e_no_steal_robber",
+            "_e_steal_robber"
+         ],
+         name: "_v_move_robber",
+         label: ""
+      },
+      "_v_offer_trade": {
+         edges: [
+            "_e_accept_trade",
+            "_e_cancel_trade"
+         ],
+         name: "_v_offer_trade",
          label: ""
       },
       "_v_pave": {
@@ -140,14 +99,49 @@ module.exports = {
          name: "_v_pave",
          label: ""
       },
-      "_v_settle": {
+      "_v_play_knight": {
          edges: [
-            "_e_end_game",
-            "_e_init_build_road",
-            "_e_init_collect",
+            "_e_end_game"
+         ],
+         name: "_v_play_knight",
+         label: ""
+      },
+      "_v_play_monopoly": {
+         edges: [
             "_e_to_root"
          ],
-         name: "_v_settle",
+         name: "_v_play_monopoly",
+         label: ""
+      },
+      "_v_play_rb": {
+         edges: [
+            "_e_to_root"
+         ],
+         name: "_v_play_rb",
+         label: ""
+      },
+      "_v_play_vp": {
+         edges: [
+            "_e_end_game",
+            "_e_to_root"
+         ],
+         name: "_v_play_vp",
+         label: ""
+      },
+      "_v_play_yop": {
+         edges: [
+            "_e_to_root"
+         ],
+         name: "_v_play_yop",
+         label: ""
+      },
+      "_v_roll": {
+         edges: [
+            "_e_roll_collect",
+            "_e_roll_discard",
+            "_e_roll_move_robber"
+         ],
+         name: "_v_roll",
          label: ""
       },
       "_v_root": {
@@ -170,48 +164,28 @@ module.exports = {
          name: "_v_root",
          label: ""
       },
-      "_v_end_turn": {
+      "_v_settle": {
          edges: [
-            "_e_accept_trade_other",
-            "_e_roll_discard_other",
-            "_e_take_turn"
+            "_e_end_game",
+            "_e_init_build_road",
+            "_e_init_collect",
+            "_e_to_root"
          ],
-         name: "_v_end_turn",
+         name: "_v_settle",
          label: ""
       },
-      "_v_end_game": {
-         edges: [],
-         name: "_v_end_game",
-         label: ""
-      },
-      "_v_accept_trade_other": {
-         edges: [
-            "_e_after_trade_other"
-         ],
-         name: "_v_accept_trade_other",
-         label: ""
-      },
-      "_v_play_rb": {
-         edges: [
-            "_e_cancel_rb",
-            "_e_play_rb_choose"
-         ],
-         name: "_v_play_rb",
-         label: ""
-      },
-      "_v_choose_2_roads": {
+      "_v_steal": {
          edges: [
             "_e_to_root"
          ],
-         name: "_v_choose_2_roads",
+         name: "_v_steal",
          label: ""
       },
-      "_v_discard_other": {
+      "_v_trade_with_bank": {
          edges: [
-            "_e_roll_discard_other",
-            "_e_after_discard_other"
+            "_e_to_root"
          ],
-         name: "_v_discard_other",
+         name: "_v_trade_with_bank",
          label: ""
       }
    },
@@ -234,6 +208,17 @@ module.exports = {
          arguments: "",
          execute: function (g,p,a) {  require(`../app/logic`).helpers.acceptTradeAsOther(g,p); },
          isPriority: false,
+         isMulti: false,
+         isCancel: false,
+         label: ""
+      },
+      "_e_after_discard_other": {
+         name: "_e_after_discard_other",
+         target: "_v_end_turn",
+         evaluate: function (f) { return true; },
+         arguments: "",
+         execute: function (g,p,a) { },
+         isPriority: true,
          isMulti: false,
          isCancel: false,
          label: ""
@@ -293,56 +278,12 @@ module.exports = {
          isCancel: false,
          label: ""
       },
-      "_e_cancel_knight": {
-         name: "_e_cancel_knight",
-         target: "_v_root",
-         evaluate: function (f) { return true; },
-         arguments: "",
-         execute: function (g,p,a) { },
-         isPriority: false,
-         isMulti: false,
-         isCancel: true,
-         label: ""
-      },
-      "_e_cancel_monopoly": {
-         name: "_e_cancel_monopoly",
-         target: "_v_root",
-         evaluate: function (f) { return true; },
-         arguments: "",
-         execute: function (g,p,a) { },
-         isPriority: false,
-         isMulti: false,
-         isCancel: true,
-         label: ""
-      },
-      "_e_cancel_rb": {
-         name: "_e_cancel_rb",
-         target: "_v_root",
-         evaluate: function (f) { return true; },
-         arguments: "",
-         execute: function (g,p,a) { },
-         isPriority: false,
-         isMulti: false,
-         isCancel: true,
-         label: ""
-      },
       "_e_cancel_trade": {
          name: "_e_cancel_trade",
          target: "_v_root",
          evaluate: function (f) { return true; },
          arguments: "",
          execute: function (g,p,a) { require(`../app/logic`).helpers.cancelTrade(g); },
-         isPriority: false,
-         isMulti: false,
-         isCancel: true,
-         label: ""
-      },
-      "_e_cancel_yop": {
-         name: "_e_cancel_yop",
-         target: "_v_root",
-         evaluate: function (f) { return true; },
-         arguments: "",
-         execute: function (g,p,a) { },
          isPriority: false,
          isMulti: false,
          isCancel: true,
@@ -436,17 +377,6 @@ module.exports = {
          isCancel: false,
          label: ""
       },
-      "_e_knight_move_robber": {
-         name: "_e_knight_move_robber",
-         target: "_v_move_robber",
-         evaluate: function (f) { return true; },
-         arguments: "hex",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.playDC(g,p,'knight'); require(`../app/logic`).helpers.moveRobber(g,p,a[0]); },
-         isPriority: false,
-         isMulti: false,
-         isCancel: false,
-         label: ""
-      },
       "_e_no_steal_robber": {
          name: "_e_no_steal_robber",
          target: "_v_root",
@@ -471,10 +401,10 @@ module.exports = {
       },
       "_e_play_knight": {
          name: "_e_play_knight",
-         target: "_v_play_knight",
+         target: "_v_move_robber",
          evaluate: function (f) { return f.canPlayDC.knight; },
-         arguments: "",
-         execute: function (g,p,a) { },
+         arguments: "hex",
+         execute: function (g,p,a) { require(`../app/logic`).helpers.playDC(g,p,'knight'); require(`../app/logic`).helpers.moveRobber(g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -484,17 +414,6 @@ module.exports = {
          name: "_e_play_monopoly",
          target: "_v_play_monopoly",
          evaluate: function (f) { return f.canPlayDC.monopoly; },
-         arguments: "",
-         execute: function (g,p,a) { },
-         isPriority: false,
-         isMulti: false,
-         isCancel: false,
-         label: ""
-      },
-      "_e_play_monopoly_choose": {
-         name: "_e_play_monopoly_choose",
-         target: "_v_choose_resource_type",
-         evaluate: function (f) { return true; },
          arguments: "resource",
          execute: function (g,p,a) { require(`../app/logic`).helpers.playDC(g,p,'monopoly',a[0]); },
          isPriority: false,
@@ -506,17 +425,6 @@ module.exports = {
          name: "_e_play_rb",
          target: "_v_play_rb",
          evaluate: function (f) { return f.canPlayDC.rb; },
-         arguments: "",
-         execute: function (g,p,a) { },
-         isPriority: false,
-         isMulti: false,
-         isCancel: false,
-         label: ""
-      },
-      "_e_play_rb_choose": {
-         name: "_e_play_rb_choose",
-         target: "_v_choose_2_roads",
-         evaluate: function (f) { return true; },
          arguments: "road road",
          execute: function (g,p,a) { require(`../app/logic`).helpers.playDC(g,p,'rb',a); },
          isPriority: false,
@@ -539,17 +447,6 @@ module.exports = {
          name: "_e_play_yop",
          target: "_v_play_yop",
          evaluate: function (f) { return f.canPlayDC.yop; },
-         arguments: "",
-         execute: function (g,p,a) { },
-         isPriority: false,
-         isMulti: false,
-         isCancel: false,
-         label: ""
-      },
-      "_e_play_yop_choose": {
-         name: "_e_play_yop_choose",
-         target: "_v_choose_2_resources",
-         evaluate: function (f) { return true; },
          arguments: "resource resource",
          execute: function (g,p,a) { require(`../app/logic`).helpers.playDC(g,p,'yop',a); },
          isPriority: false,
@@ -638,17 +535,6 @@ module.exports = {
          name: "_e_to_root",
          target: "_v_root",
          evaluate: function (f) { return !f.isFirstTurn; },
-         arguments: "",
-         execute: function (g,p,a) { },
-         isPriority: true,
-         isMulti: false,
-         isCancel: false,
-         label: ""
-      },
-      "_e_after_discard_other": {
-         name: "_e_after_discard_other",
-         target: "_v_end_turn",
-         evaluate: function (f) { return true; },
          arguments: "",
          execute: function (g,p,a) { },
          isPriority: true,
