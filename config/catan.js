@@ -345,7 +345,10 @@ module.exports = {
     return _STATE_GRAPH.vertices;
   },
   getStateEdge : function(edge) {
-    return _STATE_GRAPH.edges[edge];
+    let e = _STATE_GRAPH.edges[edge];
+    if (e === undefined)
+      throw new GameLogicError('Invalid edge name: '+edge);
+    return e;
   },
   getStateEdges : function() {
     return _STATE_GRAPH.edges;

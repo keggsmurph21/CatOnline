@@ -21,8 +21,35 @@ const LOGIC  = require( '../app/logic' );
 const STATES = require( '../config/states' );
 const USERS  = require( '../tests/example/users' );
 
-const error  = function(msg) { console.log(chalk.red(msg)); }
+const error  = function(e) {
+  if (e instanceof EdgeArgumentError) {
+    console.log(chalk.red(`Invalid argument: ${e.message} (expected a ${e.type})`));
+  } else {
+    console.log(chalk.red(e.message));
+  }
+}
 require('../app/errors');
+
+class DoError extends UserInputError {
+  constructor(message) {
+    super(message);
+    this.name = 'DoError';
+  }
+}
+class DoArgumentError extends DoError {
+  constructor(action, args) {
+    super( `Invalid argument for ${action}.` );
+    this.name = 'DoArgumentError';
+  }
+}
+class DoCustomError extends DoError {
+  constructor(suite, message) {
+    super(message);
+    this.name = 'DoCustomError for '+suite;
+  }
+}
+
+
 
 var game=null, user=null, suite='default', quiet=false;
 
@@ -63,18 +90,19 @@ function parseInput(line, callback=()=>{}) {
         switch (args[1]) {
           case ('exec'):
           case ('force'):
+
             let edge = args[2]; // undefined if not enough args given
             args = (args[1]=='exec'
               ? LOGIC.validateEdgeArgs(game, edge, args.slice(3))
               : args.slice(3).map(a=>parseInt(a)));
 
             if (!LOGIC.validateEdgeIsAdjacent(game, p, edge))
-              return error('player '+p+' is not adjacent to edge `'+edge+'`');
+              throw new DoError('Player '+p+' is not adjacent to `'+edge+'`.');
             LOGIC.execute(game, p, edge, args);
             break;
 
           default:
-            error('unrecognized arguments: '+args);
+            throw new DoArgumentError('do', args);
         }
         break;
 
@@ -116,6 +144,7 @@ function parseInput(line, callback=()=>{}) {
           case ('players'):
             func = (game,p) => { return game.state.players[p]; };
             break;
+          case ('res'):
           case ('resources'):
             func = function(game, p) {
               return game.state.players[p].resources;
@@ -126,36 +155,31 @@ function parseInput(line, callback=()=>{}) {
               return game.state.players[p].roads;
             }
             break;
+          case ('setts'):
           case ('settlements'):
             func = function(game, p) {
               return game.state.players[p].settlements;
             }
             break;
-          case ('vertices'):
+          case ('vertex'):
             func = function(game, p) {
               return LOGIC.getFlags(game, p).vertex;
             }
             break;
+          case ('score'):
           case ('vp'):
             func = (game,p) => { return game.state.players[p].publicScore
               +' ('+game.state.players[p].privateScore+')'; }
             break;
           default:
-            error('unrecognized arguments: '+args);
+            throw new DoArgumentError('get', args);
         }
 
-        console.log('[turn: '+game.state.turn+']');
-        let data = [];
+        console.log(`${''.padEnd(8)}[turn: ${game.state.turn}]`);
         for (let p=0; p<game.state.players.length; p++) {
-          data.push({
-            full: game.state.players,
-            func: func(game, p)
-          })
-          //let pstr = getPlayerStringByID(p);
-          //let data = func(game, p);
-          //console.log(pstr, '\t', data);
+          console.log(`${game.state.players[p].lobbyData.name.padEnd(16)}\t`,
+            JSON.stringify(func(game,p), null, 2) );
         }
-        console.log(JSON.stringify(data.map(p=>p.func), null, 2));
         break;
 
       case ('check'):
@@ -174,8 +198,20 @@ function parseInput(line, callback=()=>{}) {
           case ('robber'):
             console.log(game.board.robber);
             break;
+          case ('edges'):
+            const edges = require('../config/states').edges;
+            for (let edge in edges) {
+              let name = edge.padEnd(24);
+              let e_args = edges[edge].arguments;
+              e_args = (e_args==='trade'
+                ? '[ <num out> <res out> ] = [ <num in> <res in> ]'
+                : e_args);
+              let argstring = ((e_args && e_args.length) ? ` (${e_args})` : '');
+              console.log(name+argstring);
+            }
+            break;
           default:
-            error('unrecognized arguments:'+args);
+            throw new DoArgumentError('check', args);
         }
         break;
 
@@ -183,19 +219,32 @@ function parseInput(line, callback=()=>{}) {
         process.exit(0);
         break;
 
+      case ('help'):
+        console.log('Available commands:');
+        console.log(' - do <player> [exec|force] <edge name> [ <edge argument> ]');
+        console.log(' - get [all|adj|dc|flags|longest|players|res|roads|setts|vertex|vp]');
+        console.log(' - check [waiting|history|trade|robber|edges]');
+        console.log(' - exit');
+        console.log(' - raise <custom error message>');
+        console.log(' - read <filepath from root catonline/ directory>');
+        console.log(' - set [state|board|player resources <player> [ <num> <resource> ]]');
+        console.log('Try running "get adj" to see available edges in the state graph.');
+        break;
       case ('raise'):
-        error(suite+' raises '+args.join(' '));
+        throw new DoCustomError(suite, args.join(' '));
         break;
 
       case ('read'):
+        if (!args.length)
+          throw new DoError('Please specify a file in tests/commands/ to read from.');
         suite = args[0];
-        read
-          .createInterface({
-            input: fs.createReadStream('tests/commands/'+args[0]),
-            output: process.stdout,
-            terminal: false
-          })
-          .on('line', parseInput);
+          read
+            .createInterface({
+              input: fs.createReadStream('tests/commands/'+args[0]),
+              output: process.stdout,
+              terminal: false
+            })
+            .on('line', parseInput);
         break;
 
       case ('reset'):
@@ -207,8 +256,10 @@ function parseInput(line, callback=()=>{}) {
 
         switch (args[0]) {
           case ('state'):
+            throw new NotImplementedError();
             break;
           case ('board'):
+            throw new NotImplementedError();
             break;
           case ('player'):
             let player = LOGIC.helpers.parse.player(game, args[1]);
@@ -221,16 +272,16 @@ function parseInput(line, callback=()=>{}) {
                 }
                 break;
               default:
-                error('unrecognized set-player: '+args[2]);
+                throw new DoArgumentError('set > player', args[2]);
             }
             break;
           default:
-            error('unrecognized key: '+args[1]);
+            throw new DoArgumentError('set', args[1]);
         }
         break;
 
       default:
-        error('unrecognized command: '+command);
+        throw new DoError('Unrecognized command: '+command);
     }
   } catch (e) {
     error(e);
@@ -255,7 +306,7 @@ function listen(path) {
 }
 
 if (require.main === module)
-  listen(argv.length ? 'tests/commands/'+argv[0] : null);
+  listen(argv.length ? argv[0] : null);
 
 module.exports = parseInput;
 module.exports.setup = function(args) {
