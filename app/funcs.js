@@ -5,8 +5,6 @@
 const dateformat = require('dateformat');
 const fs = require('fs');
 
-require('./errors');
-
 module.exports = {
 
   canAfford(player, cost) {

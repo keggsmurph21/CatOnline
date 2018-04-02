@@ -1,13 +1,4 @@
 
-function findShortfalls(have, need) {
-  let shortfall = {};
-  for (let res in need) {
-    if (have[res] < need[res])
-      shortfall[res] = need[res] - have[res];
-  }
-  return shortfall;
-}
-
 class CatonlineError extends Error {
   constructor(message) {
     super(message);
@@ -17,13 +8,17 @@ class CatonlineError extends Error {
 global.CatonlineError = CatonlineError;
 
 
-class NotImplementedError extends Error {
+
+
+class NotImplementedError extends CatonlineError {
   constructor(message) {
     super(message);
     this.name = 'NotImplementedError';
   }
 }
 global.NotImplementedError = NotImplementedError;
+
+
 
 
 
@@ -34,6 +29,8 @@ class GameLogicError extends CatonlineError {
   }
 }
 global.GameLogicError = GameLogicError;
+
+
 
 
 
@@ -76,8 +73,14 @@ global.InvalidChoiceError = InvalidChoiceError;
 
 class PovertyError extends UserInputError {
   constructor(player, cost) {
-    let shortfall = findShortfalls(player.resources, cost),
-      message = 'Insufficient funds: (need ', sf = [];
+
+    // build an overly complicated message here
+    let shortfall = {};
+    for (let res in need) {
+      if (have[res] < need[res])
+        shortfall[res] = need[res] - have[res];
+    }
+    let message = 'Insufficient funds: (need ', sf = [];
     for (let res in shortfall) {
       let amt = shortfall[res];
       sf.push( amt+' more '+res+(amt>1 ? 's' : ''));

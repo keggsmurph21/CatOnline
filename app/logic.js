@@ -1,8 +1,6 @@
 const funcs  = require('./funcs');
 const config = require('../config/catan.js');
 
-require('./errors'); // get all your tasty errors here
-
 function accrue(player, windfall) {
   for (let res in windfall) {
     player.resources[res] += windfall[res];
@@ -330,7 +328,7 @@ const parse = {
       throw new EdgeArgumentError('hex',h,h+' is not a number.');
     if (hex<0 || game.board.hexes.length<=hex)
       throw new EdgeArgumentError('hex',h,'Value must be between 0 and '
-        + game.board.hexes.length-1 + '.');
+        + (game.board.hexes.length-1) + '.');
     return game.board.hexes[hex];
   },
   junc(game, j) {
@@ -339,7 +337,7 @@ const parse = {
       throw new EdgeArgumentError('junc',j,j+' is not a number.');
     if (junc<0 || game.board.juncs.length<=junc)
       throw new EdgeArgumentError('junc',j,'Value must be between 0 and '
-        + game.board.juncs.length-1 + '.');
+        + (game.board.juncs.length-1) + '.');
     return game.board.juncs[junc];
   },
   player(game, p) {
@@ -348,7 +346,7 @@ const parse = {
       throw new GetPlayerError(p, p+' is not a number.');
     if (player<0 || game.state.players.length<=player)
       throw new GetPlayerError(p, 'Value must be between 0 and '
-        + game.state.players.length-1 + '.');
+        + (game.state.players.length-1) + '.');
     return game.state.players[player];
   },
   resource(game, res) {
@@ -359,10 +357,10 @@ const parse = {
   road(game, r) {
     let road = parseInt(r);
     if (isNaN(road))
-      throw new EdgeArgumentError('road',r,r+' is not a number.');
+      throw new EdgeArgumentError('road',r,''+r+' is not a number.');
     if (road<0 || game.board.roads.length<=road)
       throw new EdgeArgumentError('road',r,'Value must be between 0 and '
-        + game.board.roads.length-1 + '.');
+        + (game.board.roads.length-1) + '.');
     return game.board.roads[road];
   }
 }

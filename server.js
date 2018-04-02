@@ -24,8 +24,8 @@ const sessionStore   = new express.session.MemoryStore();
 
 // configuration
 configDB.config( mongoose, funcs );
-
 require('./config/passport.js')(passport);
+require('./app/errors');
 
 app.use(morgan('dev'));
 app.use(cookieParser());

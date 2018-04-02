@@ -22,6 +22,7 @@ const STATES = require( '../config/states' );
 const USERS  = require( '../tests/example/users' );
 
 const error  = function(msg) { console.log(chalk.red(msg)); }
+require('../app/errors');
 
 var game=null, user=null, suite='default', quiet=false;
 
