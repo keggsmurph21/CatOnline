@@ -849,26 +849,29 @@ module.exports = function(io, sessionStore) {
       console.log('received play action');
       console.log(data);
 
-      try {
-        funcs.requireGameById(data.gameid, function(err,game) {
+      funcs.requireGameById(data.gameid, function(err,game) {
+        try {
+
           let args = logic.validateEdgeArgs(game, data.edge, data.args);
           console.log('validated',args);
           if (!logic.validateEdgeIsAdjacent(game, data.player, data.edge))
-            throw new DoError('Player '+data.player+' is not adjacent to `'+data.edge+'`.');
-          logic.execute(game, data.player, data.edge, args);
+            throw new UserInputError('Player '+data.player+' is not adjacent to `'+data.edge+'`.');
+          data = logic.execute(game, data.player, data.edge, args);
 
-          data = logic.getGameData(req.session.user, game);
-          console.log('callback');
-          playCallback(socket, req.ref, data);
+          funcs.saveAndCatch(game, function(err) {
+            if (err) throw err;
 
-        });
-      } catch (e) {
-        if (e instanceof UserInputError) {
-          console.log(e);
-        } else {
-          throw e;
+            data = logic.getGameData(req.session.user, game);
+            playCallback(socket, req.ref, data);
+
+          });
+        } catch (e) {
+          if (e instanceof UserInputError) {
+            console.log(e);
+            playCallback(socket, req.ref, e.message);
+          } else { throw e; }
         }
-      }
+      });
 
     });
 

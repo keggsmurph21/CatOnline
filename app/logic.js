@@ -40,8 +40,10 @@ function pave(game, player, road, pay=true) {
 }
 function settle(game, player, junc, pay=true) {
   console.log(junc);
-  if (!junc.isSettleable)
+  if (junc.owner > -1)
     throw new InvalidChoiceError('junc', junc, 'Someone has already settled here.');
+  if (!junc.isSettleable)
+    throw new InvalidChoiceError('junc', junc, 'You can\'t settle next to another settlement.');
 
   if (pay) {
     let cost = getCost(game, 'build', 'settlement');
@@ -476,7 +478,7 @@ const helpers = {
 
   initCollect(game, player) {
     let j = player.settlements.slice(0).pop();
-    for (let h in game.board.juncs[j].hexes) {
+    for (let h=0; h<game.board.juncs[j].hexes.length; h++) {
       collectResource(game, player, game.board.juncs[j].hexes[h]);
     }
     updateBuyOptions(game, player);
@@ -489,7 +491,7 @@ const helpers = {
       throw new InvalidChoiceError('road',road,'Someone has already paved here.');
 
     let valid=false, match=player.settlements.slice(0).pop();
-    for (let j in road.juncs) {
+    for (let j=0; j<road.juncs.length; j++) {
       if (road.juncs[j] === match)
         valid=true;
     }
@@ -802,7 +804,7 @@ module.exports = {
       return parseTrade(game, args.slice(0));
     }
 
-    for (let a in e_args) {
+    for (let a=0; a<e_args.length; a++) {
       let arg = e_args[a];
       switch (arg) {
         case ('resource'):

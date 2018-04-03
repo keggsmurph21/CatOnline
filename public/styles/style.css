@@ -613,17 +613,33 @@ div#private-data {
 .play .red {
   color: #f00;
 }
+.play .spot.red, .road.red {
+  stroke: #f00;
+  fill:   #fff;
+}
 
 .play .orange {
   color: #ffa500;
+}
+.play .spot.orange, .road.orange {
+  stroke: #ffa500;
+  fill:   #fff;
 }
 
 .play .blue {
   color: #00f;
 }
+.play .spot.blue, .road.blue {
+  stroke: #00f;
+  fill:   #fff;
+}
 
 .play .white {
   color: #fff;
+}
+.play .spot.white, .road.white {
+  stroke: #ccc;
+  fill:   #ccc;
 }
 
 .yop, .monopoly, .rb {

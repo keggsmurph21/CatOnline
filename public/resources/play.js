@@ -17,13 +17,27 @@ function bindGameData(game) {
       .text( hex.roll ? hex.roll : '' );
   }
   for (let i=0; i<game.public.juncs.length; i++) {
-    let junc = game.public.juncs[i];
-    $('#spot'+i).attr( 'class', junc.isCity ? 'spot city' : 'spot' );
-    if (junc.port !== null) {
-      $('#port'+junc.port.num).attr( 'class', 'port '+junc.port.type );
+    let spot = $('#spot'+i),
+        data = game.public.juncs[i],
+        owner= (data.owner>-1 ? game.public.players[data.owner] : null);
+
+    if (owner!==null)
+      spot.addClass(owner.color);
+    if (data.isCity)
+      spot.addClass('city');
+    if (data.port !== null) {
+      $('#port'+data.port.num).attr( 'class', 'port '+data.port.type );
     }
   }
-  for (let i=0; i<game.public.players.length; i++) {
+  for (let i=0; i<game.public.roads.length; i++) {
+    let road = $('#road'+i),
+        data = game.public.roads[i],
+        owner= (data.owner>-1 ? game.public.players[data.owner] : null);
+
+    if (owner!==null)
+      road.addClass(owner.color);
+  }
+  /*for (let i=0; i<game.public.players.length; i++) {
     let player = game.public.players[i];
     for (let j=0; j<player.roads.length; j++) {
       $('#road'+j).attr( 'class', 'road player_'+player.color );
@@ -34,11 +48,11 @@ function bindGameData(game) {
     for (let j=0; j<player.cities.length; j++) {
       $('#spot'+j).attr( 'class', 'spot city player_'+player.color );
     }
-    console.log('`player`');
-    console.log(player);
-  }
-  console.log('`private`');
-  console.log(game.private);
+    //console.log('`player`');
+    //console.log(player);
+  }*/
+  //console.log('`private`');
+  //console.log(game.private);
   player = game.private.playerID;
   listen.set(game);
 }
@@ -125,7 +139,7 @@ function update(data) {
 }
 
 // set global variables
-let game, panzoom, player;
+let gameid, game, panzoom, player;
 
 let listen = {
 
@@ -133,7 +147,7 @@ let listen = {
     console.log(source, args);
     if (listen.for[source]!==undefined) {
       emit({
-        gameid:game.gameid,
+        gameid:gameid,
         player:player,
         edge:listen.for[source],
         args:args });
@@ -145,6 +159,7 @@ let listen = {
     for (let i=0; i<game.private.adjacents.length; i++) {
       let edge = STATE_GRAPH.edges[game.private.adjacents[i]];
       listen.for[edge.listen] = edge.name;
+      console.log(edge.name);
     }
   },
 
@@ -163,16 +178,14 @@ $( function(){
   panzoom = svgPanZoom('svg#gameboard');
 
   game = JSON.parse( $('#json').text() );
+  gameid = game.gameid;
   bindGameData(game);
   bindListeners();
   //console.log(STATE_GRAPH);
 
-  socket.on('play update', function(data) {
-    console.log('update', data);
-    update(data);
-  });
   socket.on('play callback', function(data) {
-    console.log('callback', data);
+    console.log(data);
+    bindGameData(data);
   })
 
 });
