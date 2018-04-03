@@ -1,5 +1,20 @@
 // CORE functionality that should be available even when messaging isn't
 
+class CatonlineError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'CatonlineError';
+  }
+}
+
+class GUIError extends CatonlineError {
+  constructor(message) {
+    super(message);
+    this.name = 'GUIError';
+  }
+}
+
+
 // FUNCTIONS
 function forceTwoDigits(num) {
   return num > 9 ? '' + num : '0' + num;

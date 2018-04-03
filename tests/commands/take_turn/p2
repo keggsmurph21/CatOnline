@@ -1,0 +1,2 @@
+do 1 force roll 1 1
+do 1 exec _e_end_turn

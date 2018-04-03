@@ -1,4 +1,4 @@
-module.exports = {
+const STATE_GRAPH = {
    vertices: {
       "_v_accept_trade": {
          edges: [
