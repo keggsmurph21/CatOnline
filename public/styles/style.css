@@ -610,36 +610,58 @@ div#private-data {
   font-weight: bold;
 }
 
+.play .spot {
+  fill: #fff;
+  stroke-width: 0.05;
+}
+
+.play .spot:hover, .play .road:hover {
+  stroke: #000;
+}
+
+/* TODO: mix-ins would be good here */
 .play .red {
   color: #f00;
 }
-.play .spot.red, .road.red {
+.play .spot.red, .play .road.red {
   stroke: #f00;
-  fill:   #fff;
+  fill:   #f00;
+}
+.play .spot.red {
+  stroke-width: 0.2;
 }
 
 .play .orange {
   color: #ffa500;
 }
-.play .spot.orange, .road.orange {
+.play .spot.orange, .play .road.orange {
   stroke: #ffa500;
-  fill:   #fff;
+  fill:   #ffa500;
+}
+.play .spot.orange {
+  stroke-width: 0.2;
 }
 
 .play .blue {
   color: #00f;
 }
-.play .spot.blue, .road.blue {
+.play .spot.blue, .play .road.blue {
   stroke: #00f;
-  fill:   #fff;
+  fill:   #00f;
+}
+.play .spot.blue {
+  stroke-width: 0.2
 }
 
 .play .white {
   color: #fff;
 }
-.play .spot.white, .road.white {
-  stroke: #ccc;
-  fill:   #ccc;
+.play .spot.white, .play .road.white {
+  stroke: #aaa;
+  fill:   #aaa;
+}
+.play .spot.white {
+  stroke-width: #ccc;
 }
 
 .yop, .monopoly, .rb {

@@ -844,34 +844,44 @@ module.exports = function(io, sessionStore) {
       }
     });
 
+    socket.on('play connect', function(data) {
+
+      let gameid = req.ref.split('-')[1];
+      funcs.requireGameById(gameid, function(err,game) {
+        console.log('connection',game.id);
+        req.session.game = game;
+        socket.emit('play connect', {
+          public: game.getPublicGameData(),
+          private:game.getPrivateGameData(req.session.user)
+        });
+      });
+    });
+
     socket.on('play action', function(data) {
 
-      console.log('received play action');
-      console.log(data);
+      console.log('received play action >>',data.edge);
+      console.log(data.args);
 
-      funcs.requireGameById(data.gameid, function(err,game) {
-        try {
+      try {
 
-          let args = logic.validateEdgeArgs(game, data.edge, data.args);
-          console.log('validated',args);
-          if (!logic.validateEdgeIsAdjacent(game, data.player, data.edge))
-            throw new UserInputError('Player '+data.player+' is not adjacent to `'+data.edge+'`.');
-          data = logic.execute(game, data.player, data.edge, args);
+        let args = logic.validateEdgeArgs(req.session.game, data.edge, data.args);
+        if (!logic.validateEdgeIsAdjacent(req.session.game, data.player, data.edge))
+          throw new UserInputError('Player '+data.player+' is not adjacent to `'+data.edge+'`.');
+        data = logic.execute(req.session.game, data.player, data.edge, args);
 
-          funcs.saveAndCatch(game, function(err) {
-            if (err) throw err;
+        funcs.saveAndCatch(req.session.game, function(err) {
+          if (err) throw err;
 
-            data = logic.getGameData(req.session.user, game);
-            playCallback(socket, req.ref, data);
+          data = logic.getGameData(req.session.user, req.session.game);
+          playCallback(socket, req.ref, data);
 
-          });
-        } catch (e) {
-          if (e instanceof UserInputError) {
-            console.log(e);
-            playCallback(socket, req.ref, e.message);
-          } else { throw e; }
-        }
-      });
+        });
+      } catch (e) {
+        if (e instanceof UserInputError) {
+          console.log(e);
+          playCallback(socket, req.ref, e.message);
+        } else { throw e; }
+      }
 
     });
 

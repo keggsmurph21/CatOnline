@@ -19,62 +19,6 @@
         <button onclick="forceSwitchView();" class="switch-view" id="wide">Switch to wide view</button>
       </div>
 
-      <div class="panel" id="info">
-        <table id="public-data">
-          <tr class="header">
-            <th>name</th>
-            <th>vp</th>
-            <th>resources</th>
-            <th>road</th>
-            <th>dev cards</th>
-            <th>knights</th>
-          </tr>
-          <% for (let i=0; i< public.players.length; i++) {
-            let player = public.players[i]; %>
-            <tr class="player <%= player.color %>">
-              <td><%= player.lobbyData.name %></td>
-              <td>
-                <% // get the score to display
-                let score = player.publicScore;
-                if (private) { if (i==private.playerID) {
-                  score += score!=private.privateScore ? ' ('+private.privateScore+')' : ''
-                } } %>
-                <%= score %>
-              </td>
-              <td><%= player.resourcesInHand %></td>
-              <td><%= player.longestRoad %></td>
-              <td><%= player.devCardsInHand %></td>
-              <td><%= player.playedKnights %></td>
-            </tr>
-          <% } %>
-        </table>
-        <div id="private-data">
-          <% if (private) { %>
-            <table id="resources">
-              <tr class="header">
-                <th colspan="100">resources</th>
-              </tr>
-              <% for (let resource in private.resources) { %>
-                <tr class="<%= resource %>">
-                  <th><%= resource %></th>
-                  <th><%= private.resources[resource] %></th>
-                </tr>
-              <% } %>
-            </table>
-            <table id="dev-cards">
-              <tr class="header">
-                <th colspan="100">dev cards</th>
-              </tr>
-              <% for (let dc in private.unplayedDCs) { %>
-                <tr class="<%= dc %>">
-                  <th><%= dc %></th>
-                  <th><%= private.unplayedDCs[dc] %></th>
-                </tr>
-              <% } %>
-            </table>
-          <% } %>
-        </div>
-      </div>
 
       <%- include( 'messages.ejs' ) %>
 
@@ -86,10 +30,6 @@
 
   </div>
   <%- include( 'banner.ejs' ) %>
-
-  <p id="json" style="display:none;">
-    <%= JSON.stringify({ gameid:gameid, public:public, private:private }) %>
-  </p>
 
   <script src='/socket.io/socket.io.js'> </script>
   <script src='/resources/jquery-3.3.1.js'> </script>

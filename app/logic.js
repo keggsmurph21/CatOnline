@@ -183,8 +183,8 @@ function calcLargestArmy(game) {
     let player = game.state.players[p];
 
     // only change on strictly gt
-    if (player.playedDCs.knight > game.state.largestArmy) {
-      game.state.largestArmy = player.playedDCs.knight;
+    if (player.numKnights > game.state.largestArmy) {
+      game.state.largestArmy = player.numKnights;
 
       // if it's a change
       if (la !== player.playerID) {
@@ -584,6 +584,7 @@ const helpers = {
         return;
 
       case ('knight'):
+        player.numKnights += 1;
         calcLargestArmy(game);
         break;
       case ('monopoly'):

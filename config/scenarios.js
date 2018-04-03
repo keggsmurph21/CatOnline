@@ -973,6 +973,7 @@ module.exports = {
       unplayableDCs: 0, // build
       unplayedDCs: 0,		// build
       playedDCs: 0,		 // build
+      numKnights: 0,
 
       resources: 0,		// build
       settlements: [],

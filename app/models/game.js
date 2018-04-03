@@ -101,6 +101,7 @@ var GameSchema = mongoose.Schema({
       unplayableDCs: Object,  // { $DC : Number }
       unplayedDCs: Object,    // { $DC : Number }
       playedDCs: Object,      // { $DC : Number }
+      numKnights: Number,
 
       resources: Object,      // { $RES : Number }
       settlements: [ Number ],
@@ -186,11 +187,11 @@ GameSchema.methods.getPublicGameData = function() {
       color           : player.color,
       isHuman         : player.isHuman,
       devCardsInHand  : sumOverObject(player.unplayedDCs),
-      playedKnights   : player.playedKnights,
-      hasLargestArmy  : player.hasLargestArmy,
-      resourcesInHand : sumOverObject(player.resources),
+      numKnights      : player.numKnights,
+      hasLargestArmy  : (this.state.hasLargestArmy===player.playerID),
+      resourcesInHand : sumOverObject(player.resources), // TODO: move this to funcs, combine with the similar funciton in LOGIC
       longestRoad     : player.longestRoad,
-      hasLongestRoad  : player.hasLongestRoad,
+      hasLongestRoad  : (this.state.hasLongestRoad===player.playerID),
       publicScore     : player.publicScore,
       roads           : player.roads,
       settlements     : player.settlements,

@@ -174,18 +174,24 @@ let listen = {
 // once all DOM is rendered
 $( function(){
 
+  socket.emit('play connect', null);
+
   // set semiglobal objects
   panzoom = svgPanZoom('svg#gameboard');
 
+  /*
   game = JSON.parse( $('#json').text() );
   gameid = game.gameid;
   bindGameData(game);
-  bindListeners();
+  bindListeners(); */
   //console.log(STATE_GRAPH);
 
+  socket.on('play connect', function(data) {
+    alert(Object.keys(data));
+  });
   socket.on('play callback', function(data) {
     console.log(data);
     bindGameData(data);
-  })
+  });
 
 });
