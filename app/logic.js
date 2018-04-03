@@ -39,6 +39,7 @@ function pave(game, player, road, pay=true) {
   calcLongestRoad(game);
 }
 function settle(game, player, junc, pay=true) {
+  console.log(junc);
   if (!junc.isSettleable)
     throw new InvalidChoiceError('junc', junc, 'Someone has already settled here.');
 

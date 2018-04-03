@@ -17,11 +17,14 @@ function socketAuthorizationCallback(handshake, sessionStore, next) {
         if (session.user) { // only accept sessions w/ authenticated users
           // make sure we know which page this socket is connecting from
           let referer = handshake.headers.referer;
+          console.log(referer);
           if (referer.includes( '/lobby' )) {
             handshake.ref = 'lobby';
             handshake.url = referer;
           } else if (referer.includes( '/play' )) {
-            handshake.ref = 'play';
+            let tmp = referer.slice(referer.indexOf('play'));
+            tmp = tmp.split('/')[1];
+            handshake.ref = 'play-' + tmp;
             handshake.url = referer;
           } else if (referer.includes( '/admin' )) {
             handshake.ref = 'admin';
@@ -747,6 +750,13 @@ function lobbyCallback(err, data, socket, agent, request) {
   socket.emit( 'lobby callback', response);
 }
 
+function playCallback(socket, room, data) {
+  console.log(room, Object.keys(data));
+  socket.broadcast.to(room).emit( 'play callback', data );
+  socket.emit( 'play callback', data );
+}
+
+
 var numUsersByPage = {};
 
 module.exports = function(io, sessionStore) {
@@ -828,14 +838,38 @@ module.exports = function(io, sessionStore) {
         });
       } catch(err) {
         if (err instanceof TypeError) {
+          console.log(err);
           adminCallback( 'Malformed admin action: '+err, null, socket, req.session.user, data.action );
         }
       }
     });
 
     socket.on('play action', function(data) {
+
       console.log('received play action');
       console.log(data);
+
+      try {
+        funcs.requireGameById(data.gameid, function(err,game) {
+          let args = logic.validateEdgeArgs(game, data.edge, data.args);
+          console.log('validated',args);
+          if (!logic.validateEdgeIsAdjacent(game, data.player, data.edge))
+            throw new DoError('Player '+data.player+' is not adjacent to `'+data.edge+'`.');
+          logic.execute(game, data.player, data.edge, args);
+
+          data = logic.getGameData(req.session.user, game);
+          console.log('callback');
+          playCallback(socket, req.ref, data);
+
+        });
+      } catch (e) {
+        if (e instanceof UserInputError) {
+          console.log(e);
+        } else {
+          throw e;
+        }
+      }
+
     });
 
     socket.on('profile action', function(data) {

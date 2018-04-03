@@ -42,7 +42,7 @@ class UserInputError extends CatonlineError {
 }
 global.UserInputError = UserInputError;
 
-class GetPlayerError extends UserInputError {
+class GetPlayerError extends GameLogicError {
   constructor(got, message) {
     super(message);
     this.got  = got;

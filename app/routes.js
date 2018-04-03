@@ -45,6 +45,7 @@ module.exports = function(app, passport) {
         res.render('play.ejs', {
           message:  req.flash('playMessage'),
           user:     req.user,
+          gameid:   game.id,
           public:   data.public,
           private:  data.private
         });

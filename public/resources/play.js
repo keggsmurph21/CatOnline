@@ -1,4 +1,8 @@
 
+function emit(data) {
+  console.log('player',data.player,'fired an action:',data);
+  socket.emit('play action', data);
+}
 function bindGameData(game) {
   console.log(game);
   // use public and private data from the server
@@ -35,6 +39,7 @@ function bindGameData(game) {
   }
   console.log('`private`');
   console.log(game.private);
+  player = game.private.playerID;
   listen.set(game);
 }
 function getTypeAndNum(str) {
@@ -52,13 +57,13 @@ function bindListeners() {
   for (let i=0; i<selectors.length; i++) {
     $(selectors[i]).click( (j) => {
       let [type, num] = getTypeAndNum(j.target.id);
-      listen.to(type, num);
+      listen.to(type, [num]);
     });
   }
   $('.tile *').click( (t) => {
     let [type, num] = getTypeAndNum(
       $(t.target).closest('.tile').attr('id'));
-    listen.to(type, num);
+    listen.to(type, [num]);
   });
 
   // listeners for buttons
@@ -120,14 +125,18 @@ function update(data) {
 }
 
 // set global variables
-let game, panzoom;
+let game, panzoom, player;
 
 let listen = {
 
   to(source, args) {
     console.log(source, args);
     if (listen.for[source]!==undefined) {
-      console.log(listen.for[source]+' event fired');
+      emit({
+        gameid:game.gameid,
+        player:player,
+        edge:listen.for[source],
+        args:args });
     }
   },
 
@@ -156,6 +165,14 @@ $( function(){
   game = JSON.parse( $('#json').text() );
   bindGameData(game);
   bindListeners();
-  console.log(STATE_GRAPH);
+  //console.log(STATE_GRAPH);
+
+  socket.on('play update', function(data) {
+    console.log('update', data);
+    update(data);
+  });
+  socket.on('play callback', function(data) {
+    console.log('callback', data);
+  })
 
 });
