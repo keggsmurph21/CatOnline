@@ -19,6 +19,20 @@
         <button onclick="forceSwitchView();" class="switch-view" id="wide">Switch to wide view</button>
       </div>
 
+      <div class="panel" id="game-data">
+        <table id="public-data">
+          <tr class="header">
+            <th id="public-name">name</th>
+            <th id="public-score">vp</th>
+            <th id="public-resources">resources</th>
+            <th id="public-longest-road">road</th>
+            <th id="public-dev-cards">dev cards</th>
+            <th id="public-knights">knights</th>
+          </tr>
+        </table>
+        <div id="private-data">
+        </div>
+      </div>
 
       <%- include( 'messages.ejs' ) %>
 
@@ -34,7 +48,6 @@
   <script src='/socket.io/socket.io.js'> </script>
   <script src='/resources/jquery-3.3.1.js'> </script>
   <script src='/resources/svg-pan-zoom.js'> </script>
-  <!--<script src="/resources/lib.js"> </script>-->
   <script src='/resources/core.js'> </script>
   <script src='/resources/messages.js'> </script>
   <script src='/resources/states.js'> </script>

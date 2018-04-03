@@ -39,7 +39,9 @@ function pave(game, player, road, pay=true) {
   calcLongestRoad(game);
 }
 function settle(game, player, junc, pay=true) {
-  console.log(junc);
+  console.log('in settle:',junc);
+  // TODO: update bank trade rates
+
   if (junc.owner > -1)
     throw new InvalidChoiceError('junc', junc, 'Someone has already settled here.');
   if (!junc.isSettleable)
@@ -644,7 +646,6 @@ const helpers = {
       }
     }
     return game.board.dice.values;
-    //console.log('roll='+(r1+r2));
   },
 
   settle(game, player, junc, pay=true) {
@@ -755,6 +756,7 @@ module.exports = {
       }
     }
 
+    return ret;
   },
   helpers : helpers,
 

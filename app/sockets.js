@@ -750,13 +750,6 @@ function lobbyCallback(err, data, socket, agent, request) {
   socket.emit( 'lobby callback', response);
 }
 
-function playCallback(socket, room, data) {
-  console.log(room, Object.keys(data));
-  socket.broadcast.to(room).emit( 'play callback', data );
-  socket.emit( 'play callback', data );
-}
-
-
 var numUsersByPage = {};
 
 module.exports = function(io, sessionStore) {
@@ -859,27 +852,38 @@ module.exports = function(io, sessionStore) {
 
     socket.on('play action', function(data) {
 
-      console.log('received play action >>',data.edge);
-      console.log(data.args);
+      console.log('received play action >>',data.edge, data.args);
 
       try {
 
         let args = logic.validateEdgeArgs(req.session.game, data.edge, data.args);
         if (!logic.validateEdgeIsAdjacent(req.session.game, data.player, data.edge))
-          throw new UserInputError('Player '+data.player+' is not adjacent to `'+data.edge+'`.');
-        data = logic.execute(req.session.game, data.player, data.edge, args);
+          throw new UserInputError( `Player ${data.player} is not adjacent to ${data.edge}.` );
+        let ret = logic.execute(req.session.game, data.player, data.edge, args);
 
         funcs.saveAndCatch(req.session.game, function(err) {
           if (err) throw err;
 
-          data = logic.getGameData(req.session.user, req.session.game);
-          playCallback(socket, req.ref, data);
+          let data = {
+            player  : data.player,
+            edge    : data.edge,
+            success : true,
+            args    : ret
+          };
+          socket.broadcast.to(req.ref).emit( 'play callback', data );
+          socket.emit( 'play callback', data );
 
         });
       } catch (e) {
         if (e instanceof UserInputError) {
           console.log(e);
-          playCallback(socket, req.ref, e.message);
+          socket.emit('play callback', {
+            player  : data.player,
+            edge    : data.edge,
+            success : false,
+            args    : e.message
+          });
+
         } else { throw e; }
       }
 

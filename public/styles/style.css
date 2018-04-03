@@ -582,12 +582,12 @@ span.batch * {
   min-height: 150px;
 }
 
-.play #info {
+.play #game-data {
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
 }
-.play #info > * {
+.play #game-data > * {
   width: 100%;
 }
 
