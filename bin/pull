@@ -47,7 +47,7 @@ def get_sheet( spreadsheet, gid, export_as='tsv' ):
 
     sys.exit(1)
 
-def get_state_graph( out ):
+def get_state_graph():
     '''
     Get the data.
 
@@ -58,15 +58,17 @@ def get_state_graph( out ):
     # the global stuff to configure URI access
     spreadsheet = '1UlTewbihkhtMcIgH6p1RqhkqUcSufclM7UvAu6EgOcI'
     printf( msg='spreadsheet: %s' % spreadsheet, priority=3 )
-    ignoreList = [ 'id' ]
-    printf( msg='ignoring:'+str(ignoreList), priority=3 )
     sheets = {
         'vertices'  : '235763305',
         'edges'     : '931117447' }
-    data = {
-        'vertices'  : {},
-        'edges'     : {} }
-    printf( msg='', priority=1 ) # spacing
+    printf( msg='', priority=3 ) # spacing
+
+    # since we'll be making multiple instances of this graph,
+    # we won't need all the data in each instance
+    serverdata, clientdata = [ { 'vertices':{},'edges':{} } for i in range(2) ]
+    commonCols = [ 'vertices', 'edges', 'target', 'label', 'name' ]
+    serverCols = commonCols + [ 'evaluate', 'execute', 'isPriority', 'arguments' ]
+    clientCols = commonCols + [ 'isCancel', 'listen', 'onSuccess', 'description' ]
 
     # parse the vertices
     sheet = get_sheet(spreadsheet, sheets['vertices'])
@@ -80,9 +82,13 @@ def get_state_graph( out ):
                 col_name = header[i]
                 if col_name == 'name':
                     vertex_name = replace_name( 'v', line[i] )
-                    data['vertices'][vertex_name] = { 'edges':[], 'name':vertex_name }
-                elif col_name not in ignoreList:
-                    data['vertices'][vertex_name][col_name] = line[i]
+                    serverdata['vertices'][vertex_name] = { 'edges':[], 'name':vertex_name }
+                    clientdata['vertices'][vertex_name] = { 'edges':[], 'name':vertex_name }
+                else:
+                    if col_name in serverCols:
+                        serverdata['vertices'][vertex_name][col_name] = line[i]
+                    if col_name in clientCols:
+                        clientdata['vertices'][vertex_name][col_name] = line[i]
 
     # parse the edges
     sheet = get_sheet(spreadsheet, sheets['edges'])
@@ -94,9 +100,14 @@ def get_state_graph( out ):
         else:
             for i in range(len(line)):
                 col_name = header[i]
+
+                if col_name.startswith('is'):
+                    line[i] = len(line[i])>0
+
                 if col_name == 'name':
                     edge_name = replace_name( 'e', line[i] )
-                    data['edges'][edge_name] = { 'name':edge_name }
+                    serverdata['edges'][edge_name] = { 'name':edge_name }
+                    clientdata['edges'][edge_name] = { 'name':edge_name }
 
                     # make sure the testing capacity is there
                     path = os.path.join('tests','commands','edges',edge_name)
@@ -105,39 +116,42 @@ def get_state_graph( out ):
 
                 elif col_name == 'source':
                     vertex_name = replace_name( 'v', line[i] )
-                    data['vertices'][vertex_name]['edges'].append( edge_name )
+                    serverdata['vertices'][vertex_name]['edges'].append( edge_name )
+                    clientdata['vertices'][vertex_name]['edges'].append( edge_name )
                 elif col_name == 'target':
                     vertex_name = replace_name( 'v', line[i] )
-                    data['edges'][edge_name][col_name] = vertex_name
-                elif col_name.startswith('is'):
-                    data['edges'][edge_name][col_name] = len(line[i])>0
-                elif col_name not in ignoreList:
-                    data['edges'][edge_name][col_name] = line[i]
+                    serverdata['edges'][edge_name][col_name] = vertex_name
+                    clientdata['edges'][edge_name][col_name] = vertex_name
+                else:
+                    if col_name in serverCols:
+                        serverdata['edges'][edge_name][col_name] = line[i]
+                    if col_name in clientCols:
+                        clientdata['edges'][edge_name][col_name] = line[i]
 
+    # coerce the dict -> JSON
+    serverdata = json.dumps(serverdata,indent=4)
 
-    # coerce the dict -> JSON -> js
-    data = json.dumps(data,indent=3)
-    #
-    data = re.sub(r'_\.', r'require(`../logic`).helpers.', data);
-    for item in [   'vertices', 'edges', 'evaluate',
-                    'execute', 'isMulti', 'isPriority',
-                    'isCancel', 'target', 'label',
-                    'name', 'arguments', 'listen',
-                    'clientOnSuccess', 'clientDescription'                      ]:
-        data = re.sub( '"%s"' % item, '%s' % item, data )
-    data = re.sub(r'"(func.*\})"', r'\1', data)
+    # first make the version that will live on the server
+    serverdata = re.sub(r'"(func.*\})"', r'\1', serverdata)
+    for key in serverCols:
+        serverdata = re.sub( r'"%s"' % key, r'%s' % key, serverdata )
 
     # "roll that shit, write that shit, smoke it" - Method Man
-    out.write( 'module.exports = %s' % data )
-    out.close()
+    funcs = get_project_path('app','logic','graph','server-funcs.js')
+    with open( funcs, 'r' ) as f:
+        funcs = f.read()
+        built = get_project_path('app','logic','graph','graph.js')
+        with open( built, 'w' ) as b:
+            b.write( '{}\nmodule.exports = {}'.format(funcs, serverdata) )
 
     # put another copy in the public directory
-    out = os.path.join(
+    #with open( get_project_path('public','resources','states.js'), 'w') as f:
+    #    out.write( 'const _STATE_GRAPH = %s' % data )
+
+def get_project_path(*args):
+    return os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        os.path.join('..','public','resources','states.js') )
-    out = open( out, 'w')
-    out.write( 'const _STATE_GRAPH = %s' % data )
-    out.close()
+        os.path.join('..',*args) )
 
 def replace_name( prefix, name ):
     '''
@@ -171,18 +185,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument( '-q', '--quiet', action='store_true' )
     parser.add_argument( '-v', '--verbose', action='count', default=1 )
-    parser.add_argument( '-s', '--stdout', action='store_true' )
-    parser.add_argument( '-o', '--out', default=None, help='where to \
-        output the formatted .js (default=catonline/app/logic/graph/graph.js' )
     args = parser.parse_args()
 
     # more argument parsing
     VERBOSITY = 0 if args.quiet else min(args.verbose,5)
-    if args.out is None:
-        args.out = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            os.path.join('..','app','logic','graph','graph.js') )
-    out = sys.stdout if args.stdout else open(args.out, 'w')
 
-    # write it there
-    get_state_graph(out)
+    # write it
+    get_state_graph()

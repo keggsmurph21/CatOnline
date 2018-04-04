@@ -264,6 +264,75 @@ module.exports = {
       throw new CatonlineError('Unable to parse int: '+str);
     return i;
   },
+  parse : {
+    trade(game, args) {
+      if (!args.length)
+        throw new EdgeArgumentError('trade',[],'Nothing to trade.');
+      let trade = { in:{}, out:{} },
+        parsing = trade.out,
+        expecting ='int';
+      for (let a=0; a<args.length; a++) {
+        if (args[a]==='=') {
+          parsing = trade.in;
+        } else {
+          let res = module.exports.parse.resource(game, args[a+1]),
+            num = module.exports.toInt(args[a]);
+          parsing[res] = (parsing[res] ? parsing[res]+num : num);
+          a += 1;
+        }
+      }
+      return trade;
+    },
+    hex(game, h) {
+      let hex = parseInt(h);
+      if (isNaN(hex))
+        throw new EdgeArgumentError('hex',h,h+' is not a number.');
+      if (hex<0 || game.board.hexes.length<=hex)
+        throw new EdgeArgumentError('hex',h,'Value must be between 0 and '
+          + (game.board.hexes.length-1) + '.');
+      return game.board.hexes[hex];
+    },
+    junc(game, j) {
+      let junc = parseInt(j);
+      if (isNaN(junc))
+        throw new EdgeArgumentError('junc',j,j+' is not a number.');
+      if (junc<0 || game.board.juncs.length<=junc)
+        throw new EdgeArgumentError('junc',j,'Value must be between 0 and '
+          + (game.board.juncs.length-1) + '.');
+      return game.board.juncs[junc];
+    },
+    player(game, p) {
+      let player = parseInt(p);
+      if (isNaN(p))
+        throw new GetPlayerError(p, p+' is not a number.');
+      if (player<0 || game.state.players.length<=player)
+        throw new GetPlayerError(p, 'Value must be between 0 and '
+          + (game.state.players.length-1) + '.');
+      return game.state.players[player];
+    },
+    resource(game, res) {
+      if (require('./logic/config').validateResource(game, res))
+        return res;
+      throw new EdgeArgumentError('res',res,res+' is not a resource.');
+    },
+    road(game, r) {
+      let road = parseInt(r);
+      if (isNaN(road))
+        throw new EdgeArgumentError('road',r,''+r+' is not a number.');
+      if (road<0 || game.board.roads.length<=road)
+        throw new EdgeArgumentError('road',r,'Value must be between 0 and '
+          + (game.board.roads.length-1) + '.');
+      return game.board.roads[road];
+    }
+  },
+  sumObject(obj) {
+    let acc = 0;
+    for (let key in obj) {
+      acc += obj[key];
+    }
+    return acc;
+  },
+
 
   User : require('./models/user'),
   Game : require('./models/game')
