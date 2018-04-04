@@ -265,11 +265,11 @@ function parseInput(line, callback=()=>{}) {
             throw new NotImplementedError();
             break;
           case ('player'):
-            let player = LOGIC.helpers.parse.player(game, args[1]);
+            let player = FUNCS.parse.player(game, args[1]);
 
             switch (args[2]) {
               case ('resources'):
-                let set = LOGIC.helpers.parse.trade(game, args.slice(3)).out;
+                let set = FUNCS.parse.trade(game, args.slice(3)).out;
                 for (res in player.resources) {
                   player.resources[res] = (set[res] || 0);
                 }

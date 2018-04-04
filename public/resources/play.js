@@ -6,7 +6,7 @@ function emitAction(data) {
 function setStatusMessage(adjs) {
   let options = new Set();
   for (let i=0; i<adjs.length; i++) {
-    let description = _STATE_GRAPH.edges[adjs[i]].clientDescription;
+    let description = _STATE_GRAPH.edges[adjs[i]].description;
     if (description.length)
       options.add(description);
   }
@@ -15,7 +15,48 @@ function setStatusMessage(adjs) {
   _M.addMessage(message);
 }
 function updateButtons() {
+  function isAdjacent(edge) {
+    return (game.private.adjacents.indexOf(edge) > -1);
+  }
 
+  $('#buyDevelopmentCard')
+    .prop('disabled', !isAdjacent('_e_buy_dc'));
+  $('#endTurn')
+    .prop('disabled', !isAdjacent('_e_end_turn'));
+  $('#offerTrade')
+    .prop('disabled', !isAdjacent('_e_offer_trade'));
+  $('#')
+  $('#tradeBank')
+    .prop('disabled', !isAdjacent('_e_trade_bank'));
+
+  if (game.private.flags.disabled > 0) {
+    $('button.discard').show();
+    for (let res in game.private.resources) {
+      $(`button.discard[name=${res}]`)
+        .css('visibility', (game.private.resources[res] > 0)
+          ? 'visible'
+          : 'hidden' );
+    }
+  } else {
+    $('button.discard').hide();
+  }
+
+  let canPlayDC = false;
+  for (let dc in game.private.flags.canPlayDC) {
+    if (game.private.flags.canPlayDC[dc]) {
+      canPlayDC = true;
+      $(`button.play[name=${dc}]`)
+        .css('visiblity', 'visible');
+    } else {
+      $(`button.play[name=${dc}]`)
+        .css('visiblity', 'visible');
+    }
+  }
+  if (canPlayDC) {
+    $('button.play').show();
+  } else {
+    $('button.play').hide();
+  }
 }
 function onConnect(data) {
 
@@ -210,13 +251,15 @@ function onConnect(data) {
     }
     function buildButtons() {
 
-      function buildButton(id, text, type='button') {
-        return `<button type="${type}" id="${id}" disabled="disabled">${text}</button>`;
+      function buildButton(id, text, type='button', enabled=false) {
+        return `<button type="${type}" id="${id}"${(enabled
+          ? `` : ` disabled="disabled"`)}>${text}</button>`;
       }
 
       let buttons = [];
       buttons.push( buildButton('buyDevelopmentCard', 'Buy development card') );
       buttons.push( buildButton('endTurn', 'End turn') );
+      buttons.push( buildButton('viewTrade', 'View trade') );
       buttons.push( buildButton('offerTrade', 'Offer trade') );
       buttons.push( buildButton('tradeBank', 'Trade bank') );
 
@@ -231,17 +274,18 @@ function onConnect(data) {
 
     // resources content rows
     for (let res in game.private.resources) {
-      let tr = buildResourceTR(res, game.private.resources[res]);
+      let tr = buildResourceTR(res, game.private.resources[res], enabled=true);
       $('#private-resources tr:last').after(tr);
     }
 
     // development cards content rows
     for (let dc in game.private.unplayedDCs) {
-      let tr = buildDevCardTR(dc, game.private.unplayedDCs[dc]);
+      let tr = buildDevCardTR(dc, game.private.unplayedDCs[dc], enabled=true);
       $('#private-dev-cards tr:last').after(tr);
     }
 
     buildButtons();
+    updateButtons();
     setStatusMessage(game.private.adjacents);
   }
 
@@ -268,15 +312,16 @@ function onUpdate(data) {
     if (game.private !== null) {
 
       function _() {
-        
+
       }
 
       let edge = _STATE_GRAPH.edges[data.edge];
 
-      edge.clientOnSuccess(data.args.ret);
+      edge.onSuccess(data.args.ret);
       game.private.vertex    = edge.target;
       game.private.adjacents = data.args.adjs;
 
+      updateButtons();
       setStatusMessage(game.private.adjacents);
       listen.set(game);
 

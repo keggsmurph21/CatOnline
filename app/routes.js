@@ -1,7 +1,7 @@
 // load stuff
-const funcs = require('./funcs.js');
-const logic = require('./logic/logic.js');
-const config = require('./logic/config.js');
+const funcs = require('./funcs');
+const logic = require('./logic/logic');
+const config = require('./logic/init');
 //const config= require('../config/new-game-form.json');
 
 // app/routes.js

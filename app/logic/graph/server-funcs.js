@@ -1,5 +1,5 @@
 const funcs  = require('../../funcs');
-const config = require('../config');
+const config = require('../init');
 
 function _accrue(player, windfall) {
   let resources = Object.assign({}, player.resources);

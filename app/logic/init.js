@@ -3,12 +3,12 @@ const funcs = require('../funcs.js');
 
 // load config files
 const _NEW_GAME_FORM  = require('./new-game-form.js');
-const _SCENARIOS      = require('./scenarios.js');
+const _INITIAL_VALUES = require('./initial-values.js');
 const _GUIS           = require('../gui/guis.js');
 
 // helper function generate/validate new game forms
 function populateNewGameForm() {
-  _NEW_GAME_FORM.strings.scenario.options = Object.keys( _SCENARIOS );
+  _NEW_GAME_FORM.strings.scenario.options = Object.keys( _INITIAL_VALUES );
 }
 function validateNewGameParams(data, next) {
 
@@ -58,13 +58,13 @@ function validateNewGameParams(data, next) {
 
 // helper functions to build the state & board graphs
 function initGameState(user, settings) {
-  let state = _SCENARIOS[settings.scenario].defaultGlobalState;
+  let state = _INITIAL_VALUES[settings.scenario].defaultGlobalState;
   state.status = ( settings.numHumans+settings.numCPUs===1 ? 'ready' : 'pending' );
   state.players = [ buildInitialPlayerState(user, settings, true, 0) ];
   return state;
 }
 function initGameBoard(settings) {
-  let board, scenario = _SCENARIOS[settings.scenario];
+  let board, scenario = _INITIAL_VALUES[settings.scenario];
   board = buildGameBoard(scenario);
   board = randomizeGameBoard(scenario, board, settings);
   return board;
@@ -236,7 +236,7 @@ function saveInitialGameBoardToState(game) {
 }
 
 function buildInitialPlayerState(user, settings, isHuman, num) {
-  let scenario = _SCENARIOS[settings.scenario],
+  let scenario = _INITIAL_VALUES[settings.scenario],
     playerState = Object.assign({}, scenario.defaultPlayerState),
     bankTradeRates={}, canPlayDC={}, canBuild={}, canBuy={},
     unplayableDCs={}, unplayedDCs={}, playedDCs={}, resources={};
@@ -287,10 +287,10 @@ populateNewGameForm();
 module.exports = {
 
   getBuildObjects(game) {
-    return _SCENARIOS[game.meta.settings.scenario].buildObjects;
+    return _INITIAL_VALUES[game.meta.settings.scenario].buildObjects;
   },
   getBuyObjects(game) {
-    return _SCENARIOS[game.meta.settings.scenario].buyObjects;
+    return _INITIAL_VALUES[game.meta.settings.scenario].buyObjects;
   },
   // output the necessary objects to make the host-new-game
   getNewGameForm : function() {
@@ -327,12 +327,12 @@ module.exports = {
     return buildInitialPlayerState(user, game.meta.settings, human, game.state.players.length);
   },
   getColors : function(game) {
-    let colors = _SCENARIOS[game.meta.settings.scenario].colors[i].slice(0);
+    let colors = _INITIAL_VALUES[game.meta.settings.scenario].colors[i].slice(0);
     funcs.shuffle(colors);
     return colors.slice(0,game.state.players.length);
   },
   validateResource : function(game, resource) {
-    return _SCENARIOS[game.meta.settings.scenario].resources.hasOwnProperty(resource);
+    return _INITIAL_VALUES[game.meta.settings.scenario].resources.hasOwnProperty(resource);
   }
 
 }

@@ -87,6 +87,7 @@ var GameSchema = mongoose.Schema({
       // values to power flags
       isHuman: Boolean,
       discard: Number,
+      hasDeclinedTrade: Boolean,
       canAcceptTrade : Boolean,
       hasHeavyPurse : Boolean,
       bankTradeRates: Object, // { $RES : Number }
@@ -178,6 +179,7 @@ GameSchema.methods.getPublicGameData = function() {
     hexes   : this.board.hexes,
     juncs   : this.board.juncs,
     roads   : this.board.roads,
+    trade   : this.state.trade,
     players : []
   };
   for (let i=0; i<this.state.players.length; i++) {

@@ -1,7 +1,7 @@
 // game/sockets.js
-const funcs = require('./funcs.js');
-const logic = require('./logic/logic.js');
-const config = require('./logic/config.js');
+const funcs = require('./funcs');
+const logic = require('./logic/logic');
+const config = require('./logic/init');
 
 // socket helper functions
 function socketAuthorizationCallback(handshake, sessionStore, next) {

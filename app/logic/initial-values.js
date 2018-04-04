@@ -963,6 +963,7 @@ module.exports = {
 
       isHuman: null,
       discard: 0,
+      hasDeclinedTrade : false,
       canAcceptTrade : false,
       hasHeavyPurse : false,
       bankTradeRates: 4, // build

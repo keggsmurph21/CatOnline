@@ -311,7 +311,7 @@ module.exports = {
       return game.state.players[player];
     },
     resource(game, res) {
-      if (require('./logic/config').validateResource(game, res))
+      if (require('./logic/init').validateResource(game, res))
         return res;
       throw new EdgeArgumentError('res',res,res+' is not a resource.');
     },

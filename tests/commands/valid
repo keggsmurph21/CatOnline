@@ -6,6 +6,7 @@ get vp
 do 0 exec _e_init_settle 22
 do 0 exec _e_init_build_road 25
 #do 1 exec _e_take_turn
+get adj
 do 1 exec _e_init_settle 0
 do 1 exec _e_init_build_road 1
 #do 0 exec _e_take_turn
