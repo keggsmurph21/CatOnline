@@ -1,10 +1,10 @@
 // get core functions
-const funcs = require('../app/funcs.js');
+const funcs = require('../funcs.js');
 
 // load config files
-const _NEW_GAME_FORM  = require('./newgame.js');
+const _NEW_GAME_FORM  = require('./new-game-form.js');
 const _SCENARIOS      = require('./scenarios.js');
-const _GUIS           = require('./guis.js');
+const _GUIS           = require('../gui/guis.js');
 
 // helper function generate/validate new game forms
 function populateNewGameForm() {

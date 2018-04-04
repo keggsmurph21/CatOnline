@@ -1,7 +1,7 @@
 // load stuff
 const funcs = require('./funcs.js');
-const logic = require('./logic.js');
-const config = require('../config/catan.js');
+const logic = require('./logic/logic.js');
+const config = require('./logic/config.js');
 //const config= require('../config/new-game-form.json');
 
 // app/routes.js

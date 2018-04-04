@@ -1,7 +1,7 @@
 // game/sockets.js
 const funcs = require('./funcs.js');
-const logic = require('./logic.js');
-const config = require('../config/catan.js');
+const logic = require('./logic/logic.js');
+const config = require('./logic/config.js');
 
 // socket helper functions
 function socketAuthorizationCallback(handshake, sessionStore, next) {
@@ -841,7 +841,7 @@ module.exports = function(io, sessionStore) {
 
       let gameid = req.ref.split('-')[1];
       funcs.requireGameById(gameid, function(err,game) {
-        console.log('connection',game.id);
+
         req.session.game = game;
         socket.emit('play connect', {
           public: game.getPublicGameData(),
@@ -864,14 +864,14 @@ module.exports = function(io, sessionStore) {
         funcs.saveAndCatch(req.session.game, function(err) {
           if (err) throw err;
 
-          let data = {
+          let response = {
             player  : data.player,
             edge    : data.edge,
             success : true,
             args    : ret
           };
-          socket.broadcast.to(req.ref).emit( 'play callback', data );
-          socket.emit( 'play callback', data );
+          socket.broadcast.to(req.ref).emit( 'play callback', response );
+          socket.emit( 'play callback', response );
 
         });
       } catch (e) {

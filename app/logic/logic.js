@@ -1,25 +1,33 @@
-const funcs  = require('./funcs');
-const config = require('../config/catan.js');
+const funcs  = require('../funcs');
+const config = require('./config');
 
-const _STATE_GRAPH = require('../config/states.js');
+const _STATE_GRAPH = require('./graph/graph');
 
 function accrue(player, windfall) {
+  let resources = Object.assign({}, player.resources);
   for (let res in windfall) {
-    player.resources[res] += windfall[res];
+    resources[res] += windfall[res];
   }
+  player.resources = resources;
 }
 function spend(player, cost) {
   if (!funcs.canAfford(player, cost))
     throw new PovertyError(player, cost);
+  let resources = Object.assign({}, player.resources);
   for (let res in cost) {
-    player.resources[res] -= cost[res];
+    resources[res] -= cost[res];
   }
+  player.resources = resources;
 }
 
-function collectResource(game, player, hex) {
-  let res = game.board.hexes[hex].resource;
-  if (res !== 'desert')
-    player.resources[res] += 1;
+function collectResource(messenger, game, player, hex) {
+  let res = game.board.hexes[hex].resource,
+    resources = Object.assign({}, player.resources);
+  if (res !== 'desert') {
+    messenger.list.push([player.playerID, `collected ${res}.`]);
+    resources[res] += 1;
+  }
+  player.resources = resources;
 }
 function isGameOver(game) {
   for (let p=0; p<game.state.players.length; p++) {
@@ -27,21 +35,28 @@ function isGameOver(game) {
       game.state.isGameOver = true;
   }
 }
-function pave(game, player, road, pay=true) {
+function pave(messenger, game, player, road, pay=true) {
   if (pay) {
     let cost = getCost(game, 'build', 'road');
     spend(player, cost);
     updateBuyOptions(game, player);
   }
 
+  messenger.list.push([player.playerID, `built a road.`]);
   player.roads.push(road.num);
   road.owner = player.playerID;
-  calcLongestRoad(game);
+  calcLongestRoad(messenger, game);
+
+  return { road:road.num,
+    hasLongestRoad:game.state.hasLongestRoad,
+    longestRoad:player.longestRoad };
 }
-function settle(game, player, junc, pay=true) {
-  console.log('in settle:',junc);
+function settle(messenger, game, player, junc, pay=true) {
+  //console.log('in settle:',junc);
   // TODO: update bank trade rates
 
+  if (junc.owner === player.playerID)
+    throw new InvalidChoiceError('junc', junc, 'You have already settled here.');
   if (junc.owner > -1)
     throw new InvalidChoiceError('junc', junc, 'Someone has already settled here.');
   if (!junc.isSettleable)
@@ -53,6 +68,7 @@ function settle(game, player, junc, pay=true) {
     updateBuyOptions(game, player);
   }
 
+  messenger.list.push([player.playerID, `built a settlement.`]);
   player.settlements.push(junc.num);
   junc.owner = player.playerID;
 
@@ -63,10 +79,14 @@ function settle(game, player, junc, pay=true) {
 
   player.publicScore += 1;
   player.privateScore+= 1;
-  calcLongestRoad(game);
+  calcLongestRoad(messenger, game);
   isGameOver(game);
-}
 
+  return { junc:junc.num };
+}
+function rollDice() {
+  return [ funcs.getRandomInt(min=1,max=6), funcs.getRandomInt(min=1,max=6) ];
+}
 
 
 
@@ -107,6 +127,7 @@ function getFlags(game, i) {
     canPlayDC        : {},
     canBuild         : player.canBuild,
     canBuy           : player.canBuy,
+    canTrade         : (sumResources(player) > 0),
     canTradeBank     : getCanTradeBank(player),
     isHuman          : player.isHuman,
     isCurrentPlayer  : game.state.currentPlayerID===player.playerID,
@@ -178,7 +199,7 @@ function storeHistory(game, estring, args, ret) {
 
   game.state.history[index].push( estring + extra );
 }
-function calcLargestArmy(game) {
+function calcLargestArmy(messenger, game) {
   let la = game.state.hasLargestArmy;
 
   for (let p=0; p<game.state.players.length; p++) {
@@ -190,6 +211,7 @@ function calcLargestArmy(game) {
 
       // if it's a change
       if (la !== player.playerID) {
+        messenger.list.push([player.playerID, `took Largest Army.`]);
         if (la > -1) { // la initialized to -1 (no leader to start)
           game.state.players[la].publicScore -= 2;
           game.state.players[la].privateScore-= 2;
@@ -203,7 +225,7 @@ function calcLargestArmy(game) {
     }
   }
 }
-function calcLongestRoad(game) {
+function calcLongestRoad(messenger, game) {
   let lr = game.state.hasLongestRoad;
 
   for (let p=0; p<game.state.players.length; p++) {
@@ -215,6 +237,7 @@ function calcLongestRoad(game) {
       game.state.longestRoad = longest;
 
       if (lr !== player.playerID) {
+        messenger.list.push([player.playerID, `took Longest Road.`]);
         if (lr > -1) {
           game.state.players[lr].publicScore -= 2;
           game.state.players[lr].privateScore+= 2;
@@ -374,29 +397,33 @@ const parse = {
 
 
 const helpers = {
-  acceptTradeAsOffer(game, player) {
+  acceptTradeAsOffer(messenger, game, player) {
     spend(player, game.state.currentTrade.out);
     accrue(player, game.state.currentTrade.in);
     updateBuyOptions(game, player);
+    messenger.list.push([player.playerID, `accepted a trade.`]);
 
     helpers.cancelTrade(game);
   },
 
-  acceptTradeAsOther(game, player) {
+  acceptTradeAsOther(messenger, game, player) {
     spend(player, game.state.currentTrade.in);
     accrue(player, game.state.currentTrade.out);
     updateBuyOptions(game, player);
+    messenger.list.push([player.playerID, `accepted a trade.`]);
 
     game.state.tradeAccepted = true;
   },
 
-  buyDevCard(game, player) {
+  buyDevCard(messenger, game, player) {
     let cost = getCost(game, 'buy', 'dc');
     spend(player, cost);
     updateBuyOptions(game, player);
 
     if (!game.board.dcdeck.length)
-      throw new GameLogicError('No more development cards.');
+      throw new InvalidChoiceError('No more development cards.');
+
+    messenger.list.push([player.playerID, `bought a development card.`]);
     let dc = game.board.dcdeck.pop();
     if (dc === 'vp') {
       player.unplayedDCs[dc] += 1;
@@ -407,15 +434,17 @@ const helpers = {
     }
   },
 
-  cancelTrade(game) {
+  cancelTrade(messenger, game) {
     game.state.tradeAccepted = false;
     game.state.currentTrade = { in:null, out:null };
+
+    messenger.list.push([player.playerID, `cancelled the trade.`]);
     for (let p=0; p<game.state.players.length; p++) {
       game.state.players[p].canAcceptTrade = false;
     }
   },
 
-  collectResources(game) {
+  collectResources(messenger, game) {
     let sum = game.board.dice.values.reduce((acc,i)=>(acc+=i));
     for (let h=0; h<game.board.hexes.length; h++) {
       let hex = game.board.hexes[h];
@@ -424,7 +453,7 @@ const helpers = {
           let junc = game.board.juncs[hex.juncs[j]];
           if (junc.owner > -1) {
             let player = game.state.players[junc.owner];
-            collectResource(game, player, hex.num);
+            collectResource(messenger, game, player, hex.num);
             updateBuyOptions(game, player);
             //console.log( player.lobbyData.name,'collects a',hex.resource);
           }
@@ -433,7 +462,7 @@ const helpers = {
     }
   },
 
-  discard(game, player, cards) {
+  discard(messenger, game, player, cards) {
     let discarding = sumObject(cards);
     if (discarding > player.discard)
       throw new InvalidChoiceError('resources',cards,'You only need to discard '
@@ -442,6 +471,7 @@ const helpers = {
     spend(player, cards);
     updateBuyOptions(game, player);
 
+    messenger.list.push([player.playerID, `discarded ${discard} card${(discard>1 ? 's' : '')}.`]);
     player.discard -= discarding;
 
     game.state.waitForDiscard = false;
@@ -451,14 +481,16 @@ const helpers = {
           game.state.waitForDiscard = true;
       }
     }
+
+    return { cards:cards };
   },
 
-  end(game) {
+  end(messenger, game) {
     console.log('game is over');
     throw new NotImplementedError();
   },
 
-  fortify(game, player, junc) {
+  fortify(messenger, game, player, junc) {
     if (player.settlements.indexOf(junc.num) === -1)
       throw new InvalidChoiceError('junc',junc,'Cities must be built on existing settlements.');
 
@@ -472,21 +504,24 @@ const helpers = {
     let cost = getCost(game, 'build', 'city');
     spend(player, cost);
     updateBuyOptions(game, player);
+    messenger.list.push([player.playerID, `built a city.`]);
 
     player.publicScore += 1;
     player.privateScore+= 1;
     isGameOver(game);
+
+    return { junc:junc.num };
   },
 
-  initCollect(game, player) {
+  initCollect(messenger, game, player) {
     let j = player.settlements.slice(0).pop();
     for (let h=0; h<game.board.juncs[j].hexes.length; h++) {
-      collectResource(game, player, game.board.juncs[j].hexes[h]);
+      collectResource(messenger, game, player, game.board.juncs[j].hexes[h]);
     }
     updateBuyOptions(game, player);
   },
 
-  initPave(game, player, road) {
+  initPave(messenger, game, player, road) {
     if (road.owner === player.playerID)
       throw new InvalidChoiceError('road',road,'You\'ve already paved here!');
     if (road.owner > -1)
@@ -500,14 +535,14 @@ const helpers = {
     if (!valid)
       throw new InvalidChoiceError('road',road,'You must pave a road next to your last settlement.');
 
-    pave(game, player, road, pay=false);
+    return pave(messenger, game, player, road, pay=false);
   },
 
-  initSettle(game, player, junc) {
-    settle(game, player, junc, pay=false);
+  initSettle(messenger, game, player, junc) {
+    return settle(messenger, game, player, junc, pay=false);
   },
 
-  iterateTurn(game, player) {
+  iterateTurn(messenger, game, player) {
     let turnset = (game.state.turn/game.state.players.length);
     if (turnset < 1) {
       game.state.isFirstTurn  = true;
@@ -530,7 +565,7 @@ const helpers = {
     }
   },
 
-  moveRobber(game, player, hex) {
+  moveRobber(messenger, game, player, hex) {
 
     if (hex.num===game.board.robber)
       throw new InvalidChoiceError('robber',hex,'The robber is already here.');
@@ -544,9 +579,12 @@ const helpers = {
       if (owner > -1 && owner !== player.playerID)
         game.state.canSteal = true;
     }
+
+    messenger.list.push([player.playerID, `moved the robber.`]);
+    return { hex:hex.num };
   },
 
-  offerTrade(game, player, trade) {
+  offerTrade(messenger, game, player, trade) {
     game.state.currentTrade = trade;
     for (let q=0; q<game.state.players.length; q++) {
       let other = game.state.players[q];
@@ -555,10 +593,14 @@ const helpers = {
         other.canAcceptTrade = funcs.canAfford(other, trade.in);
       }
     }
+
+    messenger.list.push([player.playerID, `has offered a trade.`]);
     //console.log('offer', trade);
+
+    return { trade:trade };
   },
 
-  pave(game, player, road) {
+  pave(messenger, game, player, road) {
     if (road.owner === player.playerID)
       throw new InvalidChoiceError('road',road,'You\'ve already paved here!');
     if (road.owner > -1)
@@ -573,21 +615,23 @@ const helpers = {
     if (!valid)
       throw new InvalidChoiceError('road',road,'You can only pave near roads and settlements you own.');
 
-    pave(game, player, road);
+    return pave(messenger, game, player, road);
   },
 
-  playDC(game, player, card, args) {
+  playDC(messenger, game, player, card, args) {
     player.unplayedDCs[card]  -= 1;
     player.playedDCs[card]    += 1;
 
     switch (card) {
       case ('vp'):
         player.publicScore        += 1;
+        messenger.list.push([player.playerID, `played a Victory Point.`]);
         return;
 
       case ('knight'):
         player.numKnights += 1;
-        calcLargestArmy(game);
+        messenger.list.push([player.playerID, `played a Knight.`]);
+        calcLargestArmy(messenger, game);
         break;
       case ('monopoly'):
         let res = args;
@@ -600,12 +644,14 @@ const helpers = {
             updateBuyOptions(game, other);
           }
         }
+        messenger.list.push([player.playerID, `played a Monopoly on ${res}.`]);
         break;
       case ('rb'):
         let rollback = player.roads.slice(0);
         try {
-          helpers.pave(game, player, args[0]);
-          helpers.pave(game, player, args[1]);
+          messenger.list.push([player.playerID, `played Road Building.`]);
+          helpers.pave(messenger, game, player, args[0]);
+          helpers.pave(messenger, game, player, args[1]);
         } catch (e) {
           player.roads = rollback;
           throw e;
@@ -614,6 +660,7 @@ const helpers = {
       case ('yop'):
         player.resources[args[0]] += 1;
         player.resources[args[1]] += 1;
+        messenger.list.push([player.playerID, `played a Year of Plenty and selected ${res} and ${res}.`]);
         updateBuyOptions(game, player);
         break;
 
@@ -626,16 +673,24 @@ const helpers = {
         player.unplayedDCs[dc] = 0;
       }
     }
+
+    return { args:args, hasLargestArmy:game.state.hasLargestArmy };
   },
 
-  roll(game, r1, r2) {
-    r1 = r1 || funcs.getRandomInt(min=1,max=6);
-    r2 = r2 || funcs.getRandomInt(min=1,max=6);
-    game.board.dice.values = [r1,r2];
+  roll(messenger, game, player, args) {
+
+    let rolls;
+    try {
+      rolls = (isNaN(args[0]) ? rollDice() : args);
+    } catch (e) {
+      rolls = rollDice();
+    }
+    let roll = rolls[0] + rolls[1];
+    game.board.dice.values = rolls;
     game.state.hasRolled   = true;
     game.state.isRollSeven = false;
     game.state.waitForDiscard = false;
-    if ((r1+r2) === 7) {
+    if (roll === 7) {
       game.state.isRollSeven = true
       for (let p=0; p<game.state.players.length; p++) {
         let player = game.state.players[p];
@@ -645,20 +700,21 @@ const helpers = {
         }
       }
     }
-    return game.board.dice.values;
+    messenger.list.push([player.playerID, `rolled a ${roll}.`]);
+    return { values:rolls };
   },
 
-  settle(game, player, junc, pay=true) {
+  settle(messenger, game, player, junc, pay=true) {
     // check if close to a road
     for (let r=0; r<junc.roads.length; r++) {
       let road = game.board.roads[junc.roads[r]];
       if (road.owner === player.playerID)
-        return settle(game, player, junc);
+        return settle(messenger, game, player, junc);
     }
     throw new InvalidChoiceError('junc',junc,'You need to build a road here before you can settle.');
   },
 
-  steal(game, player, other) {
+  steal(messenger, game, player, other) {
     if (player === other)
       throw new InvalidChoiceError('player',other,'You can\'t steal from yourself!');
     let juncs = game.board.hexes[game.board.robber].juncs;
@@ -677,13 +733,14 @@ const helpers = {
         updateBuyOptions(game, player);
         updateBuyOptions(game, other);
 
-        return;
+        messenger.list.push([player.playerID, `stole a card from ${other.lobbyData.name}.`]);
+        return { other:other.playerID };
       }
     }
     throw new InvalidChoiceError('player',other,other.lobbyData.name+' is not adjacent to the robber.');
   },
 
-  tradeWithBank(game, player, trade) {
+  tradeWithBank(messenger, game, player, trade) {
     let rate = {},
       outResource = Object.keys(trade.out)[0],
       inResource  = Object.keys(trade.in)[0];
@@ -699,9 +756,12 @@ const helpers = {
     spend(player, trade.out);
     accrue(player, trade.in);
     updateBuyOptions(game, player);
+
+    messenger.list.push([player.playerID, `traded ${trade.out[outResource]} ${outResource} with the bank for ${trade.in[inResource]} ${inResource}.`]);
+    return { trade:trade };
   },
 
-  validateTrade(game, player, trade) {
+  validateTrade(messenger, game, player, trade) {
     //console.log(trade);
     if (!funcs.canAfford(player, trade.out))
       throw new PovertyError(player, trade.out);
@@ -737,12 +797,14 @@ function getStateEdge(edge) {
 
 module.exports = {
 
-  execute(game, p, estring, args) {
+  execute(game, p, estring, args, messages=[]) {
 
     let player = parse.player(game, p);//game.state.players[p];
     edge = getStateEdge(estring);
 
-    let ret = edge.execute(game, player, args);
+    let messenger = { list:messages };
+
+    let ret = edge.execute(messenger, game, player, args);
     storeHistory(game, estring, args, ret);
 
     player.vertex = edge.target;
@@ -752,11 +814,11 @@ module.exports = {
       for (let a=0; a<game.state.players[q].adjacents.length; a++) {
         let adj_estring = game.state.players[q].adjacents[a];
         if (getStateEdge(adj_estring).isPriority)
-          module.exports.execute(game, q, adj_estring, []);
+          module.exports.execute(game, q, adj_estring, [], messenger.list);
       }
     }
 
-    return ret;
+    return { ret:ret, messages:messenger.list, adjs:player.adjacents };
   },
   helpers : helpers,
 

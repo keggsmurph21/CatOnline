@@ -1,18 +1,18 @@
-const STATE_GRAPH = {
+const _STATE_GRAPH = {
    vertices: {
       "_v_accept_trade": {
          edges: [
             "_e_to_root"
          ],
          name: "_v_accept_trade",
-         label: ""
+         "": ""
       },
       "_v_accept_trade_other": {
          edges: [
             "_e_after_trade_other"
          ],
          name: "_v_accept_trade_other",
-         label: ""
+         "": ""
       },
       "_v_buy_dc": {
          edges: [
@@ -20,14 +20,14 @@ const STATE_GRAPH = {
             "_e_to_root"
          ],
          name: "_v_buy_dc",
-         label: ""
+         "": ""
       },
       "_v_collect": {
          edges: [
             "_e_to_root"
          ],
          name: "_v_collect",
-         label: ""
+         "": ""
       },
       "_v_discard": {
          edges: [
@@ -35,7 +35,7 @@ const STATE_GRAPH = {
             "_e_roll_discard"
          ],
          name: "_v_discard",
-         label: ""
+         "": ""
       },
       "_v_discard_other": {
          edges: [
@@ -43,12 +43,12 @@ const STATE_GRAPH = {
             "_e_roll_discard_other"
          ],
          name: "_v_discard_other",
-         label: ""
+         "": ""
       },
       "_v_end_game": {
          edges: [],
          name: "_v_end_game",
-         label: ""
+         "": ""
       },
       "_v_end_turn": {
          edges: [
@@ -57,7 +57,7 @@ const STATE_GRAPH = {
             "_e_take_turn"
          ],
          name: "_v_end_turn",
-         label: ""
+         "": ""
       },
       "_v_fortify": {
          edges: [
@@ -65,14 +65,14 @@ const STATE_GRAPH = {
             "_e_to_root"
          ],
          name: "_v_fortify",
-         label: ""
+         "": ""
       },
       "_v_init_collect": {
          edges: [
             "_e_init2_build_road"
          ],
          name: "_v_init_collect",
-         label: ""
+         "": ""
       },
       "_v_move_robber": {
          edges: [
@@ -80,7 +80,7 @@ const STATE_GRAPH = {
             "_e_steal_robber"
          ],
          name: "_v_move_robber",
-         label: ""
+         "": ""
       },
       "_v_offer_trade": {
          edges: [
@@ -88,7 +88,7 @@ const STATE_GRAPH = {
             "_e_cancel_trade"
          ],
          name: "_v_offer_trade",
-         label: ""
+         "": ""
       },
       "_v_pave": {
          edges: [
@@ -97,28 +97,28 @@ const STATE_GRAPH = {
             "_e_to_root"
          ],
          name: "_v_pave",
-         label: ""
+         "": ""
       },
       "_v_play_knight": {
          edges: [
             "_e_end_game"
          ],
          name: "_v_play_knight",
-         label: ""
+         "": ""
       },
       "_v_play_monopoly": {
          edges: [
             "_e_to_root"
          ],
          name: "_v_play_monopoly",
-         label: ""
+         "": ""
       },
       "_v_play_rb": {
          edges: [
             "_e_to_root"
          ],
          name: "_v_play_rb",
-         label: ""
+         "": ""
       },
       "_v_play_vp": {
          edges: [
@@ -126,14 +126,14 @@ const STATE_GRAPH = {
             "_e_to_root"
          ],
          name: "_v_play_vp",
-         label: ""
+         "": ""
       },
       "_v_play_yop": {
          edges: [
             "_e_to_root"
          ],
          name: "_v_play_yop",
-         label: ""
+         "": ""
       },
       "_v_roll": {
          edges: [
@@ -142,7 +142,7 @@ const STATE_GRAPH = {
             "_e_roll_move_robber"
          ],
          name: "_v_roll",
-         label: ""
+         "": ""
       },
       "_v_root": {
          edges: [
@@ -162,7 +162,7 @@ const STATE_GRAPH = {
             "_e_trade_bank"
          ],
          name: "_v_root",
-         label: ""
+         "": ""
       },
       "_v_settle": {
          edges: [
@@ -172,31 +172,33 @@ const STATE_GRAPH = {
             "_e_to_root"
          ],
          name: "_v_settle",
-         label: ""
+         "": ""
       },
       "_v_steal": {
          edges: [
             "_e_to_root"
          ],
          name: "_v_steal",
-         label: ""
+         "": ""
       },
       "_v_trade_with_bank": {
          edges: [
             "_e_to_root"
          ],
          name: "_v_trade_with_bank",
-         label: ""
+         "": ""
       }
    },
    edges: {
       "_e_accept_trade": {
          name: "_e_accept_trade",
          target: "_v_accept_trade",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.tradeAccepted; },
          arguments: "",
-         execute: function (g,p,a) {  require(`../app/logic`).helpers.acceptTradeAsOffer(g,p); },
+         execute: function (m,g,p,a) {  require(`../logic`).helpers.acceptTradeAsOffer(m,g,p); },
          isPriority: true,
          isMulti: true,
          isCancel: false,
@@ -205,10 +207,12 @@ const STATE_GRAPH = {
       "_e_accept_trade_other": {
          name: "_e_accept_trade_other",
          target: "_v_accept_trade_other",
-         "listen": "acceptTrade",
+         listen: "acceptTrade",
+         clientDescription: "accept the trade",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.canAcceptTrade; },
          arguments: "",
-         execute: function (g,p,a) {  require(`../app/logic`).helpers.acceptTradeAsOther(g,p); },
+         execute: function (m,g,p,a) {  require(`../logic`).helpers.acceptTradeAsOther(m,g,p); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -217,10 +221,12 @@ const STATE_GRAPH = {
       "_e_after_discard_other": {
          name: "_e_after_discard_other",
          target: "_v_end_turn",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return true; },
          arguments: "",
-         execute: function (g,p,a) { },
+         execute: function (m,g,p,a) { },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -229,10 +235,12 @@ const STATE_GRAPH = {
       "_e_after_trade_other": {
          name: "_e_after_trade_other",
          target: "_v_end_turn",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return true; },
          arguments: "",
-         execute: function (g,p,a) { },
+         execute: function (m,g,p,a) { },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -241,10 +249,12 @@ const STATE_GRAPH = {
       "_e_build_city": {
          name: "_e_build_city",
          target: "_v_fortify",
-         "listen": "spot",
+         listen: "spot",
+         clientDescription: "build a city",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.hasRolled && f.canBuild.city; },
          arguments: "settlement",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.fortify(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.fortify(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -253,10 +263,12 @@ const STATE_GRAPH = {
       "_e_build_road": {
          name: "_e_build_road",
          target: "_v_pave",
-         "listen": "road",
+         listen: "road",
+         clientDescription: "build a road",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.hasRolled && f.canBuild.road; },
          arguments: "road",
-         execute: function (g,p,a) {require(`../app/logic`).helpers.pave(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.pave(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -265,10 +277,12 @@ const STATE_GRAPH = {
       "_e_build_settlement": {
          name: "_e_build_settlement",
          target: "_v_settle",
-         "listen": "spot",
+         listen: "spot",
+         clientDescription: "build a settlement",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.hasRolled && f.canBuild.settlement; },
          arguments: "settlement",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.settle(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.settle(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -277,10 +291,12 @@ const STATE_GRAPH = {
       "_e_buy_dc": {
          name: "_e_buy_dc",
          target: "_v_buy_dc",
-         "listen": "buyDevelopmentCard",
+         listen: "buyDevelopmentCard",
+         clientDescription: "buy a development card",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.hasRolled && f.canBuy.dc; },
          arguments: "",
-         execute: function (g,p,a) {  require(`../app/logic`).helpers.buyDevCard(g,p); },
+         execute: function (m,g,p,a) {  require(`../logic`).helpers.buyDevCard(m,g,p); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -289,10 +305,12 @@ const STATE_GRAPH = {
       "_e_cancel_trade": {
          name: "_e_cancel_trade",
          target: "_v_root",
-         "listen": "cancelTrade",
+         listen: "cancelTrade",
+         clientDescription: "cancel the trade",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return true; },
          arguments: "",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.cancelTrade(g); },
+         execute: function (m,g,p,a) { require(`../logic`).helpers.cancelTrade(m,g); },
          isPriority: false,
          isMulti: false,
          isCancel: true,
@@ -301,10 +319,12 @@ const STATE_GRAPH = {
       "_e_discard_move_robber": {
          name: "_e_discard_move_robber",
          target: "_v_move_robber",
-         "listen": "tile",
+         listen: "tile",
+         clientDescription: "move the robber",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.isCurrentPlayer && f.isRollSeven && !f.waitForDiscard; },
          arguments: "hex",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.moveRobber(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.moveRobber(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -313,10 +333,12 @@ const STATE_GRAPH = {
       "_e_end_game": {
          name: "_e_end_game",
          target: "_v_end_game",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.isGameOver; },
          arguments: "",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.end(g); },
+         execute: function (m,g,p,a) { require(`../logic`).helpers.end(m,g); },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -325,10 +347,12 @@ const STATE_GRAPH = {
       "_e_end_init": {
          name: "_e_end_init",
          target: "_v_end_turn",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.isFirstTurn || f.isSecondTurn; },
          arguments: "",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.iterateTurn(g,p); },
+         execute: function (m,g,p,a) { require(`../logic`).helpers.iterateTurn(m,g,p); },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -337,10 +361,12 @@ const STATE_GRAPH = {
       "_e_end_turn": {
          name: "_e_end_turn",
          target: "_v_end_turn",
-         "listen": "endTurn",
+         listen: "endTurn",
+         clientDescription: "end your turn",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.hasRolled; },
          arguments: "",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.iterateTurn(g,p); },
+         execute: function (m,g,p,a) { require(`../logic`).helpers.iterateTurn(m,g,p); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -349,10 +375,12 @@ const STATE_GRAPH = {
       "_e_init_build_road": {
          name: "_e_init_build_road",
          target: "_v_pave",
-         "listen": "road",
+         listen: "road",
+         clientDescription: "choose a road",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.isFirstTurn; },
          arguments: "road",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.initPave(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.initPave(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -361,10 +389,12 @@ const STATE_GRAPH = {
       "_e_init_collect": {
          name: "_e_init_collect",
          target: "_v_init_collect",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.isSecondTurn; },
          arguments: "",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.initCollect(g,p); },
+         execute: function (m,g,p,a) { require(`../logic`).helpers.initCollect(m,g,p); },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -373,10 +403,12 @@ const STATE_GRAPH = {
       "_e_init_settle": {
          name: "_e_init_settle",
          target: "_v_settle",
-         "listen": "spot",
+         listen: "spot",
+         clientDescription: "choose a settlement",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.isFirstTurn || f.isSecondTurn; },
          arguments: "settlement",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.initSettle(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.initSettle(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -385,10 +417,12 @@ const STATE_GRAPH = {
       "_e_init2_build_road": {
          name: "_e_init2_build_road",
          target: "_v_pave",
-         "listen": "road",
+         listen: "road",
+         clientDescription: "choose a road",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.isSecondTurn; },
          arguments: "road",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.initPave(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.initPave(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -397,10 +431,12 @@ const STATE_GRAPH = {
       "_e_no_steal_robber": {
          name: "_e_no_steal_robber",
          target: "_v_root",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return !f.canSteal; },
          arguments: "",
-         execute: function (g,p,a) { },
+         execute: function (m,g,p,a) { },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -409,10 +445,12 @@ const STATE_GRAPH = {
       "_e_offer_trade": {
          name: "_e_offer_trade",
          target: "_v_offer_trade",
-         "listen": "offerTrade",
-         evaluate: function (f) { return !f.isFirstTurn && !f.isSecondTurn && f.hasRolled; },
+         listen: "offerTrade",
+         clientDescription: "make a trade",
+         clientOnSuccess: function (a) { console.log('on success', a); },
+         evaluate: function (f) { return !f.isFirstTurn && !f.isSecondTurn && f.hasRolled && f.canTrade; },
          arguments: "trade",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.validateTrade(g,p,a); require(`../app/logic`).helpers.offerTrade(g,p,a); return a; },
+         execute: function (m,g,p,a) { require(`../logic`).helpers.validateTrade(m,g,p,a); return require(`../logic`).helpers.offerTrade(m,g,p,a); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -421,10 +459,12 @@ const STATE_GRAPH = {
       "_e_play_knight": {
          name: "_e_play_knight",
          target: "_v_move_robber",
-         "listen": "tile",
+         listen: "tile",
+         clientDescription: "play a Knight",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.canPlayDC.knight; },
          arguments: "hex",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.playDC(g,p,'knight'); require(`../app/logic`).helpers.moveRobber(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { require(`../logic`).helpers.playDC(m,g,p,'knight'); return require(`../logic`).helpers.moveRobber(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -433,10 +473,12 @@ const STATE_GRAPH = {
       "_e_play_monopoly": {
          name: "_e_play_monopoly",
          target: "_v_play_monopoly",
-         "listen": "playMonopoly",
+         listen: "playMonopoly",
+         clientDescription: "play a Monopoly",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.canPlayDC.monopoly; },
          arguments: "resource",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.playDC(g,p,'monopoly',a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.playDC(m,g,p,'monopoly',a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -445,10 +487,12 @@ const STATE_GRAPH = {
       "_e_play_rb": {
          name: "_e_play_rb",
          target: "_v_play_rb",
-         "listen": "playRoadBuilder",
+         listen: "playRoadBuilder",
+         clientDescription: "play Road Building",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.canPlayDC.rb; },
          arguments: "road road",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.playDC(g,p,'rb',a); return a; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.playDC(m,g,p,'rb',a); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -457,10 +501,12 @@ const STATE_GRAPH = {
       "_e_play_vp": {
          name: "_e_play_vp",
          target: "_v_play_vp",
-         "listen": "playVictoryPoint",
+         listen: "playVictoryPoint",
+         clientDescription: "play a Victory Point",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.canPlayDC.vp; },
          arguments: "",
-         execute: function (g,p,a) {  require(`../app/logic`).helpers.playDC(g,p,'vp'); },
+         execute: function (m,g,p,a) {  require(`../logic`).helpers.playDC(m,g,p,'vp'); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -469,10 +515,12 @@ const STATE_GRAPH = {
       "_e_play_yop": {
          name: "_e_play_yop",
          target: "_v_play_yop",
-         "listen": "playYearOfPlenty",
+         listen: "playYearOfPlenty",
+         clientDescription: "play a Year of Plenty",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.canPlayDC.yop; },
          arguments: "resource resource",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.playDC(g,p,'yop',a); return a; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.playDC(m,g,p,'yop',a); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -481,10 +529,12 @@ const STATE_GRAPH = {
       "_e_roll": {
          name: "_e_roll",
          target: "_v_roll",
-         "listen": "dice",
+         listen: "dice",
+         clientDescription: "roll the dice",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return !f.hasRolled && !f.isFirstTurn && !f.isSecondTurn; },
          arguments: "",
-         execute: function (g,p,a) { return require(`../app/logic`).helpers.roll(g, a[0], a[1]); return a; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.roll(m,g,p,a); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -493,10 +543,12 @@ const STATE_GRAPH = {
       "_e_roll_collect": {
          name: "_e_roll_collect",
          target: "_v_collect",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return !f.isRollSeven; },
          arguments: "",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.collectResources(g); },
+         execute: function (m,g,p,a) { require(`../logic`).helpers.collectResources(m,g); },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -505,10 +557,12 @@ const STATE_GRAPH = {
       "_e_roll_discard": {
          name: "_e_roll_discard",
          target: "_v_discard",
-         "listen": "discard",
+         listen: "discard",
+         clientDescription: "discard some cards",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.discard > 0; },
          arguments: "trade",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.discard(g,p,a.out); return a.out; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.discard(m,g,p,a.out); },
          isPriority: false,
          isMulti: true,
          isCancel: false,
@@ -517,10 +571,12 @@ const STATE_GRAPH = {
       "_e_roll_discard_other": {
          name: "_e_roll_discard_other",
          target: "_v_discard_other",
-         "listen": "discard",
+         listen: "discard",
+         clientDescription: "discard some cards",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.discard > 0; },
          arguments: "trade",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.discard(g,p,a.out); return a.out; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.discard(m,g,p,a.out); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -529,10 +585,12 @@ const STATE_GRAPH = {
       "_e_roll_move_robber": {
          name: "_e_roll_move_robber",
          target: "_v_move_robber",
-         "listen": "tile",
+         listen: "tile",
+         clientDescription: "move the robber",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.isCurrentPlayer && f.isRollSeven && !f.waitForDiscard; },
          arguments: "hex",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.moveRobber(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.moveRobber(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -541,10 +599,12 @@ const STATE_GRAPH = {
       "_e_steal_robber": {
          name: "_e_steal_robber",
          target: "_v_steal",
-         "listen": "player",
+         listen: "player",
+         clientDescription: "steal from someone",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.canSteal; },
          arguments: "player",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.steal(g,p,a[0]); return a[0]; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.steal(m,g,p,a[0]); },
          isPriority: false,
          isMulti: false,
          isCancel: false,
@@ -553,10 +613,12 @@ const STATE_GRAPH = {
       "_e_take_turn": {
          name: "_e_take_turn",
          target: "_v_root",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return f.isCurrentPlayer; },
          arguments: "",
-         execute: function (g,p,a) { },
+         execute: function (m,g,p,a) { },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -565,10 +627,12 @@ const STATE_GRAPH = {
       "_e_to_root": {
          name: "_e_to_root",
          target: "_v_root",
-         "listen": "",
+         listen: "",
+         clientDescription: "",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return !f.isFirstTurn; },
          arguments: "",
-         execute: function (g,p,a) { },
+         execute: function (m,g,p,a) { },
          isPriority: true,
          isMulti: false,
          isCancel: false,
@@ -577,10 +641,12 @@ const STATE_GRAPH = {
       "_e_trade_bank": {
          name: "_e_trade_bank",
          target: "_v_trade_with_bank",
-         "listen": "tradeBank",
+         listen: "tradeBank",
+         clientDescription: "trade with the bank",
+         clientOnSuccess: function (a) { console.log('on success', a); },
          evaluate: function (f) { return !f.isFirstTurn && !f.isSecondTurn && f.hasRolled && f.canTradeBank; },
          arguments: "trade",
-         execute: function (g,p,a) { require(`../app/logic`).helpers.tradeWithBank(g,p,a); return a; },
+         execute: function (m,g,p,a) { return require(`../logic`).helpers.tradeWithBank(m,g,p,a); },
          isPriority: false,
          isMulti: false,
          isCancel: false,

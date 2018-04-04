@@ -216,6 +216,14 @@ li.message:hover span.timestamp {
   display: inline;
 }
 
+li.message.normal .body {
+  color: #333;
+}
+
+li.message.error .body {
+  color: #f00;
+}
+
 span.timestamp {
   color: #666;
   float: right;
@@ -575,11 +583,28 @@ span.batch * {
 }
 
 .frame#game {
+  position: relative;
   background-color: #00f;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 150px;
+}
+
+#game #dice {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4em;
+  display: flex;
+}
+#game #dice :hover {
+  cursor: pointer;
+}
+
+#game #dice .die {
+  height: 100%;
+  margin: 0.2em;
 }
 
 .play #game-data {

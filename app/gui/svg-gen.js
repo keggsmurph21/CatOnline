@@ -9,89 +9,90 @@
  *
  */
 
-// SVG helper functions
-function tileAnchorToPointsStr( coords ) {
-  const translations = [ [0,0], [1,-1], [2,0], [2,1], [1,2], [0,1] ];
-  let str = '';
-  for (let i=0; i<translations.length; i++) {
-    const transformedCoords = anchorToPoints([ coords[0] + translations[i][0], coords[1] + translations[i][1] ]);
-    str += transformedCoords[0] + ' ' + transformedCoords[1] + ' ';
-  }
-  return str;
-}
-function roadAnchorToPathStr( coords, dir ) {
-  var [x1,y1] = anchorToPoints( coords );
-  switch (dir) {
-    case 2:
-		 [dx,dy] = [1,-1]; break;
-    case 4:
-		 [dx,dy] = [1,1];  break;
-    case 6:
-		 [dx,dy] = [0,1];  break;
-    case 8:
-		 [dx,dy] = [-1,1]; break;
-    case 10:
-		 [dx,dy] = [-1,-1];break;
-    case 12:
-		 [dx,dy] = [0,-1]; break;
-  }
-  var [x2,y2] = anchorToPoints([ coords[0]+dx, coords[1]+dy ])
-  return 'M '+x1+' '+y1+' L '+x2+' '+y2;
-}
-function portAnchorToPathStr( key ) {
-  let [x1,y1] = key; // note: key has len 3
-  let x2, y2, x3, y3;
-  let d1 = 1/Math.sqrt(12);
-  let d2 = 1-1/Math.sqrt(3);
-  switch (key[2]) {
-    case 0:
-		 [x2,y2] = [ x1+d1,  y1-1.0 ];
-		 [x3,y3] = [ x1+1.0, y1-1.0 ];
-		 break;
-    case 1:
-		 [x2,y2] = [ x1-d1,  y1-1.0 ];
-		 [x3,y3] = [ x1-1.0, y1-1.0 ];
-		 break;
-    case 2:
-		 [x2,y2] = [ x1+d2,  y1-0.5 ];
-		 [x3,y3] = [ x1,		 y1-1.0 ];
-		 break;
-    case 3:
-		 [x2,y2] = [ x1-d2,  y1-0.5 ];
-		 [x3,y3] = [ x1,		 y1-1.0 ];
-		 break;
-    case 4:
-		 [x2,y2] = [ x1+d1,  y1+1.0 ];
-		 [x3,y3] = [ x1+1.0, y1+1.0 ];
-		 break;
-    case 5:
-		 [x2,y2] = [ x1-d1,  y1+1.0 ];
-		 [x3,y3] = [ x1-1.0, y1+1.0 ];
-		 break;
-  }
-  [x1,y1] = anchorToPoints([ x1,y1 ]);
-  [x2,y2] = anchorToPoints([ x2,y2 ]);
-  [x3,y3] = anchorToPoints([ x3,y3 ]);
-  return 'M '+x1+' '+y1+' L '+x2+' '+y2+' L '+x3+' '+y3+' L '+x1+' '+y1;
-}
-function anchorToPoints( coords, scale=1.5 ) {
-  const x = coords[0]*Math.sqrt(3)/2*scale;
-  const y = (coords[1]-0.5*Math.floor(coords[1]/2))*scale;
-
-  if (x<minX) minX = x;
-  if (x>maxX) maxX = x;
-  if (y<minY) minY = y;
-  if (y>maxY) maxY = y;
-
-  return [x,y];
-}
-
-var minX=0, maxX=0, minY=0, maxY=0;
-
 module.exports = function(game) {
 
+  // SVG helper functions
+  function tileAnchorToPointsStr( coords ) {
+    const translations = [ [0,0], [1,-1], [2,0], [2,1], [1,2], [0,1] ];
+    let str = '';
+    for (let i=0; i<translations.length; i++) {
+      const transformedCoords = anchorToPoints([ coords[0] + translations[i][0], coords[1] + translations[i][1] ]);
+      str += transformedCoords[0] + ' ' + transformedCoords[1] + ' ';
+    }
+    return str;
+  }
+  function roadAnchorToPathStr( coords, dir ) {
+    var [x1,y1] = anchorToPoints( coords );
+    switch (dir) {
+      case 2:
+  		 [dx,dy] = [1,-1]; break;
+      case 4:
+  		 [dx,dy] = [1,1];  break;
+      case 6:
+  		 [dx,dy] = [0,1];  break;
+      case 8:
+  		 [dx,dy] = [-1,1]; break;
+      case 10:
+  		 [dx,dy] = [-1,-1];break;
+      case 12:
+  		 [dx,dy] = [0,-1]; break;
+    }
+    var [x2,y2] = anchorToPoints([ coords[0]+dx, coords[1]+dy ])
+    return 'M '+x1+' '+y1+' L '+x2+' '+y2;
+  }
+  function portAnchorToPathStr( key ) {
+    let [x1,y1] = key; // note: key has len 3
+    let x2, y2, x3, y3;
+    let d1 = 1/Math.sqrt(12);
+    let d2 = 1-1/Math.sqrt(3);
+    switch (key[2]) {
+      case 0:
+  		 [x2,y2] = [ x1+d1,  y1-1.0 ];
+  		 [x3,y3] = [ x1+1.0, y1-1.0 ];
+  		 break;
+      case 1:
+  		 [x2,y2] = [ x1-d1,  y1-1.0 ];
+  		 [x3,y3] = [ x1-1.0, y1-1.0 ];
+  		 break;
+      case 2:
+  		 [x2,y2] = [ x1+d2,  y1-0.5 ];
+  		 [x3,y3] = [ x1,		 y1-1.0 ];
+  		 break;
+      case 3:
+  		 [x2,y2] = [ x1-d2,  y1-0.5 ];
+  		 [x3,y3] = [ x1,		 y1-1.0 ];
+  		 break;
+      case 4:
+  		 [x2,y2] = [ x1+d1,  y1+1.0 ];
+  		 [x3,y3] = [ x1+1.0, y1+1.0 ];
+  		 break;
+      case 5:
+  		 [x2,y2] = [ x1-d1,  y1+1.0 ];
+  		 [x3,y3] = [ x1-1.0, y1+1.0 ];
+  		 break;
+    }
+    [x1,y1] = anchorToPoints([ x1,y1 ]);
+    [x2,y2] = anchorToPoints([ x2,y2 ]);
+    [x3,y3] = anchorToPoints([ x3,y3 ]);
+    return 'M '+x1+' '+y1+' L '+x2+' '+y2+' L '+x3+' '+y3+' L '+x1+' '+y1;
+  }
+  function anchorToPoints( coords, scale=1.5 ) {
+    const x = coords[0]*Math.sqrt(3)/2*scale;
+    const y = (coords[1]-0.5*Math.floor(coords[1]/2))*scale;
+
+    if (x<minX) minX = x;
+    if (x>maxX) maxX = x;
+    if (y<minY) minY = y;
+    if (y>maxY) maxY = y;
+
+    return [x,y];
+  }
+
+  // constants
+  let minX=0, maxX=0, minY=0, maxY=0;
+
   // get the svg data
-  const svg = require('../guis.js').svg[ game.meta.settings.scenario ];
+  const svg = require('./guis.js').svg[ game.meta.settings.scenario ];
 
   data = {
     tiles: [],

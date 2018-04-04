@@ -14,9 +14,8 @@
   <div class="play content">
 
     <div class="frame" id="control">
-      <div class="panel" id="navigation">
+      <div class="panel" id="buttons">
         <button onclick="location.href='/lobby';" id="lobby">Go to lobby</button>
-        <button onclick="forceSwitchView();" class="switch-view" id="wide">Switch to wide view</button>
       </div>
 
       <div class="panel" id="game-data">
@@ -39,6 +38,10 @@
     </div>
 
     <div class="frame" id="game">
+      <div id="dice">
+        <%- include( 'svg/die.ejs' ) %>
+        <%- include( 'svg/die.ejs' ) %>
+      </div>
       <%- include( 'svg/standard.ejs' ) %>
     </div>
 

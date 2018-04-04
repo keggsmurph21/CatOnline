@@ -1,6 +1,29 @@
 // all chat/messaging functionality lives here
 
 // FUNCTIONS
+const _M = {
+  addMessage(msg, opts={ class:'normal' }) {
+    let str = ``;
+
+    str += `<li class="message ${(opts.class===undefined ? `` : opts.class)}">`;
+    str +=   (opts.omitTimestamp ? `` : `<span class="timestamp">${getTimeStr()}</span>`);
+    str +=   (opts.user===undefined ? '' : `${formatUsername(opts.user)}&nbsp;`);
+    str +=   `<span class="body">${escapeMessageBody(msg)}</span>`;
+    str += `</li>`;
+
+    $(`ul.messages`).append( str );
+
+    _M.scrollDown($('div.messages.public'));
+  },
+  scrollDown(dom) {
+    dom.scrollTop( dom[0].scrollHeight );
+  }
+}
+
+
+
+
+
 function addChatMessage(data) {
   if ( !data.user.isMuted || data.class == 'admin' || usersCheckEqual(data.user, user) || user.isAdmin ) {
     let msgText = '<li class="';

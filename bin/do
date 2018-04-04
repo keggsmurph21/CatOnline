@@ -16,8 +16,8 @@ const read   = require( 'readline' );
 
 const FUNCS  = require( '../app/funcs' );
 const GAMES  = require( '../tests/example/games' );
-const LOGIC  = require( '../app/logic' );
-const STATES = require( '../config/states' );
+const LOGIC  = require( '../app/logic/logic' );
+const STATES = require( '../app/logic/graph/graph' );
 const USERS  = require( '../tests/example/users' );
 
 const error  = function(e) {
@@ -202,7 +202,7 @@ function parseInput(line, callback=()=>{}) {
             console.log(game.board.robber);
             break;
           case ('edges'):
-            const edges = require('../config/states').edges;
+            const edges = STATES.edges;
             for (let edge in edges) {
               let name = edge.padEnd(24);
               let e_args = edges[edge].arguments;
