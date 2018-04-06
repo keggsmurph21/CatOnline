@@ -91,8 +91,14 @@ function build() {
 
     return str;
   }
+
+  value='test here';
+  messageEscapes = {};
   for (let i=0; i<game.public.hexes.length; i++) {
     let hex = game.public.hexes[i];
+    messageEscapes[`%%${hex.resource}%%`] =
+      `<strong class="${hex.resource}">${hex.resource}</strong>`;
+
     $('#tile'+i+' polygon')
       .attr( 'resource', hex.resource )
       .attr( 'class', hex.resource );
@@ -101,6 +107,11 @@ function build() {
       .text( hex.roll ? hex.roll : '' );
   }
   for (let i=0; i< game.public.players.length; i++) {
+
+    messageEscapes[`%%${i}%%`] =
+      `<strong class="${
+        game.public.players[i].color}">${
+        game.public.players[i].lobbyData.name}</strong>`;
     // public game content rows
     let tr = buildPublicDataTR(i);
     $('#public-data tr:last').after(tr);
@@ -172,6 +183,9 @@ function build() {
       let tr = buildDevCardTR(dc);
       $('#private-dev-cards tr:last').after(tr);
     }
+
+    messageEscapes[`%%${game.private.playerID}%%`] = `<strong class="${
+      game.public.players[game.private.playerID].color}">you</strong>`;
 
     buildButtons();
   }
@@ -247,8 +261,18 @@ function populate() {
         $(`#num-${res}`).html( game.private.resources[res] );
       }
       for (let dc in game.private.unplayedDCs) {
+        let names = {
+          monopoly  : 'Monopoly',
+          knight    : 'Knight',
+          yop       : 'Year of Plenty',
+          rb        : 'Road Building',
+          vp        : 'Victory Point'
+        };
+        console.log(dc, names[dc]);
         $(`#num-${dc}`).html( game.private.unplayedDCs[dc] );
-      }
+        messageEscapes[`%%${names[dc]}%%`] =
+          `<strong class="${dc}">${names[dc]}</strong>`;
+    }
 
       setStatusMessage(game.private.adjacents);
       updateButtons();
@@ -338,22 +362,24 @@ function onConnect(data) {
 }
 function onUpdate(data) {
 
-
   if (data.success) {
 
-    function renderClientResponse(message, opts={ class:'normal' }) {
+    function addServerMessage(message, opts={ class:'normal' }) {
 
       // send message from the server to the message interface
-      let who = game.public.players[message[0]].lobbyData.name;
-      if (game.private !== null) {
-        if (message[0] === game.private.playerID)
-          who = 'you';
-      }
-      _M.addMessage(` &mdash; <strong>${who}</strong> ${message[1]}`);
+      let toBeEscaped = Object.keys(messageEscapes);
+      for (let i=0; i<toBeEscaped.length; i++) {
+        while (message.indexOf(toBeEscaped[i]) > -1)
+          message = message.replace(
+            toBeEscaped[i],
+            messageEscapes[toBeEscaped[i]])
+      };
+      console.log(message);
+      _M.addMessage(message);
 
     }
     for (let i=0; i<data.messages.length; i++) {
-      renderClientResponse(data.messages[i]);
+      addServerMessage(data.messages[i]);
     }
 
     game = data.game;
@@ -367,7 +393,7 @@ function onUpdate(data) {
 }
 
 // set global variables
-let gameid, game, panzoom,
+let gameid, game, messageEscapes, panzoom,
   listen = {
 
     to(source, args) {
