@@ -21,7 +21,7 @@ function _collectResource(messenger, game, player, hex, acc=[]) {
   let res = game.board.hexes[hex].resource,
     resources = Object.assign({}, player.resources);
   if (res !== 'desert') {
-    messenger.list.push([player.playerID, `collected ${res}.`]);
+    messenger.list.push([player.playerID, `collected %%${res}%%.`]);
     resources[res] += 1;
     acc.push(res);
   }
@@ -87,17 +87,16 @@ function _settle(messenger, game, player, junc, pay=true) {
       for (let res in player.bankTradeRates) {
         if (3 < player.bankTradeRates[res]) {
           player.bankTradeRates[res] = 3;
-          messenger.list.push([player.playerID, `can now trade 3 ${res} for any resource with the bank.`]);
+          messenger.list.push([player.playerID, `can now trade 3 %%${res}%% for any resource with the bank.`]);
         }
       }
     } else {
       if (2 < player.bankTradeRates[junc.port.type]) {
         player.bankTradeRates[junc.port.type] = 2;
-        messenger.list.push([player.playerID, `can now trade 2 ${junc.port.type} for any resource with the bank.`]);
+        messenger.list.push([player.playerID, `can now trade 2 %%${junc.port.type}%% for any resource with the bank.`]);
       }
     }
   }
-  console.log('messages', messenger.list);
 
   let longestRoads = [];
   for (let p=0; p<game.state.players.length; p++) {
@@ -168,7 +167,7 @@ function _calcLargestArmy(messenger, game) {
 
       // if it's a change
       if (la !== player.playerID) {
-        messenger.list.push([player.playerID, `took Largest Army.`]);
+        messenger.list.push([player.playerID, `took %%Largest Army%%.`]);
         if (la > -1) { // la initialized to -1 (no leader to start)
           game.state.players[la].publicScore -= 2;
           game.state.players[la].privateScore-= 2;
@@ -231,7 +230,7 @@ function _calcLongestRoad(messenger, game) {
       game.state.longestRoad = longest;
 
       if (lr !== player.playerID) {
-        messenger.list.push([player.playerID, `took Longest Road.`]);
+        messenger.list.push([player.playerID, `took %%Longest Road%%.`]);
         if (lr > -1) {
           game.state.players[lr].publicScore -= 2;
           game.state.players[lr].privateScore+= 2;
@@ -244,11 +243,6 @@ function _calcLongestRoad(messenger, game) {
       }
     }
   }
-}
-function _validateTrade(messenger, game, player, trade) {
-  //console.log(trade);
-  if (!funcs.canAfford(player, trade.out))
-    throw new PovertyError(player, trade.out);
 }
 
 
@@ -464,7 +458,8 @@ function moveRobber(messenger, game, player, hex) {
 
 function offerTrade(messenger, game, player, trade) {
 
-  _validateTrade(messenger, game, player, trade);
+  if (!funcs.canAfford(player, trade.out))
+    throw new PovertyError(player, trade.out);
 
   game.state.currentTrade = trade;
 
@@ -515,13 +510,14 @@ function playDC(messenger, game, player, card, args) {
   switch (card) {
     case ('vp'):
       player.publicScore        += 1;
-      messenger.list.push([player.playerID, `played a Victory Point.`]);
+      messenger.list.push([player.playerID, `played a %%Victory Point%%.`]);
       return;
 
     case ('knight'):
       player.numKnights += 1;
-      messenger.list.push([player.playerID, `played a Knight.`]);
+      messenger.list.push([player.playerID, `played a %%Knight%%.`]);
       _calcLargestArmy(messenger, game);
+      moveRobber(messenger, game, player, args);
       break;
     case ('monopoly'):
       let res = args;
@@ -534,12 +530,12 @@ function playDC(messenger, game, player, card, args) {
           _updateBuyOptions(game, other);
         }
       }
-      messenger.list.push([player.playerID, `played a Monopoly on ${res}.`]);
+      messenger.list.push([player.playerID, `played a %%Monopoly%% on %%${res}%%.`]);
       break;
     case ('rb'):
       let rollback = player.roads.slice(0);
       try {
-        messenger.list.push([player.playerID, `played Road Building.`]);
+        messenger.list.push([player.playerID, `played %%Road Building%%.`]);
         pave(messenger, game, player, args[0]);
         pave(messenger, game, player, args[1]);
       } catch (e) {
@@ -550,7 +546,7 @@ function playDC(messenger, game, player, card, args) {
     case ('yop'):
       player.resources[args[0]] += 1;
       player.resources[args[1]] += 1;
-      messenger.list.push([player.playerID, `played a Year of Plenty and selected ${res} and ${res}.`]);
+      messenger.list.push([player.playerID, `played a %%Year of Plenty%% and selected %%${res}%% and %%${res}%%.`]);
       _updateBuyOptions(game, player);
       break;
 
@@ -625,7 +621,7 @@ function steal(messenger, game, player, other) {
       _updateBuyOptions(game, player);
       _updateBuyOptions(game, other);
 
-      messenger.list.push([player.playerID, `stole a card from ${other.lobbyData.name}.`]);
+      messenger.list.push([player.playerID, `stole a card from %%${other.lobbyData.name}%%.`]);
 
       return;
     }
@@ -650,7 +646,7 @@ function tradeWithBank(messenger, game, player, trade) {
   _accrue(player, trade.in);
   _updateBuyOptions(game, player);
 
-  messenger.list.push([player.playerID, `traded ${trade.out[outResource]} ${outResource} with the bank for ${trade.in[inResource]} ${inResource}.`]);
+  messenger.list.push([player.playerID, `traded ${trade.out[outResource]} %%${outResource}%% with the bank for ${trade.in[inResource]} %%${inResource}%%.`]);
 }
 
 module.exports = {
@@ -1018,7 +1014,7 @@ module.exports = {
             target: "_v_move_robber",
             evaluate: function (f) { return f.canPlayDC.knight; },
             arguments: "hex",
-            execute: function (m,g,p,a) { playDC(m,g,p,'knight'); return moveRobber(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { playDC(m,g,p,'knight',a[0]);},
             isPriority: false,
             label: ""
         },
