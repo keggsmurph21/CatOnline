@@ -792,3 +792,8 @@ svg#gameboard > rect {
 #modal-offer-trade * {
   white-space: nowrap;
 }
+
+#robber * {
+  stroke-width: 0;
+  fill: #bbb;
+}

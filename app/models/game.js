@@ -181,6 +181,7 @@ GameSchema.methods.getPublicGameData = function() {
     hexes   : this.board.hexes,
     juncs   : this.board.juncs,
     roads   : this.board.roads,
+    robber  : this.board.robber,
     trade   : this.state.currentTrade,
     hasLongestRoad  : this.state.hasLongestRoad,
     currentPlayerID : this.state.currentPlayerID,

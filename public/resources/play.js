@@ -197,6 +197,43 @@ function build() {
 function populate() {
   function board() {
 
+    ((i) => {
+      let ctr = ((i) => {
+        let pts = $($('.tile')[i]).find('polygon').attr('points').split(' ');
+        pts = pts.slice(0,pts.length-1);
+        let x=0, y=0;
+        for (let i=0; i<pts.length; i++) {
+          if (i%2) {
+            y += parseFloat(pts[i]);
+          } else {
+            x += parseFloat(pts[i]);
+          }
+        }
+        x = x/(pts.length/2);
+        y = y/(pts.length/2);
+        return {x:x, y:y, width:(parseFloat(pts[2])-parseFloat(pts[0]))};
+      })(i);
+
+      const xTransforms = [0, ctr.width*5/12, -ctr.width*5/12, 0];
+      const yTransforms = [0, ctr.width*5/6, ctr.width*5/6, 0];
+      const yOffset     = (ctr.width/4+ctr.width*5/6)/2-ctr.width/4;
+
+      $('#robber-head').attr('cx', ctr.x);
+      $('#robber-head').attr('cy', ctr.y-yOffset);
+      $('#robber-head').attr('r', ctr.width/4);
+
+      let pts = [];
+      for (let i=0; i<xTransforms.length; i++) {
+        pts.push(ctr.x + xTransforms[i]);
+        pts.push(ctr.y + yTransforms[i] - yOffset);
+      }
+      $('#robber-body').attr('points', pts.join(' '));
+
+      $(`.tile text`).show();
+      $(`#tile${i} text`).hide();
+      
+    })(game.public.robber);
+
     //
     for (let i=0; i<game.public.juncs.length; i++) {
       let spot = $('#spot'+i),
@@ -669,6 +706,12 @@ const modals = {
 
     },
     cancel() {
+      for (let res in modals.Trade.trade.out) {
+        $(`#modal-offer-trade .trade-out .resource-count[name=${res}]`).html(0);
+      }
+      for (let res in modals.Trade.trade.in) {
+        $(`#modal-offer-trade .trade-in .resource-count[name=${res}]`).html(0);
+      }
       $('#modal-offer-trade').hide();
     },
     confirm() {
