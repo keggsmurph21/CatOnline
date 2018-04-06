@@ -946,8 +946,9 @@ module.exports = {
       waitForDiscard : false,
       canSteal : false,
       currentTrade: {
-        in: null,
-        out:null
+        in: {},
+        out:{},
+        with:[]
       },
       largestArmy: 2,
       hasLargestArmy: -1,

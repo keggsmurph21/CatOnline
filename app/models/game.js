@@ -56,7 +56,8 @@ var GameSchema = mongoose.Schema({
     waitForDiscard: Boolean,
     currentTrade: {
       in: Object,
-      out:Object
+      out:Object,
+      with: [String]
     },
     currentPlayerID: Number,
     hasRolled: Boolean,
@@ -144,7 +145,8 @@ var GameSchema = mongoose.Schema({
   },
 
 }, {
-  usePushEach: true
+  usePushEach: true,
+  minimize: false
 });
 
 function sumOverObject(obj) {
@@ -181,6 +183,7 @@ GameSchema.methods.getPublicGameData = function() {
     roads   : this.board.roads,
     trade   : this.state.currentTrade,
     hasLongestRoad  : this.state.hasLongestRoad,
+    currentPlayerID : this.state.currentPlayerID,
     waiting : this.state.waiting,
     players : []
   };

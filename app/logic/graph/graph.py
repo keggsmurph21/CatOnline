@@ -355,7 +355,7 @@ _STATE_GRAPH = {
             "target": "_v_offer_trade",
             "listen": "offerTrade",
             "description": "make a trade",
-            "onSuccess": "function (p,a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { modals.Trade.cancel(); }",
             "isCancel": False,
             "label": ""
         },
@@ -481,7 +481,7 @@ _STATE_GRAPH = {
             "target": "_v_trade_with_bank",
             "listen": "tradeBank",
             "description": "trade with the bank",
-            "onSuccess": "function (p,a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { modals.Trade.cancel(); }",
             "isCancel": False,
             "label": ""
         }

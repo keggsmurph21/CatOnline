@@ -83,21 +83,22 @@ function _settle(messenger, game, player, junc, pay=true) {
   _isGameOver(game);
 
   if (junc.port !== null) {
+    let rates = Object.assign({}, player.bankTradeRates);
     if (junc.port.type === 'mystery') {
-      for (let res in player.bankTradeRates) {
-        if (3 < player.bankTradeRates[res]) {
-          player.bankTradeRates[res] = 3;
+      for (let res in rates) {
+        if (3 < rates[res]) {
+          rates[res] = 3;
           messenger.list.push(`%%${player.playerID}%% can now trade 3 %%${res}%% for any resource with the bank.`);
         }
       }
     } else {
-      if (2 < player.bankTradeRates[junc.port.type]) {
-        player.bankTradeRates[junc.port.type] = 2;
+      if (2 < rates[junc.port.type]) {
+        rates[junc.port.type] = 2;
         messenger.list.push(`%%${player.playerID}%% can now trade 2 %%${junc.port.type}%% for any resource with the bank.`);
       }
     }
+    player.bankTradeRates = rates;
   }
-  console.log(messenger.list);
 
   let longestRoads = [];
   for (let p=0; p<game.state.players.length; p++) {
@@ -294,7 +295,7 @@ function buyDevCard(messenger, game, player) {
 
 function cancelTrade(messenger, game, player, silent=false) {
   game.state.tradeAccepted = false;
-  game.state.currentTrade = { in:null, out:null };
+  game.state.currentTrade = { in:{}, out:{}, with:[] };
 
   for (let p=0; p<game.state.players.length; p++) {
     game.state.players[p].canAcceptTrade = false;
@@ -463,6 +464,7 @@ function offerTrade(messenger, game, player, trade) {
     throw new PovertyError(player, trade.out);
 
   game.state.currentTrade = trade;
+  console.log('CURRENT TRADE',game.state.currentTrade);
 
   for (let q=0; q<game.state.players.length; q++) {
     let other = game.state.players[q];
@@ -475,14 +477,12 @@ function offerTrade(messenger, game, player, trade) {
         if (funcs.canAfford(other, trade.in)) {
           other.canAcceptTrade = true;
           other.hasDeclinedTrade = false;
-        } else {
-          other.hasDeclinedTrade = false;
         }
       }
     }
   }
 
-  messenger.list.push(`%%${player.playerID}%% has offered a trade.`);
+  messenger.list.push(`%%${player.playerID}%% offered a trade.`);
   //console.log('offer', trade);
 }
 

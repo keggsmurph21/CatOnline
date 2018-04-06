@@ -3,7 +3,7 @@ function emitAction(data) {
   console.log('player',data.player,'fired an action:',data);
   socket.emit('play action', data);
 }
-function setStatusMessage() {
+function setWaitingMessage() {
   let adjs = game.private.adjacents;
   let options = new Set();
   for (let i=0; i<adjs.length; i++) {
@@ -16,9 +16,8 @@ function setStatusMessage() {
   if (options.length) {
     message = `available actions: <strong>${options.join('</strong>, <strong>')}</strong>`;
   } else {
-    message = `waiting for ${game.public.waiting.forWho.map( (player) => {
-      return player.name;
-    }).join(', ')}...`;
+    message = `waiting for %%${game.public.waiting.forWho.join('%%, %%')}%%...`;
+    message = escapeString(message);
   }
   _M.addMessage(message);
 }
@@ -31,53 +30,6 @@ function setDice(values) {
     }
     $(`#dice > :nth-child(${i+1}) g.die-dots`).html(svg);
   }
-}
-function updateButtons() {
-  function isAdjacent(edge) {
-    return (game.private.adjacents.indexOf(edge) > -1);
-  }
-
-  $('#buyDevelopmentCard')
-    .prop('disabled', !isAdjacent('_e_buy_dc'));
-  $('#endTurn')
-    .prop('disabled', !isAdjacent('_e_end_turn'));
-  $('#offerTrade')
-    .prop('disabled', !isAdjacent('_e_offer_trade'));
-  $('#viewTrade')
-    .prop('disabled', (game.public.trade.in===null));
-  $('#tradeBank')
-    .prop('disabled', !isAdjacent('_e_trade_bank'));
-
-  if (game.private.flags.disabled > 0) {
-    $('button.discard').show();
-    for (let res in game.private.resources) {
-      $(`button.discard[name=${res}]`)
-        .css('visibility', (game.private.resources[res] > 0)
-          ? 'visible'
-          : 'hidden' );
-    }
-  } else {
-    $('button.discard').hide();
-  }
-
-  let canPlayDC = false;
-  for (let dc in game.private.flags.canPlayDC) {
-    if (game.private.flags.canPlayDC[dc]) {
-      canPlayDC = true;
-      $(`button.play[name=${dc}]`)
-        .css('visiblity', 'visible');
-    } else {
-      $(`button.play[name=${dc}]`)
-        .css('visiblity', 'visible');
-    }
-  }
-  if (canPlayDC) {
-    $('button.play').show();
-  } else {
-    $('button.play').hide();
-  }
-
-  modal.update();
 }
 function build() {
   function buildPublicDataTR(i) {
@@ -94,7 +46,12 @@ function build() {
 
     return str;
   }
-  value='test here';
+
+  $('#public-data').after(`
+    <div id="public-trade">
+      <div id="public-trade-current"></div>
+      <div id="public-trade-buttons"></div>
+    </div>`);
   escapes = {};
   for (let i=0; i<game.public.hexes.length; i++) {
     let hex = game.public.hexes[i];
@@ -108,7 +65,6 @@ function build() {
       .attr( 'class', [6,8].indexOf(hex.roll) > -1 ? 'red' : '' )
       .text( hex.roll ? hex.roll : '' );
   }
-
   for (let i=0; i< game.public.players.length; i++) {
 
     escapes[`%%${i}%%`] =
@@ -155,39 +111,44 @@ function build() {
       let buttons = [];
       buttons.push( buildButton('buyDevelopmentCard', 'Buy development card') );
       buttons.push( buildButton('endTurn', 'End turn') );
-      buttons.push( buildButton('viewTrade', 'View trade') );
       buttons.push( buildButton('offerTrade', 'Offer trade') );
       buttons.push( buildButton('tradeBank', 'Trade bank') );
 
       for (let i=0; i<buttons.length; i++) {
         $('#buttons button:last').after( buttons[i] );
       }
+
+      $('#public-trade-buttons').html( buildButton('cancelTrade', 'cancel', 'button', true) );
+      $('#public-trade-buttons button:last').after( buildButton('acceptTrade', 'accept', 'button', true) );
+      $('#public-trade-buttons button:last').after( buildButton('declineTrade', 'decline', 'button', true) );
+
     }
 
     // table skeletons and header rows
-    $('#private-data').html(`<table id="private-resources">
-      <tr class="header">
-        <th colspan="100">resources</th>
-      </tr>
-    </table>
-    <table id="private-dev-cards">
-      <tr class="header">
-        <th colspan="100">dev cards</th>
-      </tr>
-    </table>`);
+    $('#private-data').html(
+        `<table id="private-resources">
+        <tr class="header">
+          <th colspan="100">resources</th>
+        </tr>
+      </table>
+      <table id="private-dev-cards">
+        <tr class="header">
+          <th colspan="100">dev cards</th>
+        </tr>
+      </table>`);
     function buildTradeModalResourceTR(res) {
       return `<tr class="${res}">
         <td>${res}</td>
         <td>
-          <button type="button" class="decrement" name="${res}" onclick="modal.decrement(this);">-</button>
+          <button type="button" class="decrement" name="${res}" onclick="modals.Trade.decrement(this);">-</button>
           <span class="resource-count" name="${res}">0</span>
-          <button type="button" class="increment" name="${res}" onclick="modal.increment(this);">+</button>
+          <button type="button" class="increment" name="${res}" onclick="modals.Trade.increment(this);">+</button>
         </td>
       </tr>`;
     }
     function buildTradeModalPlayerTR(i) {
       return `<tr class="player-${i}">
-        <td> <input type="checkbox" name="${i}" class="trade-partner player" onclick="modal.toggleCheck(this);" /> </td>
+        <td> <input type="checkbox" name="${i}" class="trade-partner player" onclick="modals.Trade.toggleCheck(this);" /> </td>
         <td>${escapeString(`%%${i}%%`)}</td>
       </tr>`;
     }
@@ -211,7 +172,7 @@ function build() {
           <th>Players</th>
         </tr>`);
       $('.trade-with table').after(
-        `<button type="button" onclick="modal.selectAll();">Select all</button>`);
+        `<button type="button" onclick="modals.Trade.selectAll();">Select all</button>`);
     }
     for (let i=0; i<game.public.players.length; i++) {
       if (i !== game.private.playerID) {
@@ -295,8 +256,79 @@ function populate() {
       $(`#${i}-dev-cards`).html( game.public.players[i].devCardsInHand );
       $(`#${i}-knights`).html( getLAString(i) );
     }
+
+    modals.Trade.setTrade(game.public.trade);
+    $('#public-trade-current').html( (modals.Trade.trade.out === {}
+      ? escapeString(`%%${
+        game.public.currentPlayerID}%%: ${
+          modals.Trade.toString()}` )
+      : '') );
   }
   function privateInfo() {
+    function updateButtons() {
+      function isAdjacent(edge) {
+        return (game.private.adjacents.indexOf(edge) > -1);
+      }
+
+      $('#buyDevelopmentCard')
+        .prop('disabled', !isAdjacent('_e_buy_dc'));
+      $('#endTurn')
+        .prop('disabled', !isAdjacent('_e_end_turn'));
+      $('#offerTrade')
+        .prop('disabled', !isAdjacent('_e_offer_trade'));
+      $('#viewTrade')
+        .prop('disabled', (game.public.trade.in===null));
+      $('#tradeBank')
+        .prop('disabled', !isAdjacent('_e_trade_bank'));
+
+      if (game.private.flags.disabled > 0) {
+        $('button.discard').show();
+        for (let res in game.private.resources) {
+          $(`button.discard[name=${res}]`)
+            .css('visibility', (game.private.resources[res] > 0)
+              ? 'visible'
+              : 'hidden' );
+        }
+      } else {
+        $('button.discard').hide();
+      }
+
+      let canPlayDC = false;
+      for (let dc in game.private.flags.canPlayDC) {
+        if (game.private.flags.canPlayDC[dc]) {
+          canPlayDC = true;
+          $(`button.play[name=${dc}]`)
+            .css('visiblity', 'visible');
+        } else {
+          $(`button.play[name=${dc}]`)
+            .css('visiblity', 'hidden');
+        }
+      }
+      if (canPlayDC) {
+        $('button.play').show();
+      } else {
+        $('button.play').hide();
+      }
+
+      if (game.private.adjacents.indexOf('_e_cancel_trade') > -1) {
+        $('#cancelTrade').show();
+      } else {
+        $('#cancelTrade').hide();
+      }
+      if (game.private.adjacents.indexOf('_e_accept_trade_other') > -1) {
+        $('#acceptTrade').show();
+      } else {
+        $('#acceptTrade').hide();
+      }
+      if (game.private.adjacents.indexOf('_e_decline_trade') > -1) {
+        $('#declineTrade').show();
+      } else {
+        $('#declineTrade').hide();
+      }
+
+      modals.update();
+    }
+
     if (game.private !== null) {
 
       for (let res in game.private.resources) {
@@ -316,9 +348,7 @@ function populate() {
           `<strong class="${dc}">${names[dc]}</strong>`;
       }
 
-
-
-      setStatusMessage();
+      setWaitingMessage();
       updateButtons();
 
     }
@@ -360,6 +390,10 @@ function onConnect(data) {
   		listen.to('acceptTrade');
   	});
 
+    $('#declineTrade').click( (i) => {
+      listen.to('declineTrade');
+    })
+
     $('#buyDevelopmentCard').click( (i) => {
   		listen.to('buyDevelopmentCard');
   	});
@@ -373,7 +407,7 @@ function onConnect(data) {
   	});
 
     $('#offerTrade').click( (i) => {
-      modal.set('players');
+      modals.Trade.set('players');
   	});
 
     $('button.play').click( (i) => {
@@ -393,7 +427,7 @@ function onConnect(data) {
   	});
 
     $('#tradeBank').click( (i) => {
-      modal.set('bank');
+      modals.Trade.set('bank');
   	});
   }
 
@@ -478,164 +512,207 @@ const dieValueToCoordinates = {
   5 : [[0.75,0.75],[0.75,2.25],[1.5,1.5],  [2.25,0.75],[2.25,2.25]],
   6 : [[0.75,0.75],[0.75,1.5], [0.75,2.25],[2.25,0.75],[2.25,1.5],[2.25,2.25]]
 };
-const modal = {
-  update() {
-
-    modal.parse();
-
-    $('#modal-offer-trade .decrement').each( (i,item) => {
-      let data = modal.get(item);
-      $(item).prop( 'disabled', data.num===0 );
-    });
-    $('#modal-offer-trade .trade-out .increment').each( (i,item) => {
-      let data = modal.get(item);
-      $(item).prop( 'disabled', data.num === game.private.resources[data.res] );
-    });
-    $('#modal-offer-trade .trade-string').html( modal.toString() );
-  },
-  get(dom) {
-    let data = {},
-      obj = $(dom),
-      table = obj.closest('div'),
-      res = obj.attr('name'),
-      span = table.find(`.resource-count[name=${res}]`),
-      num = parseInt(span.html());
-    return {
-      table : table,
-      res   : res,
-      span  : span,
-      num   : num
-    };
-  },
-  parse() {
-    $('#modal-offer-trade .trade-out .resource-count').each( (i,item) => {
-      let data = modal.get(item);
-      modal.trade.out[data.res] = data.num;
-    });
-    $('#modal-offer-trade .trade-in .resource-count').each( (i,item) => {
-      let data = modal.get(item);
-      modal.trade.in[data.res] = data.num;
-    });
-  },
-  toString() {
-    function toString(set) {
-      let keys = Object.keys(set).filter( (key) => {
-        return set[key] > 0;
-      });
-      if (keys.length) {
-        for (let i=0; i<keys.length; i++) {
-          keys[i] = `${set[keys[i]]} %%${keys[i]}%%`;
-        }
-        return keys.join(', ');
+const modals = {
+  Trade  : {
+    setTrade(trade) {
+      for (let res in trade.out) {
+        $(`#modal-offer-trade .trade-out .resource-count[name=${res}]`).html(trade.out[res]);
       }
-      return '<strong>nothing</strong>';
-    }
-
-    let whos;
-    if (modal.trade.with === 'bank') {
-      whos = '<strong>the Bank</strong>';
-    } else {
-      if (modal.trade.with.length) {
-        whos = modal.trade.with
-          .map( (item) => {
-            return `%%${item}%%`;
-          })
-          .join(', ');
-      } else {
-        whos = '<strong>no one</strong>';
+      for (let res in trade.in) {
+        $(`#modal-offer-trade .trade-in .resource-count[name=${res}]`).html(trade.in[res]);
       }
-    }
-
-    let outs = toString(modal.trade.out),
-      ins = toString(modal.trade.in),
-      str = `trading ${outs} for ${ins} with ${whos}`;
-    str = escapeString(str);
-    return str;
-  },
-  decrement(dom) {
-    let data = modal.get(dom);
-    if (data.num > 0) {
-      data.span.html(data.num-1);
-      modal.update();
-    }
-  },
-  increment(dom) {
-    let data = modal.get(dom);
-    if (data.num < game.private.resources[data.res] || data.table.hasClass('trade-in')) {
-      data.span.html(data.num+1);
-      modal.update();
-    }
-  },
-  set(partner) {
-
-    $('#modal-offer-trade').show();
-    
-    if (partner==='bank') {
-      $('#modal-offer-trade .trade-partner.bank').prop('checked', true);
       $('#modal-offer-trade .trade-partner.player').prop('checked', false);
-      modal.trade.with = 'bank';
-      modal.update();
-    } else if (partner==='players') {
-      modal.selectAll();
-    }
+      for (let i=0; i<trade.with.length; i++) {
+        $(`#modal-offer-trade .trade-partner.player[name=${i}]`).prop('checked', true);
+      }
+      modals.Trade.update()
+    },
+    update() {
 
-  },
-  selectAll() {
+      modals.Trade.parse();
 
-    modal.trade.with = [];
-    $('#modal-offer-trade .trade-partner.bank').prop('checked', false);
-    $('#modal-offer-trade .trade-partner.player').each( (i,item) => {
-      let obj = $(item);
-      obj.prop('checked', true);
-      modal.trade.with.push( parseInt(obj.attr('name')) );
-    });
-    modal.update();
+      $('#modal-offer-trade .decrement').each( (i,item) => {
+        let data = modals.Trade.get(item);
+        $(item).prop( 'disabled', data.num===0 );
+      });
+      $('#modal-offer-trade .trade-out .increment').each( (i,item) => {
+        let data = modals.Trade.get(item);
+        $(item).prop( 'disabled', data.num === game.private.resources[data.res] );
+      });
+      $('#modal-offer-trade .trade-string').html( modals.Trade.toString() );
+    },
+    get(dom) {
+      let data = {},
+        obj = $(dom),
+        table = obj.closest('div'),
+        res = obj.attr('name'),
+        span = table.find(`.resource-count[name=${res}]`),
+        num = parseInt(span.html());
+      return {
+        table : table,
+        res   : res,
+        span  : span,
+        num   : num
+      };
+    },
+    parse() {
+      $('#modal-offer-trade .trade-out .resource-count').each( (i,item) => {
+        let data = modals.Trade.get(item);
+        modals.Trade.trade.out[data.res] = data.num;
+      });
+      $('#modal-offer-trade .trade-in .resource-count').each( (i,item) => {
+        let data = modals.Trade.get(item);
+        modals.Trade.trade.in[data.res] = data.num;
+      });
+    },
+    toString() {
+      function toString(set) {
+        let keys = Object.keys(set).filter( (key) => {
+          return set[key] > 0;
+        });
+        if (keys.length) {
+          for (let i=0; i<keys.length; i++) {
+            keys[i] = `${set[keys[i]]} %%${keys[i]}%%`;
+          }
+          return keys.join(', ');
+        }
+        return '<strong>nothing</strong>';
+      }
 
-  },
-  toggleCheck(dom) {
+      let whos;
+      if (modals.Trade.trade.with === 'bank') {
+        whos = '<strong>the Bank</strong>';
+      } else {
+        if (modals.Trade.trade.with.length) {
+          whos = modals.Trade.trade.with
+            .map( (item) => {
+              return `%%${item}%%`;
+            })
+            .join(', ');
+        } else {
+          whos = '<strong>no one</strong>';
+        }
+      }
 
-    let obj = $(dom);
-    if (obj.attr('name')==='bank') {
+      let outs = toString(modals.Trade.trade.out),
+        ins = toString(modals.Trade.trade.in),
+        str = `trading ${outs} for ${ins} with ${whos}`;
+      str = escapeString(str);
+      return str;
+    },
+    decrement(dom) {
+      let data = modals.Trade.get(dom);
+      if (data.num > 0) {
+        data.span.html(data.num-1);
+        modals.Trade.update();
+      }
+    },
+    increment(dom) {
+      let data = modals.Trade.get(dom);
+      if (data.num < game.private.resources[data.res] || data.table.hasClass('trade-in')) {
+        data.span.html(data.num+1);
+        modals.Trade.update();
+      }
+    },
+    set(partner) {
 
-      if (obj.prop('checked')) {
-        modal.trade.with = 'bank';
+      $('#modal-offer-trade').show();
+
+      if (partner==='bank') {
+        $('#modal-offer-trade .trade-partner.bank').prop('checked', true);
         $('#modal-offer-trade .trade-partner.player').prop('checked', false);
-      } else {
-        modal.trade.with = [];
+        modals.Trade.trade.with = 'bank';
+        modals.Trade.update();
+      } else if (partner==='players') {
+        modals.Trade.selectAll();
       }
 
-    } else {
+    },
+    selectAll() {
 
-      let i = parseInt(obj.attr('name'))
-      if (obj.prop('checked')) {
-        if ($('#modal-offer-trade .trade-partner.bank').prop('checked'))
-          modal.trade.with = [];
-        $('#modal-offer-trade .trade-partner.bank').prop('checked', false);
-        modal.trade.with.push(i);
+      modals.Trade.trade.with = [];
+      $('#modal-offer-trade .trade-partner.bank').prop('checked', false);
+      $('#modal-offer-trade .trade-partner.player').each( (i,item) => {
+        let obj = $(item);
+        obj.prop('checked', true);
+        modals.Trade.trade.with.push( parseInt(obj.attr('name')) );
+      });
+      modals.Trade.update();
+
+    },
+    toggleCheck(dom) {
+
+      let obj = $(dom);
+      if (obj.attr('name')==='bank') {
+
+        if (obj.prop('checked')) {
+          modals.Trade.trade.with = 'bank';
+          $('#modal-offer-trade .trade-partner.player').prop('checked', false);
+        } else {
+          modals.Trade.trade.with = [];
+        }
+
       } else {
-        modal.trade.with.splice( modal.trade.with.indexOf(i), 1 );
+
+        let i = parseInt(obj.attr('name'))
+        if (obj.prop('checked')) {
+          if ($('#modal-offer-trade .trade-partner.bank').prop('checked'))
+            modals.Trade.trade.with = [];
+          $('#modal-offer-trade .trade-partner.bank').prop('checked', false);
+          modals.Trade.trade.with.push(i);
+        } else {
+          modals.Trade.trade.with.splice( modals.Trade.trade.with.indexOf(i), 1 );
+        }
+
+      }
+      modals.Trade.update();
+
+    },
+    cancel() {
+      $('#modal-offer-trade').hide();
+    },
+    confirm() {
+      function toString(set) {
+        let keys = Object.keys(set).filter( (key) => {
+          return set[key] > 0;
+        });
+        if (keys.length) {
+          for (let i=0; i<keys.length; i++) {
+            keys[i] = `${set[keys[i]]} ${keys[i]}`;
+          }
+          return keys.join(' ');
+        }
       }
 
+      if (modals.Trade.trade.with==='bank') {
+        let trade = `${
+          toString(modals.Trade.trade.out)} = ${
+          toString(modals.Trade.trade.in)}`;
+        listen.to('tradeBank', trade);
+      } else if (modals.Trade.trade.with.length) {
+        let trade = `${
+          toString(modals.Trade.trade.out)} = ${
+          toString(modals.Trade.trade.in)} ${
+            modals.Trade.trade.with
+              .map( (item) => { return `@${item}`; })
+              .join(' ')
+          }`;
+        listen.to('offerTrade', trade);
+      } else {
+        _M.addMessage('You must choose at least one player to trade with.');
+      }
+    },
+    trade : { out:{}, in:{}, with:[] }
+  },
+  DC     : {
+    update() {
+      console.log('dev card modal update');
     }
-    modal.update();
-
   },
-  cancel() {
-    $('#modal-offer-trade').hide();
-  },
-  confirm() {
-    console.log('out',modal.trade.out);
-    console.log('in',modal.trade.in);
-    console.log('with',modal.trade.with);
-    if (modal.trade.with==='bank') {
-      listen.to('tradeBank', modal.trade);
-    } else if (modal.trade.with.length) {
-      listen.to('offerTrade', modal.trade);
-    } else {
-      _M.addMessage('You must choose at least one player to trade with.');
-    }
-  },
-  trade : { out:{}, in:{}, with:[] }
+  update() {
+    modals.Trade.update();
+    modals.DC.update();
+  }
 }
 
 // once all DOM is rendered

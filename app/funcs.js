@@ -266,6 +266,7 @@ module.exports = {
   },
   parse : {
     trade(game, args) {
+      args = args.split(' ');
       if (!args.length)
         throw new EdgeArgumentError('trade',[],'Nothing to trade.');
       let trade = { in:{}, out:{}, with:new Set() },
@@ -276,7 +277,8 @@ module.exports = {
           parsing = trade.in;
         } else {
           if (args[a][0] === '@') {
-            trade.with.push( module.exports.toInt(args[a].slice(1)) );
+            trade.with.add( module.exports.toInt(args[a].slice(1)) );
+            console.log(JSON.stringify(args[a].slice(1)), JSON.stringify(Array.from(trade.with)));
           } else {
             let res = module.exports.parse.resource(game, args[a+1]),
               num = module.exports.toInt(args[a]);
@@ -285,9 +287,8 @@ module.exports = {
           }
         }
       }
+
       trade.with = Array.from(trade.with);
-      console.log(Object.keys(trade.out).length, Object.keys(trade.in).length);
-      console.log('trade',trade);
       if (!Object.keys(trade.out).length)
         throw new EdgeArgumentError('trade',trade,'You must specify at least one resource to give away.');
       if (!Object.keys(trade.in).length)

@@ -788,3 +788,7 @@ svg#gameboard > rect {
   display: flex;
   flex-flow: row;
 }
+
+#modal-offer-trade * {
+  white-space: nowrap;
+}
