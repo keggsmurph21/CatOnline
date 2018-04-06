@@ -17,13 +17,13 @@ function _spend(player, cost) {
   }
   player.resources = resources;
 }
-
-function _collectResource(messenger, game, player, hex) {
+function _collectResource(messenger, game, player, hex, acc=[]) {
   let res = game.board.hexes[hex].resource,
     resources = Object.assign({}, player.resources);
   if (res !== 'desert') {
     messenger.list.push([player.playerID, `collected ${res}.`]);
     resources[res] += 1;
+    acc.push(res);
   }
   player.resources = resources;
 }
@@ -34,8 +34,9 @@ function _isGameOver(game) {
   }
 }
 function _pave(messenger, game, player, road, pay=true) {
+  let cost;
   if (pay) {
-    let cost = _getCost(game, 'build', 'road');
+    cost = _getCost(game, 'build', 'road');
     _spend(player, cost);
     _updateBuyOptions(game, player);
   }
@@ -45,13 +46,13 @@ function _pave(messenger, game, player, road, pay=true) {
   road.owner = player.playerID;
   _calcLongestRoad(messenger, game);
 
-  return { road:road.num,
-    hasLongestRoad:game.state.hasLongestRoad,
-    longestRoad:player.longestRoad };
+  let longestRoads = [];
+  for (let p=0; p<game.state.players.length; p++) {
+    longestRoads.push(game.state.players[p].longestRoad);
+  }
 }
 function _settle(messenger, game, player, junc, pay=true) {
   //console.log('in settle:',junc);
-  // TODO: update bank trade rates
 
   if (junc.owner === player.playerID)
     throw new InvalidChoiceError('junc', junc, 'You have already settled here.');
@@ -60,8 +61,9 @@ function _settle(messenger, game, player, junc, pay=true) {
   if (!junc.isSettleable)
     throw new InvalidChoiceError('junc', junc, 'You can\'t settle next to another settlement.');
 
+  let cost;
   if (pay) {
-    let cost = _getCost(game, 'build', 'settlement');
+    cost = _getCost(game, 'build', 'settlement');
     _spend(player, cost);
     _updateBuyOptions(game, player);
   }
@@ -80,10 +82,27 @@ function _settle(messenger, game, player, junc, pay=true) {
   _calcLongestRoad(messenger, game);
   _isGameOver(game);
 
-  return { junc:junc.num };
-}
-function _rollDice() {
-  return [ funcs.getRandomInt(min=1,max=6), funcs.getRandomInt(min=1,max=6) ];
+  if (junc.port !== null) {
+    if (junc.port.type === 'mystery') {
+      for (let res in player.bankTradeRates) {
+        if (3 < player.bankTradeRates[res]) {
+          player.bankTradeRates[res] = 3;
+          messenger.list.push([player.playerID, `can now trade 3 ${res} for any resource with the bank.`]);
+        }
+      }
+    } else {
+      if (2 < player.bankTradeRates[junc.port.type]) {
+        player.bankTradeRates[junc.port.type] = 2;
+        messenger.list.push([player.playerID, `can now trade 2 ${junc.port.type} for any resource with the bank.`]);
+      }
+    }
+  }
+  console.log('messages', messenger.list);
+
+  let longestRoads = [];
+  for (let p=0; p<game.state.players.length; p++) {
+    longestRoads.push(game.state.players[p].longestRoad);
+  }
 }
 function _updateBuyOptions(game, player) {
 
@@ -134,7 +153,6 @@ function _getCost(game, type, item) {
   }
   throw new GameLogicError();
 }
-
 function _sumResources(player) {
   return funcs.sumObject(player.resources);
 }
@@ -227,6 +245,19 @@ function _calcLongestRoad(messenger, game) {
     }
   }
 }
+function _validateTrade(messenger, game, player, trade) {
+  //console.log(trade);
+  if (!funcs.canAfford(player, trade.out))
+    throw new PovertyError(player, trade.out);
+}
+
+
+
+
+
+
+
+
 
 function acceptTradeAsOffer(messenger, game, player) {
   _spend(player, game.state.currentTrade.out);
@@ -234,7 +265,7 @@ function acceptTradeAsOffer(messenger, game, player) {
   _updateBuyOptions(game, player);
   messenger.list.push([player.playerID, `accepted a trade.`]);
 
-  cancelTrade(game);
+  cancelTrade(messenger, game, player, silent=true);
 }
 
 function acceptTradeAsOther(messenger, game, player) {
@@ -263,16 +294,20 @@ function buyDevCard(messenger, game, player) {
   } else {
     player.unplayableDCs[dc] += 1;
   }
+  return dc;
 }
 
-function cancelTrade(messenger, game) {
+function cancelTrade(messenger, game, player, silent=false) {
   game.state.tradeAccepted = false;
   game.state.currentTrade = { in:null, out:null };
 
-  messenger.list.push([player.playerID, `cancelled the trade.`]);
   for (let p=0; p<game.state.players.length; p++) {
     game.state.players[p].canAcceptTrade = false;
+    game.state.players[p].hasDeclinedTrade = false;
   }
+
+  if (!silent)
+    messenger.list.push([player.playerID, `cancelled the trade.`]);
 }
 
 function collectResources(messenger, game) {
@@ -291,6 +326,14 @@ function collectResources(messenger, game) {
       }
     }
   }
+}
+
+function declineTrade(messenger, game, player) {
+
+  player.canAcceptTrade = false;
+  player.hasDeclinedTrade = true;
+  messenger.list.push([player.playerID, `declined a trade.`]);
+
 }
 
 function discard(messenger, game, player, cards) {
@@ -321,6 +364,11 @@ function end(messenger, game) {
   throw new NotImplementedError();
 }
 
+function failTrade(messenger, game, player) {
+  messenger.list.push([player.playerID, `was unable to find a trade partner.`]);
+  cancelTrade(messenger, game, player, silent=true);
+}
+
 function fortify(messenger, game, player, junc) {
   if (player.settlements.indexOf(junc.num) === -1)
     throw new InvalidChoiceError('junc',junc,'Cities must be built on existing settlements.');
@@ -341,11 +389,11 @@ function fortify(messenger, game, player, junc) {
   player.privateScore+= 1;
   _isGameOver(game);
 
-  return { junc:junc.num };
 }
 
 function initCollect(messenger, game, player) {
   let j = player.settlements.slice(0).pop();
+  let acc = [];
   for (let h=0; h<game.board.juncs[j].hexes.length; h++) {
     _collectResource(messenger, game, player, game.board.juncs[j].hexes[h]);
   }
@@ -366,11 +414,11 @@ function initPave(messenger, game, player, road) {
   if (!valid)
     throw new InvalidChoiceError('road',road,'You must pave a road next to your last settlement.');
 
-  return _pave(messenger, game, player, road, pay=false);
+  _pave(messenger, game, player, road, pay=false);
 }
 
 function initSettle(messenger, game, player, junc) {
-  return _settle(messenger, game, player, junc, pay=false);
+  _settle(messenger, game, player, junc, pay=false);
 }
 
 function iterateTurn(messenger, game, player) {
@@ -412,23 +460,34 @@ function moveRobber(messenger, game, player, hex) {
   }
 
   messenger.list.push([player.playerID, `moved the robber.`]);
-  return { hex:hex.num };
 }
 
 function offerTrade(messenger, game, player, trade) {
+
+  _validateTrade(messenger, game, player, trade);
+
   game.state.currentTrade = trade;
+
   for (let q=0; q<game.state.players.length; q++) {
     let other = game.state.players[q];
+
     other.canAcceptTrade = false;
+    other.hasDeclinedTrade = true;
+
     if (player !== other) {
-      other.canAcceptTrade = funcs.canAfford(other, trade.in);
+      if ((trade.with.length === 0 || trade.with.indexOf(q) > -1)) {
+        if (funcs.canAfford(other, trade.in)) {
+          other.canAcceptTrade = true;
+          other.hasDeclinedTrade = false;
+        } else {
+          other.hasDeclinedTrade = false;
+        }
+      }
     }
   }
 
   messenger.list.push([player.playerID, `has offered a trade.`]);
   //console.log('offer', trade);
-
-  return { trade:trade };
 }
 
 function pave(messenger, game, player, road) {
@@ -446,7 +505,7 @@ function pave(messenger, game, player, road) {
   if (!valid)
     throw new InvalidChoiceError('road',road,'You can only pave near roads and settlements you own.');
 
-  return _pave(messenger, game, player, road);
+  _pave(messenger, game, player, road);
 }
 
 function playDC(messenger, game, player, card, args) {
@@ -504,17 +563,19 @@ function playDC(messenger, game, player, card, args) {
       player.unplayedDCs[dc] = 0;
     }
   }
-
-  return { args:args, hasLargestArmy:game.state.hasLargestArmy };
 }
 
 function roll(messenger, game, player, args) {
 
+  function rollDice() {
+    return [ funcs.getRandomInt(min=1,max=6), funcs.getRandomInt(min=1,max=6) ];
+  }
+
   let rolls;
   try {
-    rolls = (isNaN(args[0]) ? _rollDice() : args);
+    rolls = (isNaN(args[0]) ? rollDice() : args);
   } catch (e) {
-    rolls = _rollDice();
+    rolls = rollDice();
   }
   let roll = rolls[0] + rolls[1];
   game.board.dice.values = rolls;
@@ -532,7 +593,7 @@ function roll(messenger, game, player, args) {
     }
   }
   messenger.list.push([player.playerID, `rolled a ${roll}.`]);
-  return { values:rolls };
+  return rolls;
 }
 
 function settle(messenger, game, player, junc, pay=true) {
@@ -540,7 +601,7 @@ function settle(messenger, game, player, junc, pay=true) {
   for (let r=0; r<junc.roads.length; r++) {
     let road = game.board.roads[junc.roads[r]];
     if (road.owner === player.playerID)
-      return _settle(messenger, game, player, junc);
+      _settle(messenger, game, player, junc);
   }
   throw new InvalidChoiceError('junc',junc,'You need to build a road here before you can settle.');
 }
@@ -565,7 +626,8 @@ function steal(messenger, game, player, other) {
       _updateBuyOptions(game, other);
 
       messenger.list.push([player.playerID, `stole a card from ${other.lobbyData.name}.`]);
-      return { other:other.playerID };
+
+      return;
     }
   }
   throw new InvalidChoiceError('player',other,other.lobbyData.name+' is not adjacent to the robber.');
@@ -589,13 +651,6 @@ function tradeWithBank(messenger, game, player, trade) {
   _updateBuyOptions(game, player);
 
   messenger.list.push([player.playerID, `traded ${trade.out[outResource]} ${outResource} with the bank for ${trade.in[inResource]} ${inResource}.`]);
-  return { trade:trade };
-}
-
-function validateTrade(messenger, game, player, trade) {
-  //console.log(trade);
-  if (!funcs.canAfford(player, trade.out))
-    throw new PovertyError(player, trade.out);
 }
 
 module.exports = {
@@ -646,6 +701,7 @@ module.exports = {
         "_v_end_turn": {
             edges: [
                 "_e_accept_trade_other",
+                "_e_decline_trade",
                 "_e_roll_discard_other",
                 "_e_take_turn"
             ],
@@ -674,7 +730,8 @@ module.exports = {
         "_v_offer_trade": {
             edges: [
                 "_e_accept_trade",
-                "_e_cancel_trade"
+                "_e_cancel_trade",
+                "_e_fail_trade"
             ],
             name: "_v_offer_trade"
         },
@@ -844,7 +901,16 @@ module.exports = {
             target: "_v_root",
             evaluate: function (f) { return true; },
             arguments: "",
-            execute: function (m,g,p,a) { cancelTrade(m,g); },
+            execute: function (m,g,p,a) { cancelTrade(m,g,p); },
+            isPriority: false,
+            label: ""
+        },
+        "_e_decline_trade": {
+            name: "_e_decline_trade",
+            target: "_v_end_turn",
+            evaluate: function (f) { return f.canAcceptTrade; },
+            arguments: "",
+            execute: function (m,g,p,a) { declineTrade(m,g,p); },
             isPriority: false,
             label: ""
         },
@@ -882,6 +948,15 @@ module.exports = {
             arguments: "",
             execute: function (m,g,p,a) { iterateTurn(m,g,p); },
             isPriority: false,
+            label: ""
+        },
+        "_e_fail_trade": {
+            name: "_e_fail_trade",
+            target: "_v_root",
+            evaluate: function (f) { return !f.waitForTrade; },
+            arguments: "",
+            execute: function (m,g,p,a) { failTrade(m,g,p); },
+            isPriority: true,
             label: ""
         },
         "_e_init_build_road": {
@@ -934,7 +1009,7 @@ module.exports = {
             target: "_v_offer_trade",
             evaluate: function (f) { return !f.isFirstTurn && !f.isSecondTurn && f.hasRolled && f.canTrade; },
             arguments: "trade",
-            execute: function (m,g,p,a) { validateTrade(m,g,p,a); return offerTrade(m,g,p,a); },
+            execute: function (m,g,p,a) { return offerTrade(m,g,p,a); },
             isPriority: false,
             label: ""
         },

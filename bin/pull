@@ -65,7 +65,7 @@ def get_state_graph():
 
     # since we'll be making multiple instances of this graph,
     # we won't need all the data in each instance
-    serverdata, clientdata, pythondata = [ { 'vertices':{},'edges':{} } for i in range(3) ]
+    serverdata, clientdata, workerdata = [ { 'vertices':{},'edges':{} } for i in range(3) ]
     commonCols = [ 'vertices', 'edges', 'target', 'label', 'name' ]
     serverCols = commonCols + [ 'evaluate', 'execute', 'isPriority', 'arguments' ]
     clientCols = commonCols + [ 'isCancel', 'listen', 'onSuccess', 'description' ]
@@ -84,13 +84,13 @@ def get_state_graph():
                     vertex_name = replace_name( 'v', line[i] )
                     serverdata['vertices'][vertex_name] = { 'edges':[], 'name':vertex_name }
                     clientdata['vertices'][vertex_name] = { 'edges':[], 'name':vertex_name }
-                    pythondata['vertices'][vertex_name] = { 'edges':[], 'name':vertex_name }
+                    workerdata['vertices'][vertex_name] = { 'edges':[], 'name':vertex_name }
                 else:
                     if col_name in serverCols:
                         serverdata['vertices'][vertex_name][col_name] = line[i]
                     if col_name in clientCols:
                         clientdata['vertices'][vertex_name][col_name] = line[i]
-                        pythondata['vertices'][vertex_name][col_name] = line[i]
+                        workerdata['vertices'][vertex_name][col_name] = line[i]
 
     # parse the edges
     sheet = get_sheet(spreadsheet, sheets['edges'])
@@ -110,7 +110,7 @@ def get_state_graph():
                     edge_name = replace_name( 'e', line[i] )
                     serverdata['edges'][edge_name] = { 'name':edge_name }
                     clientdata['edges'][edge_name] = { 'name':edge_name }
-                    pythondata['edges'][edge_name] = { 'name':edge_name }
+                    workerdata['edges'][edge_name] = { 'name':edge_name }
 
                     # make sure the testing capacity is there
                     path = os.path.join('tests','commands','edges',edge_name)
@@ -121,30 +121,28 @@ def get_state_graph():
                     vertex_name = replace_name( 'v', line[i] )
                     serverdata['vertices'][vertex_name]['edges'].append( edge_name )
                     clientdata['vertices'][vertex_name]['edges'].append( edge_name )
-                    pythondata['vertices'][vertex_name]['edges'].append( edge_name )
+                    workerdata['vertices'][vertex_name]['edges'].append( edge_name )
                 elif col_name == 'target':
                     vertex_name = replace_name( 'v', line[i] )
                     serverdata['edges'][edge_name][col_name] = vertex_name
                     clientdata['edges'][edge_name][col_name] = vertex_name
-                    pythondata['edges'][edge_name][col_name] = vertex_name
+                    workerdata['edges'][edge_name][col_name] = vertex_name
                 else:
                     if col_name in serverCols:
                         serverdata['edges'][edge_name][col_name] = line[i]
                     if col_name in clientCols:
                         clientdata['edges'][edge_name][col_name] = line[i]
-                        pythondata['edges'][edge_name][col_name] = line[i]
+                        workerdata['edges'][edge_name][col_name] = line[i]
 
     # coerce the dicts -> JSON objects
     serverdata = json.dumps(serverdata,indent=4)
     clientdata = json.dumps(clientdata,indent=4)
-    pythondata = json.dumps(pythondata,indent=4)
+    workerdata = json.dumps(workerdata,indent=4)
 
     # first make the version that will live on the server
     serverdata = re.sub(r'"(func.*\})"', r'\1', serverdata)
     for key in serverCols:
         serverdata = re.sub( r'"%s"' % key, r'%s' % key, serverdata )
-
-    # "roll that shit, write that shit, smoke it" - Method Man
     funcs = get_project_path('app','logic','graph','server-funcs.js')
     with open( funcs, 'r' ) as f:
         funcs = f.read()
@@ -157,14 +155,22 @@ def get_state_graph():
     clientdata = re.sub(r'"(func.*\})"', r'\1', clientdata)
     for key in clientCols:
         clientdata = re.sub( r'"%s"' % key, r'%s' % key, clientdata )
-
-    # "roll that shit, write that shit, smoke it" - Method Man
     funcs = get_project_path('app','logic','graph','client-funcs.js')
     with open( funcs, 'r' ) as f:
         funcs = f.read()
         built = get_project_path('public','resources','graph.js')
         with open( built, 'w' ) as b:
             b.write( '{}\nconst _STATE_GRAPH = {}'.format(funcs, clientdata) )
+
+    # finally keep a copy for our python workers
+    workerdata = re.sub(r'true', r'True', workerdata)
+    workerdata = re.sub(r'false',r'False',workerdata)
+    funcs = get_project_path('app','logic','graph','worker-funcs.py')
+    with open( funcs, 'r' ) as f:
+        funcs = f.read()
+        built = get_project_path('app','logic','graph','graph.py')
+        with open( built, 'w' ) as b:
+            b.write( '{}\n_STATE_GRAPH = {}'.format(funcs, workerdata) )
 
 
 def get_project_path(*args):

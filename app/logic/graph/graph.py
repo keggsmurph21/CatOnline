@@ -47,6 +47,7 @@ _STATE_GRAPH = {
         "_v_end_turn": {
             "edges": [
                 "_e_accept_trade_other",
+                "_e_decline_trade",
                 "_e_roll_discard_other",
                 "_e_take_turn"
             ],
@@ -75,7 +76,8 @@ _STATE_GRAPH = {
         "_v_offer_trade": {
             "edges": [
                 "_e_accept_trade",
-                "_e_cancel_trade"
+                "_e_cancel_trade",
+                "_e_fail_trade"
             ],
             "name": "_v_offer_trade"
         },
@@ -173,7 +175,7 @@ _STATE_GRAPH = {
             "target": "_v_accept_trade",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -182,7 +184,7 @@ _STATE_GRAPH = {
             "target": "_v_accept_trade_other",
             "listen": "acceptTrade",
             "description": "accept the trade",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -191,7 +193,7 @@ _STATE_GRAPH = {
             "target": "_v_end_turn",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -200,7 +202,7 @@ _STATE_GRAPH = {
             "target": "_v_end_turn",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -209,7 +211,7 @@ _STATE_GRAPH = {
             "target": "_v_fortify",
             "listen": "spot",
             "description": "build a city",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -218,7 +220,7 @@ _STATE_GRAPH = {
             "target": "_v_pave",
             "listen": "road",
             "description": "build a road",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -227,7 +229,7 @@ _STATE_GRAPH = {
             "target": "_v_settle",
             "listen": "spot",
             "description": "build a settlement",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -236,7 +238,7 @@ _STATE_GRAPH = {
             "target": "_v_buy_dc",
             "listen": "buyDevelopmentCard",
             "description": "buy a development card",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -245,8 +247,17 @@ _STATE_GRAPH = {
             "target": "_v_root",
             "listen": "cancelTrade",
             "description": "cancel the trade",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": True,
+            "label": ""
+        },
+        "_e_decline_trade": {
+            "name": "_e_decline_trade",
+            "target": "_v_end_turn",
+            "listen": "declineTrade",
+            "description": "decline the trade",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
+            "isCancel": False,
             "label": ""
         },
         "_e_discard_move_robber": {
@@ -254,7 +265,7 @@ _STATE_GRAPH = {
             "target": "_v_move_robber",
             "listen": "tile",
             "description": "move the robber",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -263,7 +274,7 @@ _STATE_GRAPH = {
             "target": "_v_end_game",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -272,7 +283,7 @@ _STATE_GRAPH = {
             "target": "_v_end_turn",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -281,7 +292,16 @@ _STATE_GRAPH = {
             "target": "_v_end_turn",
             "listen": "endTurn",
             "description": "end your turn",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
+            "isCancel": False,
+            "label": ""
+        },
+        "_e_fail_trade": {
+            "name": "_e_fail_trade",
+            "target": "_v_root",
+            "listen": "",
+            "description": "",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -290,7 +310,7 @@ _STATE_GRAPH = {
             "target": "_v_pave",
             "listen": "road",
             "description": "choose a road",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -299,7 +319,7 @@ _STATE_GRAPH = {
             "target": "_v_init_collect",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -308,7 +328,7 @@ _STATE_GRAPH = {
             "target": "_v_settle",
             "listen": "spot",
             "description": "choose a settlement",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -317,7 +337,7 @@ _STATE_GRAPH = {
             "target": "_v_pave",
             "listen": "road",
             "description": "choose a road",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -326,7 +346,7 @@ _STATE_GRAPH = {
             "target": "_v_root",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -335,7 +355,7 @@ _STATE_GRAPH = {
             "target": "_v_offer_trade",
             "listen": "offerTrade",
             "description": "make a trade",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -344,7 +364,7 @@ _STATE_GRAPH = {
             "target": "_v_move_robber",
             "listen": "tile",
             "description": "play a Knight",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -353,7 +373,7 @@ _STATE_GRAPH = {
             "target": "_v_play_monopoly",
             "listen": "playMonopoly",
             "description": "play a Monopoly",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -362,7 +382,7 @@ _STATE_GRAPH = {
             "target": "_v_play_rb",
             "listen": "playRoadBuilder",
             "description": "play Road Building",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -371,7 +391,7 @@ _STATE_GRAPH = {
             "target": "_v_play_vp",
             "listen": "playVictoryPoint",
             "description": "play a Victory Point",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -380,7 +400,7 @@ _STATE_GRAPH = {
             "target": "_v_play_yop",
             "listen": "playYearOfPlenty",
             "description": "play a Year of Plenty",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -389,7 +409,7 @@ _STATE_GRAPH = {
             "target": "_v_roll",
             "listen": "dice",
             "description": "roll the dice",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { setDice(a); }",
             "isCancel": False,
             "label": ""
         },
@@ -398,7 +418,7 @@ _STATE_GRAPH = {
             "target": "_v_collect",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -407,7 +427,7 @@ _STATE_GRAPH = {
             "target": "_v_discard",
             "listen": "discard",
             "description": "discard some cards",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -416,7 +436,7 @@ _STATE_GRAPH = {
             "target": "_v_discard_other",
             "listen": "discard",
             "description": "discard some cards",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -425,7 +445,7 @@ _STATE_GRAPH = {
             "target": "_v_move_robber",
             "listen": "tile",
             "description": "move the robber",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -434,7 +454,7 @@ _STATE_GRAPH = {
             "target": "_v_steal",
             "listen": "player",
             "description": "steal from someone",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -443,7 +463,7 @@ _STATE_GRAPH = {
             "target": "_v_root",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -452,7 +472,7 @@ _STATE_GRAPH = {
             "target": "_v_root",
             "listen": "",
             "description": "",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         },
@@ -461,7 +481,7 @@ _STATE_GRAPH = {
             "target": "_v_trade_with_bank",
             "listen": "tradeBank",
             "description": "trade with the bank",
-            "onSuccess": "function (a) { console.log('on success', a); }",
+            "onSuccess": "function (p,a) { console.log('on success', a); }",
             "isCancel": False,
             "label": ""
         }

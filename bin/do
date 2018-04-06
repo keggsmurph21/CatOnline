@@ -90,16 +90,18 @@ function parseInput(line, callback=()=>{}) {
 
       case ('do'):
         let p = args[0];
+        let edge = args[2]; // undefined if not enough args given
+
         switch (args[1]) {
+
           case ('exec'):
+            args = LOGIC.validate(game, p, edge, args.slice(3));
+            LOGIC.execute(game, p, edge, args);
+            break;
+
           case ('force'):
-
-            let edge = args[2]; // undefined if not enough args given
-            args = (args[1]=='exec'
-              ? LOGIC.validateEdgeArgs(game, edge, args.slice(3))
-              : args.slice(3).map(a=>parseInt(a)));
-
-            if (!LOGIC.validateEdgeIsAdjacent(game, p, edge))
+            args = args.slice(3).map( (a) => { parseInt(a); });
+            if (game.state.players[p].adjacents.indexOf(edge) === -1)
               throw new DoError('Player '+p+' is not adjacent to `'+edge+'`.');
             LOGIC.execute(game, p, edge, args);
             break;
@@ -116,8 +118,8 @@ function parseInput(line, callback=()=>{}) {
             func = function(game, p) {
               return {
                 vp:           game.state.players[p].publicScore+' ('+game.state.players[p].privateScore+')',
-                vertex:       LOGIC.getFlags(game, p).vertex,
-                adjacents:    LOGIC.getAdjacentGameStates(game, p),
+                vertex:       game.state.players[p].flags,
+                adjacents:    game.state.players[p].adjacents,
                 settlements:	game.state.players[p].settlements,
                 cities:       game.state.players[p].cities,
                 roads:	      game.state.players[p].roads,
@@ -127,7 +129,7 @@ function parseInput(line, callback=()=>{}) {
           case ('adj'):
           case ('adjs'):
           case ('adjacents'):
-            func = LOGIC.getAdjacentGameStates;
+            func = (game,p) => { return game.state.players[p].adjacents; };
             break;
           case ('dc'):
           case ('dev cards'):
@@ -136,10 +138,10 @@ function parseInput(line, callback=()=>{}) {
                 unplayable:game.state.players[p].unplayableDCs,
                 unplayed:game.state.players[p].unplayedDCs,
                 played:game.state.players[p].playedDCs };
-            }
+            };
             break;
           case ('flags'):
-            func = LOGIC.getFlags;
+            func = (game,p) => { return game.state.players[p].flags; };
             break;
           case ('longest'):
             func = (game, p) => { return game.state.players[p].longestRoad; }
@@ -165,9 +167,7 @@ function parseInput(line, callback=()=>{}) {
             }
             break;
           case ('vertex'):
-            func = function(game, p) {
-              return LOGIC.getFlags(game, p).vertex;
-            }
+            func = (game,p) => { return game.state.players[p].vertex; };
             break;
           case ('score'):
           case ('vp'):

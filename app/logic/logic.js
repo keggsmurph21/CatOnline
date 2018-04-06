@@ -11,6 +11,14 @@ function getFlags(game, i) {
     }
     return false;
   }
+  function getWaitForTrade() {
+    for (let p=0; p<game.state.players.length; p++) {
+      if (!game.state.players[p].hasDeclinedTrade) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   let player = game.state.players[i];
   /*console.log('players: ('+game.state.players.length+')');
@@ -23,6 +31,7 @@ function getFlags(game, i) {
     hasRolled        : game.state.hasRolled,
     canSteal         : game.state.canSteal,
     waitForDiscard   : game.state.waitForDiscard,
+    waitForTrade     : getWaitForTrade(),
     tradeAccepted    : game.state.tradeAccepted,
     vertex           : player.vertex,
     discard          : player.discard,
@@ -114,6 +123,49 @@ function getStateEdge(edge) {
 }
 
 
+function validateEdgeArgs(game, edge, args) {
+  let e_args = getStateEdge(edge).arguments.split(' ');
+  if (e_args[0] === 'trade') {
+    return funcs.parse.trade(game, args.slice(0));
+  }
+
+  for (let a=0; a<e_args.length; a++) {
+    let arg = e_args[a];
+    switch (arg) {
+      case ('resource'):
+        e_args[a] = funcs.parse.resource(game, args[a]);
+        break;
+      case ('int'):
+        try {
+          e_args[a] = funcs.toInt(args[a]);
+        } catch (e) {
+          throw new EdgeArgumentError('int',args[a],e.message);
+        }
+        break;
+      case ('hex'):
+        e_args[a] = funcs.parse.hex(game, args[a]);
+        break;
+      case ('player'):
+        e_args[a] = funcs.parse.player(game, args[a]);
+        break;
+      case ('road'):
+        e_args[a] = funcs.parse.road(game, args[a]);
+        break;
+      case ('settlement'):
+        e_args[a] = funcs.parse.junc(game, args[a]);
+        break;
+      case (''):
+        return [];
+      default:
+        throw new EdgeArgumentError(null,arg,'Unrecognized argument type: '+arg);
+    }
+  }
+  return e_args;
+}
+function validateEdgeIsAdjacent(game, p, edge) {
+  console.log(`validating player ${p} to ${edge} (adjacents:${game.state.players[p].adjacents})`);
+  return (game.state.players[p].adjacents.indexOf(edge) > -1);
+}
 module.exports = {
 
   execute(game, p, estring, args, messages=[]) {
@@ -137,21 +189,18 @@ module.exports = {
       }
     }
 
-    return { ret:ret, messages:messenger.list, adjs:player.adjacents };
-  },
-
-  getAdjacentGameStates(game,p) {
-    let flags = getFlags(game,p);
-    return getAdjacentGameStates(flags);
-  },
-  getFlags(game,p) {
-    return getFlags(game,p);
-  },
-  getGameData(user, game) {
     return {
-      public  : game.getPublicGameData(),
-      private : game.getPrivateGameData(user)
-    };
+      ret:ret,
+      messages:messenger.list }/*,
+      flags:player.flags,
+      adjs:player.adjacents };*/
+  },
+  validate(game, p, estring, args) {
+    if (!validateEdgeIsAdjacent(game, p, estring)) {
+      console.log(game.state.players[p].flags);
+      throw new UserInputError( `Player ${p} is not adjacent to ${estring} (only ${game.state.players[p].adjacents.join(', ')}).` );
+    }
+    return validateEdgeArgs(game, estring, args);
   },
 
   launch(game, next) {
@@ -179,50 +228,6 @@ module.exports = {
     module.exports.execute(game, 0, '_e_take_turn', null);
 
     return next(null);
-  },
-
-  validateEdgeArgs(game, edge, args) {
-    let e_args = getStateEdge(edge).arguments.split(' ');
-    if (e_args[0] === 'trade') {
-      return funcs.parse.Trade(game, args.slice(0));
-    }
-
-    for (let a=0; a<e_args.length; a++) {
-      let arg = e_args[a];
-      switch (arg) {
-        case ('resource'):
-          e_args[a] = funcs.parse.resource(game, args[a]);
-          break;
-        case ('int'):
-          try {
-            e_args[a] = funcs.toInt(args[a]);
-          } catch (e) {
-            throw new EdgeArgumentError('int',args[a],e.message);
-          }
-          break;
-        case ('hex'):
-          e_args[a] = funcs.parse.hex(game, args[a]);
-          break;
-        case ('player'):
-          e_args[a] = funcs.parse.player(game, args[a]);
-          break;
-        case ('road'):
-          e_args[a] = funcs.parse.road(game, args[a]);
-          break;
-        case ('settlement'):
-          e_args[a] = funcs.parse.junc(game, args[a]);
-          break;
-        case (''):
-          return [];
-        default:
-          throw new EdgeArgumentError(null,arg,'Unrecognized argument type: '+arg);
-      }
-    }
-    return e_args;
-  },
-  validateEdgeIsAdjacent(game, i, edge) {
-    return game.state.players[i].adjacents.indexOf(edge) > -1;
-  },
-
+  }
 
 }

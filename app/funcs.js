@@ -268,19 +268,30 @@ module.exports = {
     trade(game, args) {
       if (!args.length)
         throw new EdgeArgumentError('trade',[],'Nothing to trade.');
-      let trade = { in:{}, out:{} },
+      let trade = { in:{}, out:{}, with:new Set() },
         parsing = trade.out,
         expecting ='int';
       for (let a=0; a<args.length; a++) {
         if (args[a]==='=') {
           parsing = trade.in;
         } else {
-          let res = module.exports.parse.resource(game, args[a+1]),
-            num = module.exports.toInt(args[a]);
-          parsing[res] = (parsing[res] ? parsing[res]+num : num);
-          a += 1;
+          if (args[a][0] === '@') {
+            trade.with.push( module.exports.toInt(args[a].slice(1)) );
+          } else {
+            let res = module.exports.parse.resource(game, args[a+1]),
+              num = module.exports.toInt(args[a]);
+            parsing[res] = (parsing[res] ? parsing[res]+num : num);
+            a += 1;
+          }
         }
       }
+      trade.with = Array.from(trade.with);
+      console.log(Object.keys(trade.out).length, Object.keys(trade.in).length);
+      console.log('trade',trade);
+      if (!Object.keys(trade.out).length)
+        throw new EdgeArgumentError('trade',trade,'You must specify at least one resource to give away.');
+      if (!Object.keys(trade.in).length)
+        throw new EdgeArgumentError('trade',trade,'You must specify at least one resource to receive.');
       return trade;
     },
     hex(game, h) {

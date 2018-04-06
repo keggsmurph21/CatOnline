@@ -1,5 +1,126 @@
+/* DATA STRUCTURE
+private
+  - adjacents
+  - flags
+  -​ playerID
+  - privateScore
+  - resources
+  - unplayedDCs
+  - vertex
+public
+  - dice
+  - hexes
+  - juncs
+  - meta
+  - players
+    - cities
+    - color
+    - devCardsInHand
+    - hasLargestArmy
+    - hasLongestRoad
+    - isHuman
+    - lobbyData
+    - longestRoad
+    - numKnights
+    - playerID
+    - publicScore
+    - resourcesInHand
+    - roads
+    - settlements
+  - roads
+  - trade */
 
-console.log('test');
+const TESTING = {
+
+  sumObject(obj) {
+    let acc = 0;
+    for (res in obj) {
+      acc += obj[res];
+    }
+    return acc;
+  },
+
+  update : {
+    dice(values) {
+
+    },
+    longestRoads(hasLongestRoad, longestRoads) {
+      console.log('update longest roads', hasLongestRoad, longestRoads)
+
+      for (let p=0; p<game.public.players.length; p++) {
+        game.public.players[p].longestRoad = longestRoads[p];
+        $(`#${p}-longest-road`).html( getLRString(p) );
+      }
+
+      if (hasLongestRoad !== game.public.hasLongestRoad) {
+
+        _.update.vps(game.public.hasLongestRoad, -2);
+        _.update.vps(hasLongestRoad, 2);
+
+        game.public.hasLongestRoad = hasLongestRoad;
+      }
+    },
+    resources(p, cost, multiplier=1) {
+      if (cost !== undefined) {
+        game.public.players[p].resourcesInHand += sumObject(cost) * multiplier;
+        $(`#${p}-resources`).html(game.public.players[p].resourcesInHand);
+        if (p === game.private.playerID) {
+          for (let res in cost) {
+            game.private.resources[res] += cost[res] * multiplier;
+            $(`#num-${res}`).html(game.private.resources[res]);
+          }
+        }
+      }
+    },
+    vps(p, incr) {
+      if (p > -1) {
+        if (p===game.private.playerID)
+          game.private.privateScore += incr;
+        game.public.players[p].publicScore += incr;
+
+        $(`#${p}-score`).html( getVPString(p) );
+      }
+    }
+  },
+
+  add : {
+    city(p, args) {
+      console.log('add city not implemented', args);
+
+      $(`#spot${args.junc}`).addClass( 'city' );
+      game.public.players[p].cities.push(args.junc);
+
+      let settlements = game.public.players[p].settlements;
+      settlements.splice(settlements.indexOf(args.junc),1);
+
+      _.update.resources(p, args.cost, -1);
+      _.update.vps(p, 1);
+
+    },
+    road(p, args) {
+      console.log('add road', args);
+
+      $(`#road${args.road}`).addClass( game.public.players[p].color );
+      game.public.players[p].roads.push(args.junc);
+
+      _.update.longestRoads(args.hasLongestRoad, args.longestRoads);
+      _.update.resources(p, args.cost, -1);
+
+    },
+    settlement(p, args) {
+      console.log('add settlement', args);
+
+      $(`#spot${args.junc}`).addClass( game.public.players[p].color );
+      game.public.players[p].settlements.push(args.junc);
+
+      _.update.longestRoads(args.hasLongestRoad, args.longestRoads);
+      _.update.resources(p, args.cost, -1);
+      _.update.vps(p, 1);
+
+    }
+  }
+
+}
 
 const _STATE_GRAPH = {
     vertices: {
@@ -49,6 +170,7 @@ const _STATE_GRAPH = {
         "_v_end_turn": {
             edges: [
                 "_e_accept_trade_other",
+                "_e_decline_trade",
                 "_e_roll_discard_other",
                 "_e_take_turn"
             ],
@@ -77,7 +199,8 @@ const _STATE_GRAPH = {
         "_v_offer_trade": {
             edges: [
                 "_e_accept_trade",
-                "_e_cancel_trade"
+                "_e_cancel_trade",
+                "_e_fail_trade"
             ],
             name: "_v_offer_trade"
         },
@@ -175,7 +298,7 @@ const _STATE_GRAPH = {
             target: "_v_accept_trade",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -184,7 +307,7 @@ const _STATE_GRAPH = {
             target: "_v_accept_trade_other",
             listen: "acceptTrade",
             description: "accept the trade",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -193,7 +316,7 @@ const _STATE_GRAPH = {
             target: "_v_end_turn",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -202,7 +325,7 @@ const _STATE_GRAPH = {
             target: "_v_end_turn",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -211,7 +334,7 @@ const _STATE_GRAPH = {
             target: "_v_fortify",
             listen: "spot",
             description: "build a city",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -220,7 +343,7 @@ const _STATE_GRAPH = {
             target: "_v_pave",
             listen: "road",
             description: "build a road",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -229,7 +352,7 @@ const _STATE_GRAPH = {
             target: "_v_settle",
             listen: "spot",
             description: "build a settlement",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -238,7 +361,7 @@ const _STATE_GRAPH = {
             target: "_v_buy_dc",
             listen: "buyDevelopmentCard",
             description: "buy a development card",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -247,8 +370,17 @@ const _STATE_GRAPH = {
             target: "_v_root",
             listen: "cancelTrade",
             description: "cancel the trade",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: true,
+            label: ""
+        },
+        "_e_decline_trade": {
+            name: "_e_decline_trade",
+            target: "_v_end_turn",
+            listen: "declineTrade",
+            description: "decline the trade",
+            onSuccess: function (p,a) { console.log('on success', a); },
+            isCancel: false,
             label: ""
         },
         "_e_discard_move_robber": {
@@ -256,7 +388,7 @@ const _STATE_GRAPH = {
             target: "_v_move_robber",
             listen: "tile",
             description: "move the robber",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -265,7 +397,7 @@ const _STATE_GRAPH = {
             target: "_v_end_game",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -274,7 +406,7 @@ const _STATE_GRAPH = {
             target: "_v_end_turn",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -283,7 +415,16 @@ const _STATE_GRAPH = {
             target: "_v_end_turn",
             listen: "endTurn",
             description: "end your turn",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
+            isCancel: false,
+            label: ""
+        },
+        "_e_fail_trade": {
+            name: "_e_fail_trade",
+            target: "_v_root",
+            listen: "",
+            description: "",
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -292,7 +433,7 @@ const _STATE_GRAPH = {
             target: "_v_pave",
             listen: "road",
             description: "choose a road",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -301,7 +442,7 @@ const _STATE_GRAPH = {
             target: "_v_init_collect",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -310,7 +451,7 @@ const _STATE_GRAPH = {
             target: "_v_settle",
             listen: "spot",
             description: "choose a settlement",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -319,7 +460,7 @@ const _STATE_GRAPH = {
             target: "_v_pave",
             listen: "road",
             description: "choose a road",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -328,7 +469,7 @@ const _STATE_GRAPH = {
             target: "_v_root",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -337,7 +478,7 @@ const _STATE_GRAPH = {
             target: "_v_offer_trade",
             listen: "offerTrade",
             description: "make a trade",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -346,7 +487,7 @@ const _STATE_GRAPH = {
             target: "_v_move_robber",
             listen: "tile",
             description: "play a Knight",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -355,7 +496,7 @@ const _STATE_GRAPH = {
             target: "_v_play_monopoly",
             listen: "playMonopoly",
             description: "play a Monopoly",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -364,7 +505,7 @@ const _STATE_GRAPH = {
             target: "_v_play_rb",
             listen: "playRoadBuilder",
             description: "play Road Building",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -373,7 +514,7 @@ const _STATE_GRAPH = {
             target: "_v_play_vp",
             listen: "playVictoryPoint",
             description: "play a Victory Point",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -382,7 +523,7 @@ const _STATE_GRAPH = {
             target: "_v_play_yop",
             listen: "playYearOfPlenty",
             description: "play a Year of Plenty",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -391,7 +532,7 @@ const _STATE_GRAPH = {
             target: "_v_roll",
             listen: "dice",
             description: "roll the dice",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { setDice(a); },
             isCancel: false,
             label: ""
         },
@@ -400,7 +541,7 @@ const _STATE_GRAPH = {
             target: "_v_collect",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -409,7 +550,7 @@ const _STATE_GRAPH = {
             target: "_v_discard",
             listen: "discard",
             description: "discard some cards",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -418,7 +559,7 @@ const _STATE_GRAPH = {
             target: "_v_discard_other",
             listen: "discard",
             description: "discard some cards",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -427,7 +568,7 @@ const _STATE_GRAPH = {
             target: "_v_move_robber",
             listen: "tile",
             description: "move the robber",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -436,7 +577,7 @@ const _STATE_GRAPH = {
             target: "_v_steal",
             listen: "player",
             description: "steal from someone",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -445,7 +586,7 @@ const _STATE_GRAPH = {
             target: "_v_root",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -454,7 +595,7 @@ const _STATE_GRAPH = {
             target: "_v_root",
             listen: "",
             description: "",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         },
@@ -463,7 +604,7 @@ const _STATE_GRAPH = {
             target: "_v_trade_with_bank",
             listen: "tradeBank",
             description: "trade with the bank",
-            onSuccess: function (a) { console.log('on success', a); },
+            onSuccess: function (p,a) { console.log('on success', a); },
             isCancel: false,
             label: ""
         }

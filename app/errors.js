@@ -76,9 +76,9 @@ class PovertyError extends UserInputError {
 
     // build an overly complicated message here
     let shortfall = {};
-    for (let res in need) {
-      if (have[res] < need[res])
-        shortfall[res] = need[res] - have[res];
+    for (let res in cost) {
+      if (player.resources[res] < cost[res])
+        shortfall[res] = cost[res] - player.resources[res];
     }
     let message = 'Insufficient funds: (need ', sf = [];
     for (let res in shortfall) {

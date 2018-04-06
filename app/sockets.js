@@ -15,6 +15,9 @@ function socketAuthorizationCallback(handshake, sessionStore, next) {
         next('Socket authorization error: cannot find session.', false);
       } else {
         if (session.user) { // only accept sessions w/ authenticated users
+
+          handshake.session = session;
+
           // make sure we know which page this socket is connecting from
           let referer = handshake.headers.referer;
           console.log(referer);
@@ -22,9 +25,10 @@ function socketAuthorizationCallback(handshake, sessionStore, next) {
             handshake.ref = 'lobby';
             handshake.url = referer;
           } else if (referer.includes( '/play' )) {
-            let tmp = referer.slice(referer.indexOf('play'));
-            tmp = tmp.split('/')[1];
-            handshake.ref = 'play-' + tmp;
+            let gameid = referer.slice(referer.indexOf('play'));
+            gameid = gameid.split('/')[1];
+            handshake.session.gameid = gameid;
+            handshake.ref = `${gameid}-authorization`;
             handshake.url = referer;
           } else if (referer.includes( '/admin' )) {
             handshake.ref = 'admin';
@@ -839,54 +843,70 @@ module.exports = function(io, sessionStore) {
 
     socket.on('play connect', function(data) {
 
-      let gameid = req.ref.split('-')[1];
-      funcs.requireGameById(gameid, function(err,game) {
-
-        req.session.game = game;
+      funcs.requireGameById(req.session.gameid, function(err,game) {
+        socket.leave(req.ref);
+        for (let p=0; p<game.state.players.length; p++) {
+          if (funcs.usersCheckEqual(game.state.players[p].lobbyData, req.session.user)) {
+            req.session.p = p;
+            req.ref = `${req.session.gameid}_${p}`;
+            console.log('gameid',req.session.gameid,'p',p,'ref',req.ref);
+          }
+        }
+        socket.join(req.ref);
         socket.emit('play connect', {
           public: game.getPublicGameData(),
-          private:game.getPrivateGameData(req.session.user)
+          private:game.getPrivateGameData(req.session.p)
         });
       });
     });
 
     socket.on('play action', function(data) {
 
-      console.log('received play action >>',data.edge, data.args);
+      console.log('received play action',data);
 
-      try {
+      funcs.requireGameById(req.session.gameid, function(err,game) {
+        if (err) throw err;
 
-        let args = logic.validateEdgeArgs(req.session.game, data.edge, data.args);
-        if (!logic.validateEdgeIsAdjacent(req.session.game, data.player, data.edge))
-          throw new UserInputError( `Player ${data.player} is not adjacent to ${data.edge}.` );
-        let ret = logic.execute(req.session.game, data.player, data.edge, args);
+        try {
+          let args= logic.validate(game, data.player, data.edge, data.args);
+          let ret = logic.execute( game, data.player, data.edge, args);
 
-        funcs.saveAndCatch(req.session.game, function(err) {
-          if (err) throw err;
+          funcs.saveAndCatch(game, function(err) {
+            if (err) throw err;
 
-          let response = {
-            player  : data.player,
-            edge    : data.edge,
-            success : true,
-            args    : ret
-          };
-          socket.broadcast.to(req.ref).emit( 'play callback', response );
-          socket.emit( 'play callback', response );
-
-        });
-      } catch (e) {
-        if (e instanceof UserInputError) {
-          console.log(e);
-          socket.emit('play callback', {
-            player  : data.player,
-            edge    : data.edge,
-            success : false,
-            args    : e.message
+            for (let p=0; p<game.state.players.length; p++) {
+              let response = {
+                player  : data.player,
+                edge    : data.edge,
+                success : true,
+                messages: ret.messages,
+                ret     : ret.ret,
+                game    : {
+                  public: game.getPublicGameData(),
+                  private:game.getPrivateGameData(p)
+                }
+              };
+              if (p === req.session.p) {
+                socket.emit('play callback', response)
+              } else {
+                socket.broadcast.to(`${req.session.gameid}_${p}`)
+                  .emit( 'play callback', response );
+              }
+            }
           });
+        } catch (e) {
+          if (e instanceof UserInputError) {
+            console.log(e);
+            socket.emit('play callback', {
+              player  : data.player,
+              edge    : data.edge,
+              success : false,
+              message : e.message
+            });
 
-        } else { throw e; }
-      }
-
+          } else { throw e; }
+        }
+      });
     });
 
     socket.on('profile action', function(data) {

@@ -179,7 +179,9 @@ GameSchema.methods.getPublicGameData = function() {
     hexes   : this.board.hexes,
     juncs   : this.board.juncs,
     roads   : this.board.roads,
-    trade   : this.state.trade,
+    trade   : this.state.currentTrade,
+    hasLongestRoad  : this.state.hasLongestRoad,
+    waiting : this.state.waiting,
     players : []
   };
   for (let i=0; i<this.state.players.length; i++) {
@@ -193,7 +195,6 @@ GameSchema.methods.getPublicGameData = function() {
       hasLargestArmy  : (this.state.hasLargestArmy===player.playerID),
       resourcesInHand : sumOverObject(player.resources), // TODO: move this to funcs, combine with the similar funciton in LOGIC
       longestRoad     : player.longestRoad,
-      hasLongestRoad  : (this.state.hasLongestRoad===player.playerID),
       publicScore     : player.publicScore,
       roads           : player.roads,
       settlements     : player.settlements,
@@ -203,23 +204,20 @@ GameSchema.methods.getPublicGameData = function() {
   }
   return data;
 }
-GameSchema.methods.getPrivateGameData = function(user) {
-  for (let i=0; i<this.state.players.length; i++) {
-    let player = this.state.players[i];
-    if (player.lobbyData.id.toString()===user.id.toString()) {
-      return {
-        playerID      : player.playerID,
-        vertex        : player.vertex,
-        adjacents     : player.adjacents,
-        flags         : player.flags,
-        unplayedDCs   : player.unplayedDCs,
-        playedDCs     : player.playerDCs,
-        resources     : player.resources,
-        privateScore  : player.privateScore
-      };
-    }
-  }
-  return null;
+GameSchema.methods.getPrivateGameData = function(i) {
+  if (i >= this.state.players.length)
+    return null;
+  let player = this.state.players[i];
+  return {
+    playerID      : player.playerID,
+    vertex        : player.vertex,
+    adjacents     : player.adjacents,
+    flags         : player.flags,
+    unplayedDCs   : player.unplayedDCs,
+    playedDCs     : player.playerDCs,
+    resources     : player.resources,
+    privateScore  : player.privateScore
+  };
 }
 GameSchema.methods.checkIsFull = function() {
   return ( this.state.players.length === (this.meta.settings.numHumans+this.meta.settings.numCPUs) );
