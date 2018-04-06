@@ -3,7 +3,8 @@ function emitAction(data) {
   console.log('player',data.player,'fired an action:',data);
   socket.emit('play action', data);
 }
-function setStatusMessage(adjs) {
+function setStatusMessage() {
+  let adjs = game.private.adjacents;
   let options = new Set();
   for (let i=0; i<adjs.length; i++) {
     let description = _STATE_GRAPH.edges[adjs[i]].description;
@@ -75,6 +76,8 @@ function updateButtons() {
   } else {
     $('button.play').hide();
   }
+
+  modal.update();
 }
 function build() {
   function buildPublicDataTR(i) {
@@ -91,12 +94,11 @@ function build() {
 
     return str;
   }
-
   value='test here';
-  messageEscapes = {};
+  escapes = {};
   for (let i=0; i<game.public.hexes.length; i++) {
     let hex = game.public.hexes[i];
-    messageEscapes[`%%${hex.resource}%%`] =
+    escapes[`%%${hex.resource}%%`] =
       `<strong class="${hex.resource}">${hex.resource}</strong>`;
 
     $('#tile'+i+' polygon')
@@ -106,12 +108,14 @@ function build() {
       .attr( 'class', [6,8].indexOf(hex.roll) > -1 ? 'red' : '' )
       .text( hex.roll ? hex.roll : '' );
   }
+
   for (let i=0; i< game.public.players.length; i++) {
 
-    messageEscapes[`%%${i}%%`] =
+    escapes[`%%${i}%%`] =
       `<strong class="${
         game.public.players[i].color}">${
         game.public.players[i].lobbyData.name}</strong>`;
+
     // public game content rows
     let tr = buildPublicDataTR(i);
     $('#public-data tr:last').after(tr);
@@ -171,11 +175,49 @@ function build() {
         <th colspan="100">dev cards</th>
       </tr>
     </table>`);
+    function buildTradeModalResourceTR(res) {
+      return `<tr class="${res}">
+        <td>${res}</td>
+        <td>
+          <button type="button" class="decrement" name="${res}" onclick="modal.decrement(this);">-</button>
+          <span class="resource-count" name="${res}">0</span>
+          <button type="button" class="increment" name="${res}" onclick="modal.increment(this);">+</button>
+        </td>
+      </tr>`;
+    }
+    function buildTradeModalPlayerTR(i) {
+      return `<tr class="player-${i}">
+        <td> <input type="checkbox" name="${i}" class="trade-partner player" onclick="modal.toggleCheck(this);" /> </td>
+        <td>${escapeString(`%%${i}%%`)}</td>
+      </tr>`;
+    }
+
 
     // resources content rows
     for (let res in game.private.resources) {
       let tr = buildResourceTR(res);
       $('#private-resources tr:last').after(tr);
+
+      tr = buildTradeModalResourceTR(res);
+      $('.trade-out tr:last').after(tr);
+      $('.trade-in tr:last').after(tr);
+    }
+
+
+    if (game.public.players.length > 1) {
+      $('.trade-with tr:last').after(
+        `<tr>
+          <th></th>
+          <th>Players</th>
+        </tr>`);
+      $('.trade-with table').after(
+        `<button type="button" onclick="modal.selectAll();">Select all</button>`);
+    }
+    for (let i=0; i<game.public.players.length; i++) {
+      if (i !== game.private.playerID) {
+        tr = buildTradeModalPlayerTR(i);
+        $('.trade-with tr:last').after(tr);
+      }
     }
 
     // development cards content rows
@@ -184,7 +226,7 @@ function build() {
       $('#private-dev-cards tr:last').after(tr);
     }
 
-    messageEscapes[`%%${game.private.playerID}%%`] = `<strong class="${
+    escapes[`%%${game.private.playerID}%%`] = `<strong class="${
       game.public.players[game.private.playerID].color}">you</strong>`;
 
     buildButtons();
@@ -258,7 +300,8 @@ function populate() {
     if (game.private !== null) {
 
       for (let res in game.private.resources) {
-        $(`#num-${res}`).html( game.private.resources[res] );
+        $(`#num-${res}`).html(game.private.resources[res]);
+        $(`#modal-offer-trade .trade-out .resource-count[name=${res}]`).html(0);
       }
       for (let dc in game.private.unplayedDCs) {
         let names = {
@@ -268,13 +311,14 @@ function populate() {
           rb        : 'Road Building',
           vp        : 'Victory Point'
         };
-        console.log(dc, names[dc]);
         $(`#num-${dc}`).html( game.private.unplayedDCs[dc] );
-        messageEscapes[`%%${names[dc]}%%`] =
+        escapes[`%%${names[dc]}%%`] =
           `<strong class="${dc}">${names[dc]}</strong>`;
-    }
+      }
 
-      setStatusMessage(game.private.adjacents);
+
+
+      setStatusMessage();
       updateButtons();
 
     }
@@ -329,7 +373,7 @@ function onConnect(data) {
   	});
 
     $('#offerTrade').click( (i) => {
-  		//listen.to('offerTrade');
+      modal.set('players');
   	});
 
     $('button.play').click( (i) => {
@@ -349,7 +393,7 @@ function onConnect(data) {
   	});
 
     $('#tradeBank').click( (i) => {
-  		//listen.to('tradeBank');
+      modal.set('bank');
   	});
   }
 
@@ -360,6 +404,16 @@ function onConnect(data) {
   populate();
   bindListeners();
 }
+function escapeString(str) {
+  let toBeEscaped = Object.keys(escapes);
+  for (let i=0; i<toBeEscaped.length; i++) {
+    while (str.indexOf(toBeEscaped[i]) > -1)
+      str = str.replace(
+        toBeEscaped[i],
+        escapes[toBeEscaped[i]])
+  };
+  return str;
+}
 function onUpdate(data) {
 
   if (data.success) {
@@ -367,15 +421,7 @@ function onUpdate(data) {
     function addServerMessage(message, opts={ class:'normal' }) {
 
       // send message from the server to the message interface
-      let toBeEscaped = Object.keys(messageEscapes);
-      for (let i=0; i<toBeEscaped.length; i++) {
-        while (message.indexOf(toBeEscaped[i]) > -1)
-          message = message.replace(
-            toBeEscaped[i],
-            messageEscapes[toBeEscaped[i]])
-      };
-      console.log(message);
-      _M.addMessage(message);
+      _M.addMessage( escapeString(message) );
 
     }
     for (let i=0; i<data.messages.length; i++) {
@@ -393,7 +439,7 @@ function onUpdate(data) {
 }
 
 // set global variables
-let gameid, game, messageEscapes, panzoom,
+let gameid, game, escapes, panzoom,
   listen = {
 
     to(source, args) {
@@ -432,6 +478,165 @@ const dieValueToCoordinates = {
   5 : [[0.75,0.75],[0.75,2.25],[1.5,1.5],  [2.25,0.75],[2.25,2.25]],
   6 : [[0.75,0.75],[0.75,1.5], [0.75,2.25],[2.25,0.75],[2.25,1.5],[2.25,2.25]]
 };
+const modal = {
+  update() {
+
+    modal.parse();
+
+    $('#modal-offer-trade .decrement').each( (i,item) => {
+      let data = modal.get(item);
+      $(item).prop( 'disabled', data.num===0 );
+    });
+    $('#modal-offer-trade .trade-out .increment').each( (i,item) => {
+      let data = modal.get(item);
+      $(item).prop( 'disabled', data.num === game.private.resources[data.res] );
+    });
+    $('#modal-offer-trade .trade-string').html( modal.toString() );
+  },
+  get(dom) {
+    let data = {},
+      obj = $(dom),
+      table = obj.closest('div'),
+      res = obj.attr('name'),
+      span = table.find(`.resource-count[name=${res}]`),
+      num = parseInt(span.html());
+    return {
+      table : table,
+      res   : res,
+      span  : span,
+      num   : num
+    };
+  },
+  parse() {
+    $('#modal-offer-trade .trade-out .resource-count').each( (i,item) => {
+      let data = modal.get(item);
+      modal.trade.out[data.res] = data.num;
+    });
+    $('#modal-offer-trade .trade-in .resource-count').each( (i,item) => {
+      let data = modal.get(item);
+      modal.trade.in[data.res] = data.num;
+    });
+  },
+  toString() {
+    function toString(set) {
+      let keys = Object.keys(set).filter( (key) => {
+        return set[key] > 0;
+      });
+      if (keys.length) {
+        for (let i=0; i<keys.length; i++) {
+          keys[i] = `${set[keys[i]]} %%${keys[i]}%%`;
+        }
+        return keys.join(', ');
+      }
+      return '<strong>nothing</strong>';
+    }
+
+    let whos;
+    if (modal.trade.with === 'bank') {
+      whos = '<strong>the Bank</strong>';
+    } else {
+      if (modal.trade.with.length) {
+        whos = modal.trade.with
+          .map( (item) => {
+            return `%%${item}%%`;
+          })
+          .join(', ');
+      } else {
+        whos = '<strong>no one</strong>';
+      }
+    }
+
+    let outs = toString(modal.trade.out),
+      ins = toString(modal.trade.in),
+      str = `trading ${outs} for ${ins} with ${whos}`;
+    str = escapeString(str);
+    return str;
+  },
+  decrement(dom) {
+    let data = modal.get(dom);
+    if (data.num > 0) {
+      data.span.html(data.num-1);
+      modal.update();
+    }
+  },
+  increment(dom) {
+    let data = modal.get(dom);
+    if (data.num < game.private.resources[data.res] || data.table.hasClass('trade-in')) {
+      data.span.html(data.num+1);
+      modal.update();
+    }
+  },
+  set(partner) {
+
+    $('#modal-offer-trade').show();
+    
+    if (partner==='bank') {
+      $('#modal-offer-trade .trade-partner.bank').prop('checked', true);
+      $('#modal-offer-trade .trade-partner.player').prop('checked', false);
+      modal.trade.with = 'bank';
+      modal.update();
+    } else if (partner==='players') {
+      modal.selectAll();
+    }
+
+  },
+  selectAll() {
+
+    modal.trade.with = [];
+    $('#modal-offer-trade .trade-partner.bank').prop('checked', false);
+    $('#modal-offer-trade .trade-partner.player').each( (i,item) => {
+      let obj = $(item);
+      obj.prop('checked', true);
+      modal.trade.with.push( parseInt(obj.attr('name')) );
+    });
+    modal.update();
+
+  },
+  toggleCheck(dom) {
+
+    let obj = $(dom);
+    if (obj.attr('name')==='bank') {
+
+      if (obj.prop('checked')) {
+        modal.trade.with = 'bank';
+        $('#modal-offer-trade .trade-partner.player').prop('checked', false);
+      } else {
+        modal.trade.with = [];
+      }
+
+    } else {
+
+      let i = parseInt(obj.attr('name'))
+      if (obj.prop('checked')) {
+        if ($('#modal-offer-trade .trade-partner.bank').prop('checked'))
+          modal.trade.with = [];
+        $('#modal-offer-trade .trade-partner.bank').prop('checked', false);
+        modal.trade.with.push(i);
+      } else {
+        modal.trade.with.splice( modal.trade.with.indexOf(i), 1 );
+      }
+
+    }
+    modal.update();
+
+  },
+  cancel() {
+    $('#modal-offer-trade').hide();
+  },
+  confirm() {
+    console.log('out',modal.trade.out);
+    console.log('in',modal.trade.in);
+    console.log('with',modal.trade.with);
+    if (modal.trade.with==='bank') {
+      listen.to('tradeBank', modal.trade);
+    } else if (modal.trade.with.length) {
+      listen.to('offerTrade', modal.trade);
+    } else {
+      _M.addMessage('You must choose at least one player to trade with.');
+    }
+  },
+  trade : { out:{}, in:{}, with:[] }
+}
 
 // once all DOM is rendered
 $( function(){

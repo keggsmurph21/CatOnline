@@ -773,3 +773,18 @@ svg#gameboard > * {
 svg#gameboard > rect {
   cursor: default;
 }
+
+#modal-offer-trade {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background-color: #ddd;
+  text-align: center;
+  display: flex;
+  flex-flow: column
+}
+
+#modal-offer-trade .trade-body {
+  display: flex;
+  flex-flow: row;
+}

@@ -42,7 +42,53 @@
         <%- include( 'svg/die.ejs' ) %>
         <%- include( 'svg/die.ejs' ) %>
       </div>
+
       <%- include( 'svg/standard.ejs' ) %>
+
+      <div id="modal-offer-trade" style="display:none;">
+        <div class="trade-header">
+          Offer a trade
+        </div>
+        <div class="trade-body">
+          <div class="trade-out">
+            Give
+            <table>
+              <tr>
+                <th>Resource</th>
+                <th>Number</th>
+              </tr>
+            </table>
+          </div>
+          <div class="trade-in">
+            Get
+            <table>
+              <tr>
+                <th>Resource</th>
+                <th>Number</th>
+              </tr>
+            </table>
+          </div>
+          <div class="trade-with">
+            With
+            <table>
+              <tr>
+                <td>
+                  <input type="checkbox" name="bank" class="trade-partner bank" onclick="modal.toggleCheck(this);" />
+                </td>
+                <td>the Bank</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="trade-string">
+          test
+        </div>
+        <div class="trade-footer">
+          <button type="button" onclick="modal.confirm();">Confirm</button>
+          <button type="cancel" onclick="modal.cancel();">Cancel</button>
+        </div>
+      </div>
+
     </div>
 
   </div>
