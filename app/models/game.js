@@ -36,21 +36,17 @@ var GameSchema = mongoose.Schema({
     initialGameConditions: Object,
     status: String,
     turn: Number,
-    history: [ [ String ] ],
+    history: [ {
+      player: Number,
+      edge:   String,
+      args:   Object,
+      result: Object
+    } ],
     isFirstTurn: Boolean,
     isSecondTurn: Boolean,
     isGameOver: Boolean,
     isRollSeven: Boolean,
-    waiting: {
-      forWho: [ {
-        id : String,
-        name : String,
-        isAdmin : Boolean,
-        isSuperAdmin : Boolean,
-        isMuted : Boolean,
-        flair : String } ],
-      forWhat: [ [ String ] ]
-    },
+    waiting: [],
     canSteal: Boolean,
     tradeAccepted: Boolean,
     waitForDiscard: Boolean,
@@ -135,7 +131,8 @@ var GameSchema = mongoose.Schema({
       port      : Object,
       roads     : [ Number ],
       hexes     : [ Number ],
-      isSettleable : Boolean }],
+      isSettleable : Boolean,
+      isCity    : Boolean }],
     roads     : [ {
       num       : Number,
       owner     : Number,
@@ -158,24 +155,23 @@ function sumOverObject(obj) {
 }
 
 GameSchema.methods.getLobbyData = function() {
-  data = {
+  return {
     id       : this._id,
     author   : this.meta.author,
     settings : this.meta.settings,
-    players  : [],
+    players  : this.state.players.map( (player) => {
+      return player.lobbyData;
+    }),
     turn     : this.state.turn,
     status   : this.state.status,
-    waiting  : this.state.waiting.forWho,
+    waiting  : this.state.waiting.map( (p) => {
+      return this.state.players[p].lobbyData; }),
     updated  : this.formatDate( this.meta.updated ),
-    isFull   : this.checkIsFull() };
-  for (let i=0; i<this.state.players.length; i++) {
-    if (this.state.players[i].lobbyData.id)
-      data.players.push(this.state.players[i].lobbyData);
+    isFull   : this.checkIsFull()
   };
-  return data;
 }
 GameSchema.methods.getPublicGameData = function() {
-  data = {
+  return {
     meta    : this.meta,
     dice    : this.board.dice,
     hexes   : this.board.hexes,
@@ -186,27 +182,24 @@ GameSchema.methods.getPublicGameData = function() {
     hasLongestRoad  : this.state.hasLongestRoad,
     currentPlayerID : this.state.currentPlayerID,
     waiting : this.state.waiting,
-    players : []
+    players : this.state.players.map( (player) => {
+      return {
+        playerID        : player.playerID,
+        color           : player.color,
+        isHuman         : player.isHuman,
+        devCardsInHand  : sumOverObject(player.unplayedDCs) + sumOverObject(player.unplayableDCs),
+        numKnights      : player.numKnights,
+        hasLargestArmy  : (this.state.hasLargestArmy===player.playerID),
+        resourcesInHand : sumOverObject(player.resources), // TODO: move this to funcs, combine with the similar funciton in LOGIC
+        longestRoad     : player.longestRoad,
+        publicScore     : player.publicScore,
+        roads           : player.roads,
+        settlements     : player.settlements,
+        cities          : player.cities,
+        lobbyData       : player.lobbyData
+      };
+    })
   };
-  for (let i=0; i<this.state.players.length; i++) {
-    let player = this.state.players[i];
-    data.players.push({
-      playerID        : player.playerID,
-      color           : player.color,
-      isHuman         : player.isHuman,
-      devCardsInHand  : sumOverObject(player.unplayedDCs),
-      numKnights      : player.numKnights,
-      hasLargestArmy  : (this.state.hasLargestArmy===player.playerID),
-      resourcesInHand : sumOverObject(player.resources), // TODO: move this to funcs, combine with the similar funciton in LOGIC
-      longestRoad     : player.longestRoad,
-      publicScore     : player.publicScore,
-      roads           : player.roads,
-      settlements     : player.settlements,
-      cities          : player.cities,
-      lobbyData       : player.lobbyData
-    });
-  }
-  return data;
 }
 GameSchema.methods.getPrivateGameData = function(i) {
   if (i >= this.state.players.length)
@@ -218,6 +211,7 @@ GameSchema.methods.getPrivateGameData = function(i) {
     adjacents     : player.adjacents,
     flags         : player.flags,
     unplayedDCs   : player.unplayedDCs,
+    unplayableDCs : player.unplayableDCs,
     playedDCs     : player.playerDCs,
     resources     : player.resources,
     privateScore  : player.privateScore

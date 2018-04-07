@@ -44,15 +44,11 @@ function getFlags(game, i) {
     canTradeBank     : getCanTradeBank(player),
     isHuman          : player.isHuman,
     isCurrentPlayer  : game.state.currentPlayerID===player.playerID,
-    isWaitingFor     : false
+    isWaitingFor     : (game.state.waiting.indexOf(player.playerID) > -1)
   }
   //console.log('flags', data);
   for (let dc in player.unplayedDCs) {
     data.canPlayDC[dc] = (player.unplayedDCs[dc] > 0);
-  }
-  for (let i=0; i<game.state.waiting.forWho.length; i++) {
-    if (funcs.usersCheckEqual(game.state.waiting.forWho[i], player.lobbyData))
-      data.isWaitingFor = true;
   }
   return data;
 }
@@ -61,10 +57,18 @@ function getFlags(game, i) {
 
 
 
-function storeHistory(game, estring, args, ret) {
-  while (game.state.history.length <= game.state.turn) {
-    game.state.history.push([]);
+function storeHistory(game, p, estring, args, ret) {
+
+  let data = {
+    player: p,
+    edge:   estring,
+    args:   args
   }
+  if (ret)
+    data.result = ret;
+
+  game.state.history.push(data);
+  /*
   let index = (estring === '_e_end_turn' ? game.state.turn - 1 : game.state.turn);
   let extra = '';
   if (args) {
@@ -83,22 +87,18 @@ function storeHistory(game, estring, args, ret) {
   if (ret !== undefined)
     extra += ' >> '+JSON.stringify(ret);
 
-  game.state.history[index].push( estring + extra );
+  game.state.history[index].push( estring + extra );*/
 }
 function updateGameStates(game) {
-  let waiting = { forWho:[], forWhat:[] };
+  let waiting = [];
   for (let i=0; i<game.state.players.length; i++) {
     let player = game.state.players[i];
     let flags = getFlags(game, i);
     player.flags = flags;
-    let adjacents = getAdjacentGameStates(flags);
-    player.adjacents = adjacents;
-    if (adjacents.length) {
-      waiting.forWho.push( player.lobbyData );
-      waiting.forWhat.push( adjacents );
-    }
+    if (getAdjacentGameStates(flags).length)
+      waiting.push( i );
   }
-  return waiting;
+  game.state.waiting = waiting;
 }
 
 
@@ -163,7 +163,6 @@ function validateEdgeArgs(game, edge, args) {
   return e_args;
 }
 function validateEdgeIsAdjacent(game, p, edge) {
-  console.log(`validating player ${p} to ${edge} (adjacents:${game.state.players[p].adjacents})`);
   return (game.state.players[p].adjacents.indexOf(edge) > -1);
 }
 module.exports = {
@@ -176,10 +175,10 @@ module.exports = {
     let messenger = { list:messages };
 
     let ret = edge.execute(messenger, game, player, args);
-    storeHistory(game, estring, args, ret);
+    storeHistory(game, p, estring, args, ret);
 
     player.vertex = edge.target;
-    game.state.waiting = updateGameStates(game);
+    updateGameStates(game);
 
     for (let q=0; q<game.state.players.length; q++) {
       for (let a=0; a<game.state.players[q].adjacents.length; a++) {
@@ -188,6 +187,8 @@ module.exports = {
           module.exports.execute(game, q, adj_estring, [], messenger.list);
       }
     }
+
+    game.meta.updated = new Date;
 
     return {
       ret:ret,
@@ -220,9 +221,10 @@ module.exports = {
     }
 
     game.state.currentPlayerID = 0;
-    game.state.waiting= updateGameStates(game);
     game.state.turn   = 1;
     game.state.status = 'in-progress';
+
+    updateGameStates(game);
     game.meta.updated = new Date;
 
     module.exports.execute(game, 0, '_e_take_turn', null);

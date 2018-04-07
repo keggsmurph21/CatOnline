@@ -935,10 +935,7 @@ module.exports = {
       isSecondTurn: false,
       isGameOver: false,
       isRollSeven: false,
-      waiting: {
-        forWho: [],
-        forWhat: null
-      },
+      waiting: [],
       currentPlayerID: 0,
       initialGameConditions : null,
       hasRolled : false,

@@ -780,7 +780,9 @@ module.exports = function(io, sessionStore) {
 
     socket.on('new message', function(data) {
       funcs.log( 'user '+req.session.user.name+'~'+req.session.user.id+' sent "'+data+'" to '+req.ref );
-      socket.broadcast.to(req.ref).emit('new message', {
+
+      let room = (req.ref.indexOf('_')>-1 ? req.msock : req.ref);
+      socket.broadcast.to(room).emit('new message', {
         user : req.session.user,
         message: data
       });
@@ -853,6 +855,9 @@ module.exports = function(io, sessionStore) {
           }
         }
         socket.join(req.ref);
+        req.msock = req.ref.slice(0,req.ref.indexOf('_'));
+        socket.join(req.msock);
+
         socket.emit('play connect', {
           public: game.getPublicGameData(),
           private:game.getPrivateGameData(req.session.p)

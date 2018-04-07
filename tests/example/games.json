@@ -2207,26 +2207,7 @@
          "isSecondTurn": false,
          "isGameOver": false,
          "isRollSeven": false,
-         "waiting": {
-            "forWhat": [
-               [
-                  "_e_init_settle"
-               ]
-            ],
-            "forWho": [
-               {
-                  "_id": {
-                     "$oid": "5ac14447e41fe902d0f97ad1"
-                  },
-                  "id": "5a88f82d931f760c16c3417c",
-                  "name": "superadmin",
-                  "isAdmin": true,
-                  "isSuperAdmin": true,
-                  "isMuted": false,
-                  "flair": ""
-               }
-            ]
-         },
+         "waiting": [0],
          "currentPlayerID": 0,
          "initialGameConditions": {
             "dcdeck": [

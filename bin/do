@@ -189,8 +189,7 @@ function parseInput(line, callback=()=>{}) {
         switch (args[0]) {
           case ('waiting'):
             let waiting = game.state.waiting;
-            console.log('for: ', waiting.forWho.map(o=>o.name).join(', '));
-            console.log('what:', waiting.forWhat);
+            console.log('for: ', waiting);
             break;
           case ('history'):
             console.log(JSON.stringify(game.state.history, null, 3));

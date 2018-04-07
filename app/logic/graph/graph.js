@@ -128,6 +128,7 @@ function _updateBuyOptions(game, player) {
 
     canBuild[build] = canAfford && available;
   }
+  canBuild.city   = canBuild.city && play.settlements.length;
   player.canBuild = canBuild;
 
   // check buy things
@@ -138,6 +139,7 @@ function _updateBuyOptions(game, player) {
         let canAfford = funcs.canAfford(player, buyable.dc.cost),
           available = sumDevCards(player) < buyable.dc.max;
 
+        console.log(canAfford, available, game.board.dcdeck.length);
         player.canBuy.dc = canAfford && available && game.board.dcdeck.length;
         break;
       default:
@@ -283,9 +285,11 @@ function buyDevCard(messenger, game, player) {
     throw new InvalidChoiceError('No more development cards.');
 
   messenger.list.push(`%%${player.playerID}%% bought a development card.`);
-  let dc = game.board.dcdeck.pop(), unplayableDCs={}, unplayedDCs={};
+  let dc = game.board.dcdeck.pop(),
+    unplayableDCs=Object.assign({},player.unplayableDCs),
+    unplayedDCs=Object.assign({}, player.unplayedDCs);
   if (dc === 'vp') {
-    unplayed[dc] += 1;
+    unplayedDCs[dc] += 1;
     player.privateScore += 1;
     _isGameOver(game);
   } else {
@@ -293,7 +297,7 @@ function buyDevCard(messenger, game, player) {
   }
   player.unplayedDCs = unplayedDCs;
   player.unplayableDCs = unplayableDCs;
-  
+
   return dc;
 }
 
@@ -320,6 +324,8 @@ function collectResources(messenger, game) {
         if (junc.owner > -1) {
           let player = game.state.players[junc.owner];
           _collectResource(messenger, game, player, hex.num);
+          if (junc.isCity)
+            _collectResource(messenger, game, player, hex.num);
           _updateBuyOptions(game, player);
           //console.log( player.lobbyData.name,'collects a',hex.resource);
         }
@@ -379,6 +385,7 @@ function fortify(messenger, game, player, junc) {
 
   // add to cities
   player.cities.push(junc.num);
+  junc.isCity = true;
 
   let cost = _getCost(game, 'build', 'city');
   _spend(player, cost);
@@ -438,10 +445,14 @@ function iterateTurn(messenger, game, player) {
   }
   game.state.turn += 1;
   game.state.hasRolled = false;
+  let unplayedDCs = Object.assign({}, player.unplayedDCs),
+    unplayableDCs = Object.assign({}, player.unplayableDCs);
   for (let dc in player.unplayableDCs) {
-    player.unplayedDCs[dc] += player.unplayableDCs[dc];
-    player.unplayableDCs[dc] = 0;
+    unplayedDCs[dc] += unplayableDCs[dc];
+    unplayableDCs[dc] = 0;
   }
+  player.unplayedDCs = unplayedDCs;
+  player.unplayableDCs = unplayableDCs;
 }
 
 function moveRobber(messenger, game, player, hex) {
@@ -509,14 +520,12 @@ function pave(messenger, game, player, road) {
 }
 
 function playDC(messenger, game, player, card, args) {
-  player.unplayedDCs[card]  -= 1;
-  player.playedDCs[card]    += 1;
 
   switch (card) {
     case ('vp'):
       player.publicScore        += 1;
       messenger.list.push(`%%${player.playerID}%% played a %%Victory Point%%.`);
-      return;
+      break;
 
     case ('knight'):
       player.numKnights += 1;
@@ -541,8 +550,8 @@ function playDC(messenger, game, player, card, args) {
       let rollback = player.roads.slice(0);
       try {
         messenger.list.push(`%%${player.playerID}%% played %%Road Building%%.`);
-        pave(messenger, game, player, args[0]);
-        pave(messenger, game, player, args[1]);
+        _pave(messenger, game, player, args[0], pay=false);
+        _pave(messenger, game, player, args[1], pay=false);
       } catch (e) {
         player.roads = rollback;
         throw e;
@@ -558,12 +567,25 @@ function playDC(messenger, game, player, card, args) {
     default:
       throw new GameLogicError('Unrecognized development card: '+card);
   }
-  for (let dc in player.unplayedDCs) {
-    if (dc !== 'vp') {
-      player.unplayableDCs[dc] += player.unplayedDCs[dc];
-      player.unplayedDCs[dc] = 0;
+
+  let playedDCs = Object.assign({}, player.playedDCs),
+    unplayedDCs = Object.assign({}, player.unplayedDCs),
+    unplayableDCs = Object.assign({}, player.unplayableDCs);
+
+  unplayedDCs[card]  -= 1;
+  playedDCs[card]    += 1;
+  if (card !== 'vp') {
+    for (let dc in player.unplayedDCs) {
+      if (dc !== 'vp') {
+        unplayableDCs[dc] += unplayedDCs[dc];
+        unplayedDCs[dc] = 0;
+      }
     }
   }
+
+  player.playedDCs = playedDCs;
+  player.unplayedDCs = unplayedDCs;
+  player.unplayableDCs = unplayableDCs;
 }
 
 function roll(messenger, game, player, args) {
@@ -602,7 +624,7 @@ function settle(messenger, game, player, junc, pay=true) {
   for (let r=0; r<junc.roads.length; r++) {
     let road = game.board.roads[junc.roads[r]];
     if (road.owner === player.playerID)
-      _settle(messenger, game, player, junc);
+      return _settle(messenger, game, player, junc);
   }
   throw new InvalidChoiceError('junc',junc,'You need to build a road here before you can settle.');
 }

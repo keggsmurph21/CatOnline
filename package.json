@@ -1,7 +1,7 @@
 {
   "name": "catonline",
   "version": "0.0.0",
-  "description": "only js-based catan application",
+  "description": "webserver for a catan-inspired application",
   "main": "server.js",
   "author": "murp-us",
   "private": true,
@@ -11,6 +11,7 @@
     "await": "^0.2.6",
     "bcrypt": "^1.0.3",
     "bcrypt-nodejs": "0.0.3",
+    "bluebird": "^3.5.1",
     "body-parser": "^1.18.2",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.3",

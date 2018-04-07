@@ -38,6 +38,7 @@ module.exports = {
 
   config : function(mongoose, funcs) {
 
+    mongoose.Promise = require('bluebird');
     mongoose.connect(url, function(err) {
       if (err) throw err;
     });

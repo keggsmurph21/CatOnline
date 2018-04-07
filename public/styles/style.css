@@ -655,6 +655,9 @@ div#private-data {
 .play .spot.red {
   stroke-width: 0.2;
 }
+.play .spot.red.city {
+  stroke-width: 0.5;
+}
 
 .play .orange {
   color: #ffa500;
@@ -666,6 +669,10 @@ div#private-data {
 .play .spot.orange {
   stroke-width: 0.2;
 }
+.play .spot.orange.city {
+  stroke-width: 0.5;
+}
+
 
 .play .blue {
   color: #00f;
@@ -676,6 +683,9 @@ div#private-data {
 }
 .play .spot.blue {
   stroke-width: 0.2
+}
+.play .spot.blue.city {
+  stroke-width: 0.5;
 }
 
 .play .white {
@@ -688,8 +698,11 @@ div#private-data {
 .play .spot.white {
   stroke-width: #ccc;
 }
+.play .spot.white.city {
+  stroke-width: 0.5;
+}
 
-.yop, .monopoly, .rb {
+.yop, .monopoly, .rb, .longest-road {
   color: #2b6836;
 }
 
@@ -697,7 +710,7 @@ div#private-data {
   color: #ff0;
 }
 
-.knight {
+.knight, .largest-army {
   color: #f00;
 }
 
