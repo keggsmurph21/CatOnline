@@ -47,23 +47,6 @@ function roadGetAdjRoads(board, r) {
 
 }
 
-function roadBuilderGetAdjRoads(board, r) {
-  let adjs = new Set(), road = board.roads[r];
-  for (let j=0; j<road.juncs.length; j++) {
-    let junc = board.juncs[ road.juncs[j] ];
-    if ( junc.owner === road.owner
-      || junc.owner === -1
-      || road.owner === -1 ) {
-      for (let s=0; s<junc.roads.length; s++) {
-        adjs.add(junc.roads[s]);
-      }
-    }
-  }
-  adjs.delete(r);
-  return Array.from(adjs);
-
-}
-
 const _STATE_GRAPH = {
     vertices: {
         "_v_accept_trade": {

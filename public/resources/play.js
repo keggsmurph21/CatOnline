@@ -1084,7 +1084,6 @@ $( function(){
   // socket response
   socket.on('play connect', function(data) {
     onConnect(data);
-    modals.DC.set('knight');
   });
 
   // set semiglobal objects

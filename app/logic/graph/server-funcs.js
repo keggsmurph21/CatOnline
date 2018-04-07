@@ -283,14 +283,17 @@ function buyDevCard(messenger, game, player) {
     throw new InvalidChoiceError('No more development cards.');
 
   messenger.list.push(`%%${player.playerID}%% bought a development card.`);
-  let dc = game.board.dcdeck.pop();
+  let dc = game.board.dcdeck.pop(), unplayableDCs={}, unplayedDCs={};
   if (dc === 'vp') {
-    player.unplayedDCs[dc] += 1;
+    unplayed[dc] += 1;
     player.privateScore += 1;
     _isGameOver(game);
   } else {
-    player.unplayableDCs[dc] += 1;
+    unplayableDCs[dc] += 1;
   }
+  player.unplayedDCs = unplayedDCs;
+  player.unplayableDCs = unplayableDCs;
+  
   return dc;
 }
 
