@@ -45,11 +45,11 @@
 
       <%- include( 'svg/standard.ejs' ) %>
 
-      <div id="modal-offer-trade" style="display:none;">
-        <div class="trade-header">
+      <div id="modal-trade" class="modal" style="display:none;">
+        <div class="modal-header">
           Offer a trade
         </div>
-        <div class="trade-body">
+        <div class="modal-body">
           <div class="trade-out">
             Give
             <table>
@@ -83,9 +83,19 @@
         <div class="trade-string">
           test
         </div>
-        <div class="trade-footer">
-          <button type="button" onclick="modals.Trade.confirm();">Confirm</button>
-          <button type="cancel" onclick="modals.Trade.cancel();">Cancel</button>
+        <div class="modal-footer">
+          <button type="button" name="confirm" onclick="modals.Trade.confirm();">Confirm</button>
+          <button type="cancel" name="cancel"  onclick="modals.Trade.cancel();">Cancel</button>
+        </div>
+      </div>
+      <div id="modal-play-dc" class="modal" style="display:none;">
+        <div class="modal-header">
+        </div>
+        <div class="dc-string">
+        </div>
+        <div class="modal-footer">
+          <button type="button" name="confirm" onclick="modals.DC.confirm();">Confirm</button>
+          <button type="cancel" name="cancel"  onclick="modals.DC.cancel();">Cancel</button>
         </div>
       </div>
 

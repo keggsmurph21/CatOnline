@@ -640,9 +640,9 @@ div#private-data {
   stroke-width: 0.05;
 }
 
-.play .spot:hover, .play .road:hover {
+/*.play .spot:hover, .play .road:hover {
   stroke: #000;
-}
+}*/
 
 /* TODO: mix-ins would be good here */
 .play .red {
@@ -774,26 +774,40 @@ svg#gameboard > rect {
   cursor: default;
 }
 
-#modal-offer-trade {
+.modal {
   position: absolute;
-  top: 50%;
-  left: 50%;
   background-color: #ddd;
   text-align: center;
   display: flex;
-  flex-flow: column
+  flex-flow: column;
+  top: 50%;
+  left: 50%;
+}
+.modal#moday-trade {
+}
+.modal#play-dc {
+
 }
 
-#modal-offer-trade .trade-body {
+.modal .modal-body {
   display: flex;
   flex-flow: row;
 }
 
-#modal-offer-trade * {
+.modal * {
   white-space: nowrap;
 }
 
 #robber * {
   stroke-width: 0;
   fill: #bbb;
+}
+
+#gameboard .active, #gameboard .dc-choose {
+  stroke-width: 0.5;
+}
+
+#gameboard .dc-select {
+  stroke-width: 0.3;
+  stroke: #420;
 }

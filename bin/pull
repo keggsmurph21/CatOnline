@@ -68,7 +68,7 @@ def get_state_graph():
     serverdata, clientdata, workerdata = [ { 'vertices':{},'edges':{} } for i in range(3) ]
     commonCols = [ 'vertices', 'edges', 'target', 'label', 'name' ]
     serverCols = commonCols + [ 'evaluate', 'execute', 'isPriority', 'arguments' ]
-    clientCols = commonCols + [ 'isCancel', 'listen', 'onSuccess', 'description' ]
+    clientCols = commonCols + [ 'isCancel', 'listen', 'onSuccess', 'description', 'activate', 'title' ]
 
     # parse the vertices
     sheet = get_sheet(spreadsheet, sheets['vertices'])

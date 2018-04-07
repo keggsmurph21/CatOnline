@@ -1,4 +1,7 @@
 
+function getEdge(estring) {
+  return _STATE_GRAPH.edges[estring];
+}
 function emitAction(data) {
   console.log('player',data.player,'fired an action:',data);
   socket.emit('play action', data);
@@ -7,7 +10,7 @@ function setWaitingMessage() {
   let adjs = game.private.adjacents;
   let options = new Set();
   for (let i=0; i<adjs.length; i++) {
-    let description = _STATE_GRAPH.edges[adjs[i]].description;
+    let description = getEdge([adjs[i]]).description;
     if (description.length)
       options.add(description);
   }
@@ -64,6 +67,7 @@ function build() {
     $('#tile'+i+' text')
       .attr( 'class', [6,8].indexOf(hex.roll) > -1 ? 'red' : '' )
       .text( hex.roll ? hex.roll : '' );
+    $(`#tile${i} title`).text(`resource:${hex.resource} ${hex.roll ? `roll:${hex.roll}` : ''}`);
   }
   for (let i=0; i< game.public.players.length; i++) {
 
@@ -85,7 +89,7 @@ function build() {
       str += `<tr class="${res}">`;
       str +=   `<td>${res}</td>`;
       str +=   `<td id="num-${res}"></td>`;
-      str +=   `<td><button type="button" class="discard" name="${res}" disabled="disabled">discard</button>`;
+      str +=   `<td><button type="button" class="discard" name="${res}">discard</button>`;
       str += `</tr>`;
 
       return str;
@@ -96,7 +100,7 @@ function build() {
       str += `<tr class="${dc}">`;
       str +=   `<td>${dc}</td>`;
       str +=   `<td id="num-${dc}"></td>`;
-      str +=   `<td><button type="button" class="play" name="${dc}" disabled="disabled">play</button>`;
+      str +=   `<td><button type="button" class="play" name="${dc}">play</button>`;
       str += `</tr>`;
 
       return str;
@@ -194,67 +198,128 @@ function build() {
   }
 
 }
+function moveRobber(i) {
+  let pts = $($('.tile')[i]).find('polygon').attr('points').split(' ');
+  pts = pts.slice(0,pts.length-1);
+
+  let x=0, y=0;
+  for (let i=0; i<pts.length; i++) {
+    if (i%2) {
+      y += parseFloat(pts[i]);
+    } else {
+      x += parseFloat(pts[i]);
+    }
+  }
+  x = x/(pts.length/2);
+  y = y/(pts.length/2);
+
+  let width = parseFloat(pts[2]) - parseFloat(pts[0]);
+
+  const triangleWidth = 5/12*width;
+  const triangleHeight= 5/6*width;
+  const circleRadius  = 1/4*width;
+
+  const xTransforms = [0, triangleWidth, -triangleWidth, 0];
+  const yTransforms = [0, triangleHeight, triangleHeight,0];
+  const yOffset     = (circleRadius + triangleHeight)/2 - circleRadius;
+
+  $('#robber-head').attr('cx', x);
+  $('#robber-head').attr('cy', y-yOffset);
+  $('#robber-head').attr('r', circleRadius);
+
+  pts = [];
+  for (let i=0; i<xTransforms.length; i++) {
+    pts.push(x + xTransforms[i]);
+    pts.push(y + yTransforms[i] - yOffset);
+  }
+  $('#robber-body').attr('points', pts.join(' '));
+
+  $(`.tile text`).show();
+  $(`#tile${i} text`).hide();
+
+}
 function populate() {
   function board() {
 
-    ((i) => {
-      let ctr = ((i) => {
-        let pts = $($('.tile')[i]).find('polygon').attr('points').split(' ');
-        pts = pts.slice(0,pts.length-1);
-        let x=0, y=0;
-        for (let i=0; i<pts.length; i++) {
-          if (i%2) {
-            y += parseFloat(pts[i]);
-          } else {
-            x += parseFloat(pts[i]);
-          }
-        }
-        x = x/(pts.length/2);
-        y = y/(pts.length/2);
-        return {x:x, y:y, width:(parseFloat(pts[2])-parseFloat(pts[0]))};
-      })(i);
+    moveRobber(game.public.robber);
 
-      const xTransforms = [0, ctr.width*5/12, -ctr.width*5/12, 0];
-      const yTransforms = [0, ctr.width*5/6, ctr.width*5/6, 0];
-      const yOffset     = (ctr.width/4+ctr.width*5/6)/2-ctr.width/4;
-
-      $('#robber-head').attr('cx', ctr.x);
-      $('#robber-head').attr('cy', ctr.y-yOffset);
-      $('#robber-head').attr('r', ctr.width/4);
-
-      let pts = [];
-      for (let i=0; i<xTransforms.length; i++) {
-        pts.push(ctr.x + xTransforms[i]);
-        pts.push(ctr.y + yTransforms[i] - yOffset);
-      }
-      $('#robber-body').attr('points', pts.join(' '));
-
-      $(`.tile text`).show();
-      $(`#tile${i} text`).hide();
-      
-    })(game.public.robber);
+    $('.tile').addClass('robbable');
+    $(`#tile${game.public.robber}`).removeClass('robbable');
 
     //
+    $('.spot').removeClass(['fortifiable', 'init-settleable', 'settleable', 'stealable']);
     for (let i=0; i<game.public.juncs.length; i++) {
       let spot = $('#spot'+i),
           data = game.public.juncs[i],
           owner= (data.owner>-1 ? game.public.players[data.owner] : null);
 
-      if (owner!==null)
-        spot.addClass(owner.color);
-      if (data.isCity)
-        spot.addClass('city');
+      if (game.private !== null) {
+        for (let j=0; j<data.hexes.length; j++) {
+          if (data.hexes[j] === game.public.robber
+            && data.owner !== -1
+            && data.owner !== game.private.playerID)
+            spot.addClass('stealable');
+        }
+      }
+      if (owner!==null) {
+        spot.addClass(owner.color)
+          .attr('owner',owner.playerID);
+        if (data.isCity) {
+          spot.addClass('city');
+        } else {
+          if (game.private !== null) {
+            if (owner.playerID === game.private.playerID)
+              spot.addClass('fortifiable');
+          }
+        }
+      } else if (data.isSettleable) {
+        spot.addClass('init-settleable');
+        for (let j=0; j<data.roads.length; j++) {
+          if (game.private !== null) {
+            if (game.public.roads[j].owner === game.private.playerID)
+              spot.addClass('settleable');
+          }
+        }
+      }
       if (data.port !== null)
         $('#port'+data.port.num).attr( 'class', 'port '+data.port.type );
 
+      spot.siblings('title').text(`owner:${
+        owner===null ? 'none' : owner.lobbyData.name} ${
+          data.port !== null
+            ? `port:${data.port.type}`
+            : ''
+        }`);
+
     }
+    $('.road').removeClass(['paveable', 'init-paveable']);
     for (let i=0; i<game.public.roads.length; i++) {
       let road = $('#road'+i),
           data = game.public.roads[i],
           owner= (data.owner>-1 ? game.public.players[data.owner] : null);
 
-      if (owner!==null)
-        road.addClass(owner.color);
+      if (owner!==null) {
+        road.addClass(owner.color)
+          .attr('owner',owner.playerID);
+      } else if (game.private !== null) {
+        let adjacentRoads = roadGetAdjRoads(game.public, i);
+        for (let j=0; j<adjacentRoads.length; j++) {
+          if (game.public.roads[adjacentRoads[j]].owner === game.private.playerID)
+            road.addClass('paveable');
+        }
+        for (let j=0; j<data.juncs.length; j++) {
+          if (game.public.juncs[data.juncs[j]].owner === game.private.playerID) {
+            road.addClass('paveable');
+            let settlements = game.public.players[game.private.playerID].settlements;
+            if (data.juncs[j] === settlements[settlements.length-1]) {
+              road.addClass('init-paveable');
+            }
+          }
+        }
+      }
+
+      road.siblings('title').text(`owner:${owner===null ? 'none' : owner.lobbyData.name}`);
+
     }
     setDice(game.public.dice.values);
 
@@ -318,7 +383,7 @@ function populate() {
       $('#tradeBank')
         .prop('disabled', !isAdjacent('_e_trade_bank'));
 
-      if (game.private.flags.disabled > 0) {
+      if (game.private.flags.discard > 0) {
         $('button.discard').show();
         for (let res in game.private.resources) {
           $(`button.discard[name=${res}]`)
@@ -370,7 +435,7 @@ function populate() {
 
       for (let res in game.private.resources) {
         $(`#num-${res}`).html(game.private.resources[res]);
-        $(`#modal-offer-trade .trade-out .resource-count[name=${res}]`).html(0);
+        $(`#modal-trade .trade-out .resource-count[name=${res}]`).html(0);
       }
       for (let dc in game.private.unplayedDCs) {
         let names = {
@@ -394,7 +459,18 @@ function populate() {
   board();
   publicInfo();
   privateInfo();
-  listen.set(game);
+  listen.set();
+
+  $('.tile.robbable .active').closest('g').children().hover( (i) => {
+    if (i.type === 'mouseenter') {
+      let j = parseInt($(i.target).closest('g').attr('id').slice(4));
+      $('#robber *').attr('num', j);
+      moveRobber(j);
+    } else {
+      //moveRobber(game.public.robber);
+    }
+  });
+
 }
 function onConnect(data) {
   function bindListeners() {
@@ -422,6 +498,14 @@ function onConnect(data) {
       listen.to(type, [num]);
     });
 
+    $('#robber *').click( (i) => {
+      let num = $(i.target).attr('num');
+      console.log('\nIMPORTANT')
+      console.log($(i.target));
+      console.log(num);
+      console.log('IMPORTANT\n')
+    })
+
     // listeners for buttons
     $('#acceptTrade').click( (i) => {
   		listen.to('acceptTrade');
@@ -448,7 +532,8 @@ function onConnect(data) {
   	});
 
     $('button.play').click( (i) => {
-  		listen.to('playYearOfPlenty');
+      let type = $(i.target).attr('name');
+      modals.DC.set(type);
   	});
 
     $('#dice').click( (i) => {
@@ -456,11 +541,14 @@ function onConnect(data) {
   	});
 
     $('button.discard').click( (i) => {
-  		listen.to('discard');
+      let res = $(i.target).attr('name');
+  		listen.to('discard', `1 ${res} = 0 ${res}`);
   	});
 
-    $('#player').click( (i) => {
-  		listen.to('player');
+    $('.spot.stealable').click( (i) => {
+      let j = parseInt($(i.target).attr('id').slice(4));
+      let player = game.public.juncs[j].owner;
+  		listen.to('player', [player]);
   	});
 
     $('#tradeBank').click( (i) => {
@@ -499,7 +587,7 @@ function onUpdate(data) {
       addServerMessage(data.messages[i]);
     }
 
-    game = data.game;
+    game = Object.assign({}, data.game);
     populate();
 
   } else {
@@ -523,12 +611,19 @@ let gameid, game, escapes, panzoom,
       }
     },
 
-    set(game) {
+    set() {
       listen.reset();
       if (game.private !== null) {
+        $('#gameboard *').removeClass('active');
+
         for (let i=0; i<game.private.adjacents.length; i++) {
-          let edge = _STATE_GRAPH.edges[game.private.adjacents[i]];
+          let edge = getEdge(game.private.adjacents[i]);
           listen.for[edge.listen] = edge.name;
+
+          if (edge.activate.length)
+            $(edge.activate)
+              .addClass('active')
+              .siblings('title').text(edge.title);
         }
       }
     },
@@ -553,14 +648,14 @@ const modals = {
   Trade  : {
     setTrade(trade) {
       for (let res in trade.out) {
-        $(`#modal-offer-trade .trade-out .resource-count[name=${res}]`).html(trade.out[res]);
+        $(`#modal-trade .trade-out .resource-count[name=${res}]`).html(trade.out[res]);
       }
       for (let res in trade.in) {
-        $(`#modal-offer-trade .trade-in .resource-count[name=${res}]`).html(trade.in[res]);
+        $(`#modal-trade .trade-in .resource-count[name=${res}]`).html(trade.in[res]);
       }
-      $('#modal-offer-trade .trade-partner.player').prop('checked', false);
+      $('#modal-trade .trade-partner.player').prop('checked', false);
       for (let i=0; i<trade.with.length; i++) {
-        $(`#modal-offer-trade .trade-partner.player[name=${i}]`).prop('checked', true);
+        $(`#modal-trade .trade-partner.player[name=${i}]`).prop('checked', true);
       }
       modals.Trade.update()
     },
@@ -568,15 +663,15 @@ const modals = {
 
       modals.Trade.parse();
 
-      $('#modal-offer-trade .decrement').each( (i,item) => {
+      $('#modal-trade .decrement').each( (i,item) => {
         let data = modals.Trade.get(item);
         $(item).prop( 'disabled', data.num===0 );
       });
-      $('#modal-offer-trade .trade-out .increment').each( (i,item) => {
+      $('#modal-trade .trade-out .increment').each( (i,item) => {
         let data = modals.Trade.get(item);
         $(item).prop( 'disabled', data.num === game.private.resources[data.res] );
       });
-      $('#modal-offer-trade .trade-string').html( modals.Trade.toString() );
+      $('#modal-trade .trade-string').html( modals.Trade.toString() );
     },
     get(dom) {
       let data = {},
@@ -593,11 +688,11 @@ const modals = {
       };
     },
     parse() {
-      $('#modal-offer-trade .trade-out .resource-count').each( (i,item) => {
+      $('#modal-trade .trade-out .resource-count').each( (i,item) => {
         let data = modals.Trade.get(item);
         modals.Trade.trade.out[data.res] = data.num;
       });
-      $('#modal-offer-trade .trade-in .resource-count').each( (i,item) => {
+      $('#modal-trade .trade-in .resource-count').each( (i,item) => {
         let data = modals.Trade.get(item);
         modals.Trade.trade.in[data.res] = data.num;
       });
@@ -653,11 +748,11 @@ const modals = {
     },
     set(partner) {
 
-      $('#modal-offer-trade').show();
+      $('#modal-trade').show();
 
       if (partner==='bank') {
-        $('#modal-offer-trade .trade-partner.bank').prop('checked', true);
-        $('#modal-offer-trade .trade-partner.player').prop('checked', false);
+        $('#modal-trade .trade-partner.bank').prop('checked', true);
+        $('#modal-trade .trade-partner.player').prop('checked', false);
         modals.Trade.trade.with = 'bank';
         modals.Trade.update();
       } else if (partner==='players') {
@@ -668,8 +763,8 @@ const modals = {
     selectAll() {
 
       modals.Trade.trade.with = [];
-      $('#modal-offer-trade .trade-partner.bank').prop('checked', false);
-      $('#modal-offer-trade .trade-partner.player').each( (i,item) => {
+      $('#modal-trade .trade-partner.bank').prop('checked', false);
+      $('#modal-trade .trade-partner.player').each( (i,item) => {
         let obj = $(item);
         obj.prop('checked', true);
         modals.Trade.trade.with.push( parseInt(obj.attr('name')) );
@@ -684,7 +779,7 @@ const modals = {
 
         if (obj.prop('checked')) {
           modals.Trade.trade.with = 'bank';
-          $('#modal-offer-trade .trade-partner.player').prop('checked', false);
+          $('#modal-trade .trade-partner.player').prop('checked', false);
         } else {
           modals.Trade.trade.with = [];
         }
@@ -693,9 +788,9 @@ const modals = {
 
         let i = parseInt(obj.attr('name'))
         if (obj.prop('checked')) {
-          if ($('#modal-offer-trade .trade-partner.bank').prop('checked'))
+          if ($('#modal-trade .trade-partner.bank').prop('checked'))
             modals.Trade.trade.with = [];
-          $('#modal-offer-trade .trade-partner.bank').prop('checked', false);
+          $('#modal-trade .trade-partner.bank').prop('checked', false);
           modals.Trade.trade.with.push(i);
         } else {
           modals.Trade.trade.with.splice( modals.Trade.trade.with.indexOf(i), 1 );
@@ -707,12 +802,12 @@ const modals = {
     },
     cancel() {
       for (let res in modals.Trade.trade.out) {
-        $(`#modal-offer-trade .trade-out .resource-count[name=${res}]`).html(0);
+        $(`#modal-trade .trade-out .resource-count[name=${res}]`).html(0);
       }
       for (let res in modals.Trade.trade.in) {
-        $(`#modal-offer-trade .trade-in .resource-count[name=${res}]`).html(0);
+        $(`#modal-trade .trade-in .resource-count[name=${res}]`).html(0);
       }
-      $('#modal-offer-trade').hide();
+      $('#modal-trade').hide();
     },
     confirm() {
       function toString(set) {
@@ -742,15 +837,163 @@ const modals = {
           }`;
         listen.to('offerTrade', trade);
       } else {
-        _M.addMessage('You must choose at least one player to trade with.');
+        _M.addMessage('You must choose at least one player to trade with.', { class:'error' });
       }
     },
     trade : { out:{}, in:{}, with:[] }
   },
   DC     : {
+    set(type) {
+      console.log('set',type);
+      $('#modal-play-dc').show();
+      $('#modal-play-dc button[name=confirm]').prop('disabled', true);
+
+      switch (type) {
+        case ('yop'):
+          $('.dc-choose.resource').click( function(dom) {
+            console.log(dom, $(dom).attr('num'));
+          });
+          break;
+
+        case ('rb'):
+          function toString() {
+            let selected = $('.dc-select').length;
+            return `You have chosen <strong>${selected} road${selected === 1 ? '' : 's'}</strong>.`;
+          }
+          function updateChooseable() {
+            function updateThisChooseable(i,item) {
+
+              let r = $(item).attr('num'),
+                adjacentRoads = roadGetAdjRoads(game.public, r);
+              for (let i=0; i<adjacentRoads.length; i++) {
+                if (game.public.roads[adjacentRoads[i]].owner === -1) {
+                  $(`#road${adjacentRoads[i]}`).addClass('dc-choose');
+                }
+              }
+            }
+            $(`.road[owner=${game.private.playerID}]`).each( updateThisChooseable );
+            $(`.dc-select.paveable`).each( updateThisChooseable );
+          }
+
+          $('#modal-play-dc .modal-header').html( escapeString('Confirm %%Road Building%%.') );
+          updateChooseable();
+          $('#modal-play-dc .dc-string').html( toString() );
+
+          $('.road').click( (dom) => {
+
+            let choice = parseInt($(dom.target).attr('num'));
+            if (isNaN(choice)) {
+              _M.addMessage('WARNING: choice NaN', $(dom.target));
+              return;
+            }
+
+            let road = $(`#road${choice}`);
+
+            if (road.hasClass('dc-select')) {
+              road.removeClass('dc-select');
+              if (road.hasClass('paveable')) {
+                $('.dc-select').not('.paveable')
+                  .removeClass('dc-select');
+              }
+            } else {
+              if (!road.hasClass('dc-choose')) {
+                _M.addMessage('This road is not reachable.', { class:'error' });
+              } else if ($('.dc-select').length === 2) {
+                _M.addMessage('You have already chosen 2 roads!', { class:'error' });
+              } else {
+                road.addClass('dc-select');
+              }
+            }
+
+            $('.road').removeClass('dc-choose');
+            updateChooseable();
+            $('#modal-play-dc .dc-string').html( toString() );
+
+            let selected = [];
+            modals.DC.card.args = $('.dc-select').each( (key, value) => {
+              selected.push(parseInt($(value).attr('num')));
+            });
+            modals.DC.card.args = selected;
+            modals.DC.card.isValid = ($('.dc-select').length === 2);
+            modals.DC.update();
+          });
+          break;
+
+        case ('monopoly'):
+          $('.dc-choose.resource').click( function(dom) {
+            console.log(dom, $(dom).attr('name'));
+          });
+          break;
+        case ('knight'):
+          $('.dc-choose.tile *').click( function(dom) {
+            console.log(dom, $(dom).attr('name'));
+          });
+          break;
+        case ('vp'):
+          modals.DC.card.isValid = true;
+          break;
+        default:
+          _M.addMessage('WARNING: unmatched dev card type on set', { class:'error' });
+          return;
+      }
+      modals.DC.card.type = type;
+
+      modals.DC.update();
+
+    },
+    reset() {
+      modals.DC.card = { type:'', args:[], isValid:false };
+      $('.dc-select').removeClass('dc-select');
+      $('.dc-choose').removeClass('dc-choose');
+    },
     update() {
+      function getArgsString() {
+        return modals.DC.card.args;
+      }
+
+      $('#modal-play-dc button[name=confirm]').prop('disabled', !modals.DC.card.isValid);
+
+      $('#modal-play-dc .dc-name').html(modals.DC.card.type);
+      $('#modal-play-dc .dc-args').text( getArgsString() );
+      // update internal buttons
       console.log('dev card modal update');
-    }
+    },
+    cancel() {
+      modals.DC.reset();
+      $('#modal-play-dc').hide();
+    },
+    confirm() {
+      console.log('confirm', modals.DC.card);
+
+
+      let card = modals.DC.card;
+      if (card.isValid) {
+        switch(card.type) {
+          case ('yop'):
+            listen.to('playYOP', card.args);
+            break;
+          case ('vp'):
+            // validation before ^^
+            listen.to('playVP');
+            break;
+          case ('monopoly'):
+            listen.to('playMonopoly', card.args);
+            break;
+          case ('knight'):
+            listen.to('playKnight', card.args);
+            break;
+          case ('rb'):
+            listen.to('playRB', card.args);
+            break;
+
+          default:
+            _M.addMessage('WARNING: unmatched dev card type on confirm', { class:'error' });
+        }
+      } else {
+        _M.addMessage('modal error message', { class:'error' });
+      }
+    },
+    card : { type:'', args:[], isValid:false }
   },
   update() {
     modals.Trade.update();
@@ -767,6 +1010,7 @@ $( function(){
   // socket response
   socket.on('play connect', function(data) {
     onConnect(data);
+    modals.DC.set('yop');
   });
 
   // set semiglobal objects

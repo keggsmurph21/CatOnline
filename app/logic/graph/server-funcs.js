@@ -120,14 +120,15 @@ function _updateBuyOptions(game, player) {
   player.hasHeavyPurse = (_sumResources(player) > 7);
 
   // check build things
-  let buildable = config.getBuildObjects(game);
+  let buildable = config.getBuildObjects(game), canBuild = {};
   for (let build in buildable) {
     let canAfford = funcs.canAfford(player, buildable[build].cost),
       propName = (build=='city' ? 'cities' : build+'s'),
       available = player[propName].length < buildable[build].max;
 
-    player.canBuild[build] = canAfford && available;
+    canBuild[build] = canAfford && available;
   }
+  player.canBuild = canBuild;
 
   // check buy things
   let buyable   = config.getBuyObjects(game);
@@ -341,7 +342,7 @@ function discard(messenger, game, player, cards) {
   _spend(player, cards);
   _updateBuyOptions(game, player);
 
-  messenger.list.push(`%%${player.playerID}%% discarded ${discard} card${(discard>1 ? 's' : '')}.`);
+  messenger.list.push(`%%${player.playerID}%% discarded ${discarding} card${(discarding>1 ? 's' : '')}.`);
   player.discard -= discarding;
 
   game.state.waitForDiscard = false;
@@ -622,7 +623,7 @@ function steal(messenger, game, player, other) {
       _updateBuyOptions(game, player);
       _updateBuyOptions(game, other);
 
-      messenger.list.push(`%%${player.playerID}%% stole a card from %%${other.lobbyData.name}%%.`);
+      messenger.list.push(`%%${player.playerID}%% stole a card from %%${other.playerID}%%.`);
 
       return;
     }

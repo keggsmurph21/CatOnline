@@ -120,14 +120,15 @@ function _updateBuyOptions(game, player) {
   player.hasHeavyPurse = (_sumResources(player) > 7);
 
   // check build things
-  let buildable = config.getBuildObjects(game);
+  let buildable = config.getBuildObjects(game), canBuild = {};
   for (let build in buildable) {
     let canAfford = funcs.canAfford(player, buildable[build].cost),
       propName = (build=='city' ? 'cities' : build+'s'),
       available = player[propName].length < buildable[build].max;
 
-    player.canBuild[build] = canAfford && available;
+    canBuild[build] = canAfford && available;
   }
+  player.canBuild = canBuild;
 
   // check buy things
   let buyable   = config.getBuyObjects(game);
@@ -341,7 +342,7 @@ function discard(messenger, game, player, cards) {
   _spend(player, cards);
   _updateBuyOptions(game, player);
 
-  messenger.list.push(`%%${player.playerID}%% discarded ${discard} card${(discard>1 ? 's' : '')}.`);
+  messenger.list.push(`%%${player.playerID}%% discarded ${discarding} card${(discarding>1 ? 's' : '')}.`);
   player.discard -= discarding;
 
   game.state.waitForDiscard = false;
@@ -622,7 +623,7 @@ function steal(messenger, game, player, other) {
       _updateBuyOptions(game, player);
       _updateBuyOptions(game, other);
 
-      messenger.list.push(`%%${player.playerID}%% stole a card from %%${other.lobbyData.name}%%.`);
+      messenger.list.push(`%%${player.playerID}%% stole a card from %%${other.playerID}%%.`);
 
       return;
     }
@@ -862,7 +863,7 @@ module.exports = {
             target: "_v_fortify",
             evaluate: function (f) { return f.hasRolled && f.canBuild.city; },
             arguments: "settlement",
-            execute: function (m,g,p,a) { return fortify(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { fortify(m,g,p,a[0]); },
             isPriority: false,
             label: ""
         },
@@ -871,7 +872,7 @@ module.exports = {
             target: "_v_pave",
             evaluate: function (f) { return f.hasRolled && f.canBuild.road; },
             arguments: "road",
-            execute: function (m,g,p,a) { return pave(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { pave(m,g,p,a[0]); },
             isPriority: false,
             label: ""
         },
@@ -880,7 +881,7 @@ module.exports = {
             target: "_v_settle",
             evaluate: function (f) { return f.hasRolled && f.canBuild.settlement; },
             arguments: "settlement",
-            execute: function (m,g,p,a) { return settle(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { settle(m,g,p,a[0]); },
             isPriority: false,
             label: ""
         },
@@ -916,7 +917,7 @@ module.exports = {
             target: "_v_move_robber",
             evaluate: function (f) { return f.isCurrentPlayer && f.isRollSeven && !f.waitForDiscard; },
             arguments: "hex",
-            execute: function (m,g,p,a) { return moveRobber(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { moveRobber(m,g,p,a[0]); },
             isPriority: false,
             label: ""
         },
@@ -961,7 +962,7 @@ module.exports = {
             target: "_v_pave",
             evaluate: function (f) { return f.isFirstTurn; },
             arguments: "road",
-            execute: function (m,g,p,a) { return initPave(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { initPave(m,g,p,a[0]); },
             isPriority: false,
             label: ""
         },
@@ -979,7 +980,7 @@ module.exports = {
             target: "_v_settle",
             evaluate: function (f) { return f.isFirstTurn || f.isSecondTurn; },
             arguments: "settlement",
-            execute: function (m,g,p,a) { return initSettle(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { initSettle(m,g,p,a[0]); },
             isPriority: false,
             label: ""
         },
@@ -988,7 +989,7 @@ module.exports = {
             target: "_v_pave",
             evaluate: function (f) { return f.isSecondTurn; },
             arguments: "road",
-            execute: function (m,g,p,a) { return initPave(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { initPave(m,g,p,a[0]); },
             isPriority: false,
             label: ""
         },
@@ -1006,7 +1007,7 @@ module.exports = {
             target: "_v_offer_trade",
             evaluate: function (f) { return !f.isFirstTurn && !f.isSecondTurn && f.hasRolled && f.canTrade; },
             arguments: "trade",
-            execute: function (m,g,p,a) { return offerTrade(m,g,p,a); },
+            execute: function (m,g,p,a) { offerTrade(m,g,p,a); },
             isPriority: false,
             label: ""
         },
@@ -1024,7 +1025,7 @@ module.exports = {
             target: "_v_play_monopoly",
             evaluate: function (f) { return f.canPlayDC.monopoly; },
             arguments: "resource",
-            execute: function (m,g,p,a) { return playDC(m,g,p,'monopoly',a[0]); },
+            execute: function (m,g,p,a) { playDC(m,g,p,'monopoly',a[0]); },
             isPriority: false,
             label: ""
         },
@@ -1033,7 +1034,7 @@ module.exports = {
             target: "_v_play_rb",
             evaluate: function (f) { return f.canPlayDC.rb; },
             arguments: "road road",
-            execute: function (m,g,p,a) { return playDC(m,g,p,'rb',a); },
+            execute: function (m,g,p,a) { playDC(m,g,p,'rb',a); },
             isPriority: false,
             label: ""
         },
@@ -1051,7 +1052,7 @@ module.exports = {
             target: "_v_play_yop",
             evaluate: function (f) { return f.canPlayDC.yop; },
             arguments: "resource resource",
-            execute: function (m,g,p,a) { return playDC(m,g,p,'yop',a); },
+            execute: function (m,g,p,a) { playDC(m,g,p,'yop',a); },
             isPriority: false,
             label: ""
         },
@@ -1078,7 +1079,7 @@ module.exports = {
             target: "_v_discard",
             evaluate: function (f) { return f.discard > 0; },
             arguments: "trade",
-            execute: function (m,g,p,a) { return discard(m,g,p,a.out); },
+            execute: function (m,g,p,a) { discard(m,g,p,a.out); },
             isPriority: false,
             label: ""
         },
@@ -1087,7 +1088,7 @@ module.exports = {
             target: "_v_discard_other",
             evaluate: function (f) { return f.discard > 0; },
             arguments: "trade",
-            execute: function (m,g,p,a) { return discard(m,g,p,a.out); },
+            execute: function (m,g,p,a) { discard(m,g,p,a.out); },
             isPriority: false,
             label: ""
         },
@@ -1096,7 +1097,7 @@ module.exports = {
             target: "_v_move_robber",
             evaluate: function (f) { return f.isCurrentPlayer && f.isRollSeven && !f.waitForDiscard; },
             arguments: "hex",
-            execute: function (m,g,p,a) { return moveRobber(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { moveRobber(m,g,p,a[0]); },
             isPriority: false,
             label: ""
         },
@@ -1105,7 +1106,7 @@ module.exports = {
             target: "_v_steal",
             evaluate: function (f) { return f.canSteal; },
             arguments: "player",
-            execute: function (m,g,p,a) { return steal(m,g,p,a[0]); },
+            execute: function (m,g,p,a) { steal(m,g,p,a[0]); },
             isPriority: false,
             label: ""
         },
@@ -1132,7 +1133,7 @@ module.exports = {
             target: "_v_trade_with_bank",
             evaluate: function (f) { return !f.isFirstTurn && !f.isSecondTurn && f.hasRolled && f.canTradeBank; },
             arguments: "trade",
-            execute: function (m,g,p,a) { return tradeWithBank(m,g,p,a); },
+            execute: function (m,g,p,a) { tradeWithBank(m,g,p,a); },
             isPriority: false,
             label: ""
         }
