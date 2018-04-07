@@ -798,10 +798,14 @@ svg#gameboard > rect {
   white-space: nowrap;
 }
 
-#robber * {
+.robber * {
   stroke-width: 0;
   fill: #bbb;
 }
+#demo-robber {
+  opacity: 0.9;
+}
+
 
 #gameboard .active, #gameboard .dc-choose {
   stroke-width: 0.5;

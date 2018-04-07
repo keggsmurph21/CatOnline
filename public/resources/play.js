@@ -156,6 +156,9 @@ function build() {
         <td>${escapeString(`%%${i}%%`)}</td>
       </tr>`;
     }
+    function buildDCModalButton(res) {
+      return `<button type="button" class="${res}" name="${res}">${escapeString(`%%${res}%%`)}</span>`;
+    }
 
 
     // resources content rows
@@ -166,7 +169,12 @@ function build() {
       tr = buildTradeModalResourceTR(res);
       $('.trade-out tr:last').after(tr);
       $('.trade-in tr:last').after(tr);
+
+      tr = buildDCModalButton(res);
+      $('#modal-play-dc .dc-resources').append(tr);
     }
+    $('#modal-play-dc .dc-resources').append(
+      `<button type="button" name="reset"><strong>reset</strong></span>`);
 
 
     if (game.public.players.length > 1) {
@@ -198,7 +206,7 @@ function build() {
   }
 
 }
-function moveRobber(i) {
+function moveRobber(i, head='#robber') {
   let pts = $($('.tile')[i]).find('polygon').attr('points').split(' ');
   pts = pts.slice(0,pts.length-1);
 
@@ -223,19 +231,21 @@ function moveRobber(i) {
   const yTransforms = [0, triangleHeight, triangleHeight,0];
   const yOffset     = (circleRadius + triangleHeight)/2 - circleRadius;
 
-  $('#robber-head').attr('cx', x);
-  $('#robber-head').attr('cy', y-yOffset);
-  $('#robber-head').attr('r', circleRadius);
+  $(`${head} .robber-head`).attr('cx', x);
+  $(`${head} .robber-head`).attr('cy', y-yOffset);
+  $(`${head} .robber-head`).attr('r', circleRadius);
 
   pts = [];
   for (let i=0; i<xTransforms.length; i++) {
     pts.push(x + xTransforms[i]);
     pts.push(y + yTransforms[i] - yOffset);
   }
-  $('#robber-body').attr('points', pts.join(' '));
+  $(`${head} .robber-body`).attr('points', pts.join(' '));
 
-  $(`.tile text`).show();
-  $(`#tile${i} text`).hide();
+  if (head === '#robber') {
+    $(`.tile text`).show();
+    $(`#tile${i} text`).hide();
+  }
 
 }
 function populate() {
@@ -464,12 +474,12 @@ function populate() {
   $('.tile.robbable .active').closest('g').children().hover( (i) => {
     if (i.type === 'mouseenter') {
       let j = parseInt($(i.target).closest('g').attr('id').slice(4));
-      $('#robber *').attr('num', j);
-      moveRobber(j);
-    } else {
-      //moveRobber(game.public.robber);
+      $('#demo-robber *').attr('num', j).show();
+      moveRobber(j, head='#demo-robber');
+      $(i.target).closest('g').children().off('hover');
     }
   });
+  $('#demo-robber').css('visibility', ($('.tile.robbable .active').length>0 ? 'visible' : 'hidden'));
 
 }
 function onConnect(data) {
@@ -498,7 +508,7 @@ function onConnect(data) {
       listen.to(type, [num]);
     });
 
-    $('#robber *').click( (i) => {
+    $('.robber *').click( (i) => {
       let num = $(i.target).attr('num');
       console.log('\nIMPORTANT')
       console.log($(i.target));
@@ -844,19 +854,41 @@ const modals = {
   },
   DC     : {
     set(type) {
-      console.log('set',type);
+
+      modals.DC.reset();
       $('#modal-play-dc').show();
       $('#modal-play-dc button[name=confirm]').prop('disabled', true);
 
       switch (type) {
         case ('yop'):
-          $('.dc-choose.resource').click( function(dom) {
-            console.log(dom, $(dom).attr('num'));
+          function yopString() {
+            if (!modals.DC.card.args.length)
+              return 'You have not chosen any resources.';
+            return escapeString(`You have chosen %%${modals.DC.card.args.join('%% and %%')}%%.`);
+          }
+          $('#modal-play-dc .dc-resources').show();
+          $('#modal-play-dc .modal-header').html( escapeString('Confirm %%Year of Plenty%%.') );
+          $('#modal-play-dc .dc-string').html( yopString() );
+
+          $('#modal-play-dc .dc-resources button').click( (dom) => {
+
+            let button = $(dom.target).attr('name');
+            if (button === 'reset') {
+              modals.DC.card.args = [];
+
+            } else if (modals.DC.card.args.length < 2) {
+              modals.DC.card.args.push(button);
+
+            }
+            $('#modal-play-dc .dc-string').html( yopString() );
+            modals.DC.card.isValid = (modals.DC.card.args.length === 2);
+            modals.DC.update();
+
           });
           break;
 
         case ('rb'):
-          function toString() {
+          function rbString() {
             let selected = $('.dc-select').length;
             return `You have chosen <strong>${selected} road${selected === 1 ? '' : 's'}</strong>.`;
           }
@@ -871,13 +903,16 @@ const modals = {
                 }
               }
             }
+            $('.road').removeClass('dc-choose');
             $(`.road[owner=${game.private.playerID}]`).each( updateThisChooseable );
             $(`.dc-select.paveable`).each( updateThisChooseable );
           }
 
-          $('#modal-play-dc .modal-header').html( escapeString('Confirm %%Road Building%%.') );
           updateChooseable();
-          $('#modal-play-dc .dc-string').html( toString() );
+
+          $('#modal-play-dc .dc-resources').hide();
+          $('#modal-play-dc .modal-header').html( escapeString('Confirm %%Road Building%%.') );
+          $('#modal-play-dc .dc-string').html( rbString() );
 
           $('.road').click( (dom) => {
 
@@ -905,9 +940,8 @@ const modals = {
               }
             }
 
-            $('.road').removeClass('dc-choose');
             updateChooseable();
-            $('#modal-play-dc .dc-string').html( toString() );
+            $('#modal-play-dc .dc-string').html( rbString() );
 
             let selected = [];
             modals.DC.card.args = $('.dc-select').each( (key, value) => {
@@ -920,16 +954,55 @@ const modals = {
           break;
 
         case ('monopoly'):
-          $('.dc-choose.resource').click( function(dom) {
-            console.log(dom, $(dom).attr('name'));
+          function monopolyString() {
+            if (!modals.DC.card.args.length)
+              return 'You have not chosen a resource to monopolize.';
+            return escapeString(`You have chosen to monopolize %%${modals.DC.card.args[0]}%%.`);
+          }
+          $('#modal-play-dc .dc-resources').show();
+          $('#modal-play-dc .modal-header').html( escapeString('Confirm %%Monopoly%%.') );
+          $('#modal-play-dc .dc-string').html( monopolyString() );
+
+          $('#modal-play-dc .dc-resources button').click( (dom) => {
+
+            let button = $(dom.target).attr('name');
+            modals.DC.card.args = [button];
+            if (button === 'reset')
+              modals.DC.card.args = [];
+
+            $('#modal-play-dc .dc-string').html( monopolyString() );
+            modals.DC.card.isValid = (modals.DC.card.args.length === 1);
+            modals.DC.update();
+
           });
           break;
+
         case ('knight'):
-          $('.dc-choose.tile *').click( function(dom) {
-            console.log(dom, $(dom).attr('name'));
+          function knightString() {
+            if (!modals.DC.card.args.length)
+              return 'You have not chosen a tile to block.';
+            return 'You have chosen to block a tile.';
+          }
+          $('#modal-play-dc .dc-resources').hide();
+          $('#modal-play-dc .modal-header').html( escapeString('Confirm %%Knight%%.') );
+          $('#modal-play-dc .dc-string').html( knightString() );
+
+          $('.tile.robbable').click( (dom) => {
+
+            let num = parseInt($(dom.target).closest('.tile').attr('num'));
+            $('#demo-robber *').attr('num', num).css('visibility','visible');
+            moveRobber(num, head='#demo-robber');
+            modals.DC.card.args = [num];
+
+            $('#modal-play-dc .dc-string').html( knightString() );
+            modals.DC.card.isValid = (modals.DC.card.args.length === 1);
+            modals.DC.update();
+
           });
           break;
+
         case ('vp'):
+          $('#modal-play-dc .dc-resources').hide();
           modals.DC.card.isValid = true;
           break;
         default:
@@ -945,6 +1018,7 @@ const modals = {
       modals.DC.card = { type:'', args:[], isValid:false };
       $('.dc-select').removeClass('dc-select');
       $('.dc-choose').removeClass('dc-choose');
+      $('#demo-robber').css('visibility', 'hidden');
     },
     update() {
       function getArgsString() {
@@ -1010,7 +1084,7 @@ $( function(){
   // socket response
   socket.on('play connect', function(data) {
     onConnect(data);
-    modals.DC.set('yop');
+    modals.DC.set('knight');
   });
 
   // set semiglobal objects
