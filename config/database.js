@@ -1,7 +1,7 @@
 // config/database.js
 
 const logfilename = 'mongoose';
-const url = (process.env.MONGOLAB_URI || 'mongodb://mongo:27017/catonline-db');
+const url = (process.env.MONGODB_URI || 'mongodb://mongo:27017/catonline-db');
 
 console.log(process.env);
 
