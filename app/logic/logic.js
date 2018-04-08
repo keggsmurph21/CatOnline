@@ -92,11 +92,11 @@ function storeHistory(game, p, estring, args, ret) {
 function updateGameStates(game) {
   let waiting = [];
   for (let i=0; i<game.state.players.length; i++) {
-    let player = game.state.players[i];
     let flags = getFlags(game, i);
-    player.flags = flags;
-    player.adjacents = getAdjacentGameStates(flags);
-    if (player.adjacents.length)
+    game.state.players[i].flags = flags;
+    game.state.players[i].adjacents = getAdjacentGameStates(flags);
+    console.log(game.state.players[i].adjacents);
+    if (game.state.players[i].adjacents.length)
       waiting.push( i );
   }
   game.state.waiting = waiting;
