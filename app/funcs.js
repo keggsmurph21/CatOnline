@@ -138,7 +138,7 @@ module.exports = {
     res.redirect( '/admin' );
 
   },
-  log : function(...args) { console.log('something called funcs.log()'); },
+  log : function(...args) { console.log('DON\'T CALL THIS WAY!!!', ...args); },
   hexGetAdjHexes : function(board, h) {
     let adjs = new Set();
     for (let i=0; i<board.hexes[h].juncs.length; i++) {

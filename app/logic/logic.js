@@ -95,7 +95,8 @@ function updateGameStates(game) {
     let player = game.state.players[i];
     let flags = getFlags(game, i);
     player.flags = flags;
-    if (getAdjacentGameStates(flags).length)
+    player.adjacents = getAdjacentGameStates(flags);
+    if (player.adjacents.length)
       waiting.push( i );
   }
   game.state.waiting = waiting;
