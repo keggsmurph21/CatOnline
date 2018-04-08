@@ -20,7 +20,7 @@ function setWaitingMessage() {
     message = `available actions: <strong>${options.join('</strong>, <strong>')}</strong>`;
   } else {
     message = `waiting for %%${
-      game.public.waiting.forWho.join('%%, %%')}%%...`;
+      game.public.waiting.join('%%, %%')}%%...`;
     message = escapeString(message);
   }
   _M.addMessage(message);
