@@ -129,7 +129,7 @@ function _updateBuyOptions(game, player) {
 
     canBuild[build] = canAfford && available;
   }
-  canBuild.city   = canBuild.city && play.settlements.length;
+  canBuild.city   = canBuild.city && player.settlements.length;
   player.canBuild = canBuild;
 
   // check buy things
