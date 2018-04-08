@@ -781,6 +781,8 @@ module.exports = function(io, sessionStore) {
     socket.on('new message', function(data) {
       funcs.log( 'user '+req.session.user.name+'~'+req.session.user.id+' sent "'+data+'" to '+req.ref );
 
+      log.debug( `message from ${req.session.user.name} to ${req.ref}: ${data}`, 'messages' );
+
       let room = (req.ref.indexOf('_')>-1 ? req.msock : req.ref);
       socket.broadcast.to(room).emit('new message', {
         user : req.session.user,
@@ -868,6 +870,7 @@ module.exports = function(io, sessionStore) {
     socket.on('play action', function(data) {
 
       console.log('received play action',data);
+      log.debug( `received play action from ${req.session.user.name}: ${JSON.stringify(data)}`, 'play' );
 
       funcs.requireGameById(req.session.gameid, function(err,game) {
         if (err) throw err;
@@ -891,6 +894,9 @@ module.exports = function(io, sessionStore) {
                   private:game.getPrivateGameData(p)
                 }
               };
+              log.debug( `play action response for ${req.session.user.name}: ${ret.ret}`, 'play' );
+              log.debug( `play action messages for ${req.session.user.name}: ${JSON.stringify(ret.messages)}`, 'play' );
+
               if (p === req.session.p) {
                 socket.emit('play callback', response)
               } else {
@@ -900,8 +906,9 @@ module.exports = function(io, sessionStore) {
             }
           });
         } catch (e) {
+          log.debug( `play action error for ${req.session.user.name}: ${e}`, 'play' );
+
           if (e instanceof UserInputError) {
-            console.log(e);
             socket.emit('play callback', {
               player  : data.player,
               edge    : data.edge,

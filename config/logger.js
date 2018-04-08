@@ -85,6 +85,8 @@ global.log = {
 
   log.paths = {
     db : path.join(logPath, 'mongoose.log'),
+    messages : path.join(logPath, 'messages.log'),
+    play : path.join(logPath, 'play.log'),
     core : path.join(logPath, 'core.log'),
     debug : path.join(logPath, 'debug.log'),
     info : path.join(logPath, 'info.log'),
