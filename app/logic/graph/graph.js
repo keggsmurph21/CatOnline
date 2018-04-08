@@ -29,6 +29,7 @@ function _collectResource(messenger, game, player, hex, acc=[]) {
 }
 function _isGameOver(game) {
   for (let p=0; p<game.state.players.length; p++) {
+    console.log('check game over', game.state.players[p].privateScore, game.meta.settings.victoryPointsGoal);
     if (game.state.players[p].privateScore >= game.meta.settings.victoryPointsGoal)
       game.state._isGameOver = true;
   }
@@ -128,7 +129,7 @@ function _updateBuyOptions(game, player) {
 
     canBuild[build] = canAfford && available;
   }
-  canBuild.city   = canBuild.city && play.settlements.length;
+  canBuild.city   = canBuild.city && player.settlements.length;
   player.canBuild = canBuild;
 
   // check buy things

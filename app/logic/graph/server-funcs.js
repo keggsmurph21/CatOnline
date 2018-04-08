@@ -140,7 +140,6 @@ function _updateBuyOptions(game, player) {
         let canAfford = funcs.canAfford(player, buyable.dc.cost),
           available = sumDevCards(player) < buyable.dc.max;
 
-        console.log(canAfford, available, game.board.dcdeck.length);
         player.canBuy.dc = canAfford && available && game.board.dcdeck.length;
         break;
       default:
