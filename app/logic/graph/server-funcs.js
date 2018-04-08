@@ -650,7 +650,7 @@ function steal(messenger, game, player, other) {
 
       messenger.list.push(`%%${player.playerID}%% stole a card from %%${other.playerID}%%.`);
 
-      return;
+      return res;
     }
   }
   throw new InvalidChoiceError('player',other,other.lobbyData.name+' is not adjacent to the robber.');

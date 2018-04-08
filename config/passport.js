@@ -102,6 +102,8 @@ module.exports = function(passport) {
     },
     function(req, username, password, done) {
 
+      username = username.toLowerCase();
+
       // find a user whose username is the same as the form's username
       // we are checking to see if the user trying to register already exists
       funcs.User.findOne( { name:username }, function(err,user) {
