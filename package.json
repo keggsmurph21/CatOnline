@@ -33,7 +33,7 @@
     "socket.io-cookie-parser": "^1.0.0"
   },
   "scripts": {
-    "start": "echo $MONGOLAB_URI; echo $MONGOLAB_URL; nodemon server.js",
+    "start": "nodemon server.js",
     "test": "node tests/all"
   },
   "devDependencies": {

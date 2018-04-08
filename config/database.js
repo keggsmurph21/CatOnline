@@ -1,7 +1,7 @@
 // config/database.js
 
 const logfilename = 'mongoose';
-const url = 'mongodb://mongo:27017/catonline-db';
+const url = (process.env.MONGOLAB_URI || 'mongodb://mongo:27017/catonline-db');
 
 function checkStatus(funcs, defaultSuperAdminPassword='password') {
   funcs.User.count({}, function(err, count) {
