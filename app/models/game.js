@@ -202,9 +202,9 @@ GameSchema.methods.getPublicGameData = function() {
   };
 }
 GameSchema.methods.getPrivateGameData = function(i) {
-  if (i >= this.state.players.length)
-    return null;
   let player = this.state.players[i];
+  if (player===undefined)
+    return null;
   return {
     playerID      : player.playerID,
     vertex        : player.vertex,
