@@ -3,6 +3,8 @@
 const logfilename = 'mongoose';
 const url = (process.env.MONGOLAB_URI || 'mongodb://mongo:27017/catonline-db');
 
+console.log(process.env);
+
 function checkStatus(funcs, defaultSuperAdminPassword='password') {
   funcs.User.count({}, function(err, count) {
     if (err) throw err;
