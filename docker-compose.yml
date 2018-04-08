@@ -8,7 +8,7 @@ services:
       - ./data:/data/db
     ports:
       - "27017:27017"
-  app:
+  web:
     container_name: catonline_app
     restart: always
     build: .
@@ -22,3 +22,4 @@ services:
     volumes:
       - .:/usr/src/app/
       - /usr/app/node_modules
+    env_file: .env

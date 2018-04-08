@@ -138,21 +138,7 @@ module.exports = {
     res.redirect( '/admin' );
 
   },
-  log : function(line, log=null) {
-    let datetime = new Date();
-    datetime = dateformat( datetime, "default" );
-    line = '[' + datetime + '] ' + line + '\n';
-    if (!fs.existsSync('./logs')) {
-      fs.mkdirSync('./logs');
-    }
-    if (log)
-      fs.appendFile( './logs/'+log+'.log', line, 'utf8', function(err) {
-        if (err) throw err;
-      });
-    fs.appendFile( './logs/core.log', line, 'utf8', function(err) {
-      if (err) throw err;
-    });
-  },
+  log : function(...args) { console.log('something called funcs.log()'); },
   hexGetAdjHexes : function(board, h) {
     let adjs = new Set();
     for (let i=0; i<board.hexes[h].juncs.length; i++) {

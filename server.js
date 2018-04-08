@@ -23,9 +23,10 @@ const configDB      = require('./config/database.js');
 const sessionStore   = new express.session.MemoryStore();
 
 // configuration
+require('./app/errors');
+require('./config/logger.js');
 configDB.config( mongoose, funcs );
 require('./config/passport.js')(passport);
-require('./app/errors');
 
 app.use(morgan('dev'));
 app.use(cookieParser());
