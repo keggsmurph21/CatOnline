@@ -79,6 +79,7 @@ body {
 .panel {
   margin: 5px;
   flex-grow: 0;
+  flex-shrink: 0;
 }
 
 span {
@@ -178,6 +179,7 @@ a.lr {
   display: flex;
   flex-flow: column nowrap;
   overflow: auto;
+  flex-shrink: 1;
 }
 
 div.messages.public {
