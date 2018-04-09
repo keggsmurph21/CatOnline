@@ -304,7 +304,6 @@ function populate() {
         spot.addClass('init-settleable');
         for (let j=0; j<data.roads.length; j++) {
           if (game.private !== null) {
-            console.log(spot, $(`#road${j}`));
             if (game.public.roads[data.roads[j]].owner === game.private.playerID)
               spot.addClass('settleable');
           }
@@ -541,7 +540,6 @@ function onConnect(data) {
 
     $('button.play').click( (i) => {
       let type = $(i.target).attr('name');
-      console.log(type);
       modals.DC.set(type);
   	});
 
@@ -554,10 +552,12 @@ function onConnect(data) {
   		listen.to('discard', `1 ${res} = 0 ${res}`);
   	});
 
-    $('.spot.stealable').click( (i) => {
-      let j = parseInt($(i.target).attr('id').slice(4));
-      let player = game.public.juncs[j].owner;
-  		listen.to('player', [player]);
+    $('.spot').click( (i) => {
+      let target = $(i.target);
+      if (target.hasClass('stealable')) {
+        let player = parseInt(target.attr('owner'));
+    		listen.to('player', [player]);
+      }
   	});
 
     $('#tradeBank').click( (i) => {
