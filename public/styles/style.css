@@ -837,3 +837,8 @@ svg#gameboard > rect {
 .private-data-table th {
   padding: 0em 1em;
 }
+
+#public-trade {
+  display: flex;
+  justify-content: space-between;
+}

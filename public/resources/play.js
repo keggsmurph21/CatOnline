@@ -23,7 +23,8 @@ function setWaitingMessage() {
       game.public.waiting.join('%%, %%')}%%...`;
     message = escapeString(message);
   }
-  _M.addMessage(message);
+  $('#waiting-for').html(message);
+  //_M.addMessage(message);
 }
 function setDice(values) {
   for (let i=0; i<values.length; i++) {
@@ -679,6 +680,9 @@ const modals = {
 
       modals.Trade.parse();
 
+      $('#public-trade-current').html( game.public.trade.with.length
+        ? modals.Trade.toString('public') : '' );
+
       $('#modal-trade .decrement').each( (i,item) => {
         let data = modals.Trade.get(item);
         $(item).prop( 'disabled', data.num===0 );
@@ -713,7 +717,7 @@ const modals = {
         modals.Trade.trade.in[data.res] = data.num;
       });
     },
-    toString() {
+    toString(destination='modal') {
       function toString(set) {
         let keys = Object.keys(set).filter( (key) => {
           return set[key] > 0;
@@ -727,12 +731,15 @@ const modals = {
         return '<strong>nothing</strong>';
       }
 
+      let trade = (destination==='modal'
+        ? modals.Trade.trade : game.public.trade);
+
       let whos;
-      if (modals.Trade.trade.with === 'bank') {
+      if (trade.with === 'bank') {
         whos = '<strong>the Bank</strong>';
       } else {
-        if (modals.Trade.trade.with.length) {
-          whos = modals.Trade.trade.with
+        if (trade.with.length) {
+          whos = trade.with
             .map( (item) => {
               return `%%${item}%%`;
             })
@@ -742,8 +749,8 @@ const modals = {
         }
       }
 
-      let outs = toString(modals.Trade.trade.out),
-        ins = toString(modals.Trade.trade.in),
+      let outs = toString(trade.out),
+        ins = toString(trade.in),
         str = `trading ${outs} for ${ins} with ${whos}`;
       str = escapeString(str);
       return str;
