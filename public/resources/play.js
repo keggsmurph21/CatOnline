@@ -134,12 +134,12 @@ function build() {
 
     // table skeletons and header rows
     $('#private-data').html(
-        `<table id="private-resources">
+        `<table id="private-resources" class="private-data-table">
         <tr class="header">
           <th colspan="100">resources</th>
         </tr>
       </table>
-      <table id="private-dev-cards">
+      <table id="private-dev-cards" class="private-data-table">
         <tr class="header">
           <th colspan="100">dev cards</th>
         </tr>
@@ -370,14 +370,18 @@ function populate() {
     }
     function getLRString(i) {
       let str = game.public.players[i].longestRoad;
-      if (game.public.hasLongestRoad === game.private.playerID)
-        str += '🚗';
+      if (game.private !== null) {
+        if (game.public.hasLongestRoad === game.private.playerID)
+          str += '🚗';
+      }
       return str;
     }
     function getLAString(i) {
       let str = game.public.players[i].numKnights;
-      if (game.public.hasLargestArmy === game.private.playerID)
-        str += '⚔️';
+      if (game.private !== null) {
+        if (game.public.hasLargestArmy === game.private.playerID)
+          str += '⚔️';
+      }
       return str;
     }
 

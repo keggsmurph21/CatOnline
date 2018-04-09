@@ -828,3 +828,10 @@ svg#gameboard > rect {
   stroke-width: 0.3;
   stroke: #420;
 }
+
+.private-data-table {
+  background-color: #999;
+}
+.private-data-table th {
+  padding: 0em 1em;
+}

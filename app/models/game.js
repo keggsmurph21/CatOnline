@@ -46,7 +46,7 @@ var GameSchema = mongoose.Schema({
     isSecondTurn: Boolean,
     isGameOver: Boolean,
     isRollSeven: Boolean,
-    waiting: [],
+    waiting: [ Number ],
     canSteal: Boolean,
     tradeAccepted: Boolean,
     waitForDiscard: Boolean,
