@@ -624,7 +624,7 @@ let gameid, game, escapes, panzoom,
     set() {
       listen.reset();
       if (game.private !== null) {
-        $('#gameboard *').removeClass('active');
+        $('#gameboard *').removeClass('active'); 
 
         for (let i=0; i<game.private.adjacents.length; i++) {
           let edge = getEdge(game.private.adjacents[i]);
