@@ -123,11 +123,11 @@ function _updateBuyOptions(game, player) {
   for (let build in buildable) {
     let canAfford = funcs.canAfford(player, buildable[build].cost),
       propName = (build=='city' ? 'cities' : build+'s'),
-      available = player[propName].length < buildable[build].max;
+      available = (player[propName].length < buildable[build].max);
 
     canBuild[build] = canAfford && available;
   }
-  canBuild.city   = canBuild.city && player.settlements.length;
+  canBuild.city   = player.settlements.length && canBuild.city;
   player.canBuild = canBuild;
 
   // check buy things
@@ -534,17 +534,21 @@ function playDC(messenger, game, player, card, args) {
       break;
     case ('monopoly'):
       let res = args;
+      messenger.list.push(`%%${player.playerID}%% played a %%Monopoly%% on %%${res}%%.`);
       for (let p=0; p<game.state.players.length; p++) {
         let other = game.state.players[p];
         if (other !== player) {
-          let transfer = {}; transfer[res] = other.resources[res];
-          _accrue(player, transfer);
-          _spend(other, transfer);
-          _updateBuyOptions(game, player);
-          _updateBuyOptions(game, other);
+          let num = other.resources[res];
+          if (num) {
+            messenger.list.push(`%%${other.playerID}%% surrendered ${num} %%${res}%%.`);
+            let transfer = {}; transfer[res] = other.resources[res];
+            _accrue(player, transfer);
+            _spend(other, transfer);
+            _updateBuyOptions(game, player);
+            _updateBuyOptions(game, other);
+          }
         }
       }
-      messenger.list.push(`%%${player.playerID}%% played a %%Monopoly%% on %%${res}%%.`);
       break;
     case ('rb'):
       let rollback = player.roads.slice(0);
