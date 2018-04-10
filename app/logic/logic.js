@@ -4,6 +4,7 @@ const config = require('./init');
 const _STATE_GRAPH = require('./graph/graph');
 
 function getFlags(game, i) {
+  console.log('update flags for',game.state.players[i].lobbyData.name);
   function getCanTradeBank(player) {
     for (let res in player.resources) {
       if (player.resources[res] >= player.bankTradeRates[res])
@@ -50,6 +51,7 @@ function getFlags(game, i) {
   for (let dc in player.unplayedDCs) {
     data.canPlayDC[dc] = (player.unplayedDCs[dc] > 0);
   }
+  console.log('can buy dev cards flag:',data.canBuy,'bound:',player.canBuy);
   return data;
 }
 

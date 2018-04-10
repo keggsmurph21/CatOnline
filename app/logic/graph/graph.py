@@ -513,7 +513,7 @@ _STATE_GRAPH = {
             "confirm": "",
             "title": "",
             "activate": "",
-            "description": "discard some cards",
+            "description": "discard %%DISCARD%%",
             "onSuccess": "function () { }",
             "isCancel": False,
             "label": ""
@@ -525,7 +525,7 @@ _STATE_GRAPH = {
             "confirm": "",
             "title": "",
             "activate": "",
-            "description": "discard some cards",
+            "description": "discard %%DISCARD%%",
             "onSuccess": "function () { }",
             "isCancel": False,
             "label": ""

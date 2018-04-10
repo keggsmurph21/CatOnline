@@ -35,9 +35,10 @@ module.exports = {
   },
   saveAndCatch : function(Model, next) {
     try {
-      console.log('MODEL',Model);
       Model.save( function(err) {
-        next(err);
+        if (err)
+          console.log('save error:',err)
+        next(null);
       });
     } catch(err) {
       next(err);

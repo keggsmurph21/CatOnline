@@ -18,14 +18,12 @@ function _spend(player, cost) {
   player.resources = resources;
 }
 function _collectResource(messenger, game, player, hex, acc=[]) {
-  let res = game.board.hexes[hex].resource,
-    resources = Object.assign({}, player.resources);
-  if (res !== 'desert') {
+  let res = game.board.hexes[hex].resource;
+  if (res !== 'desert' && hex !== game.board.robber) {
     messenger.list.push(`%%${player.playerID}%% collected %%${res}%%.`);
-    resources[res] += 1;
-    acc.push(res);
+    let transfer = {}; transfer[res] = 1;
+    _accrue(player, transfer);
   }
-  player.resources = resources;
 }
 function _isGameOver(game) {
   for (let p=0; p<game.state.players.length; p++) {
@@ -140,7 +138,8 @@ function _updateBuyOptions(game, player) {
         let canAfford = funcs.canAfford(player, buyable.dc.cost),
           available = sumDevCards(player) < buyable.dc.max;
 
-        player.canBuy.dc = canAfford && available && game.board.dcdeck.length;
+        console.log('can afford', canAfford, '(have:',player.resources,'cost:',buyable.dc.cost,')', 'available', available, 'dcdeck-length', game.board.dcdeck.length);
+        player.canBuy.dc = game.board.dcdeck.length && canAfford && available;
         break;
       default:
         throw new GameLogicError();
@@ -538,8 +537,9 @@ function playDC(messenger, game, player, card, args) {
       for (let p=0; p<game.state.players.length; p++) {
         let other = game.state.players[p];
         if (other !== player) {
-          player.resources[res] += other.resources[res];
-          other.resources[res]    = 0;
+          let transfer = {}; transfer[res] = other.resources[res];
+          _accrue(player, transfer);
+          _spend(other, transfer);
           _updateBuyOptions(game, player);
           _updateBuyOptions(game, other);
         }
@@ -558,9 +558,11 @@ function playDC(messenger, game, player, card, args) {
       }
       break;
     case ('yop'):
-      player.resources[args[0]] += 1;
-      player.resources[args[1]] += 1;
-      messenger.list.push(`%%${player.playerID}%% played a %%Year of Plenty%% and selected %%${res}%% and %%${res}%%.`);
+      let transfer = {};
+      transfer[args[0]] = 1;
+      transfer[args[1]] = (transfer[args[1]] ? 2 : 1);
+      _accrue(player, transfer);
+      messenger.list.push(`%%${player.playerID}%% played a %%Year of Plenty%% and selected %%${args[0]}%% and %%${args[1]}%%.`);
       _updateBuyOptions(game, player);
       break;
 
@@ -615,7 +617,7 @@ function roll(messenger, game, player, args) {
       }
     }
   }
-  messenger.list.push(`%%${player.playerID}%% rolled a ${roll}.`);
+  messenger.list.push(`%%${player.playerID}%% rolled a${[8,11].indexOf(roll)>-1?'n':''} ${roll}.`);
   return rolls;
 }
 
@@ -641,14 +643,15 @@ function steal(messenger, game, player, other) {
           list.push(res);
         }
       }
-      let res = funcs.getRandomChoice(list);
-      player.resources[res] += 1;
-      other.resources[res] -= 1;
-
+      let res = funcs.getRandomChoice(list),
+        transfer = {};
+      transfer[res] = 1;
+      _accrue(player, transfer);
+      _spend(other, transfer);
       _updateBuyOptions(game, player);
       _updateBuyOptions(game, other);
 
-      messenger.list.push(`%%${player.playerID}%% stole a card from %%${other.playerID}%%.`);
+      messenger.list.push(`%%${player.playerID}%% stole a %%${res}%% from %%${other.playerID}%%.`);
 
       return res;
     }

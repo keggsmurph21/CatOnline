@@ -826,6 +826,10 @@ svg#gameboard > rect {
   stroke-width: 0.5;
 }
 
+#gameboard .spot.active.stealable {
+  stroke: #000;
+}
+
 #gameboard .dc-select {
   stroke-width: 0.3;
   stroke: #420;

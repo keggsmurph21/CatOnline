@@ -561,7 +561,7 @@ const _STATE_GRAPH = {
             confirm: "",
             title: "",
             activate: "",
-            description: "discard some cards",
+            description: "discard %%DISCARD%%",
             onSuccess: function () { },
             isCancel: false,
             label: ""
@@ -573,7 +573,7 @@ const _STATE_GRAPH = {
             confirm: "",
             title: "",
             activate: "",
-            description: "discard some cards",
+            description: "discard %%DISCARD%%",
             onSuccess: function () { },
             isCancel: false,
             label: ""

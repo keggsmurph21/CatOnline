@@ -17,10 +17,9 @@ function setWaitingMessage() {
   options = Array.from(options);
   let message;
   if (options.length) {
-    message = `available actions: <strong>${options.join('</strong>, <strong>')}</strong>`;
+    message = escapeString(`available actions: <strong>${options.join(`</strong>, <strong>`)}</strong>`);
   } else {
-    message = `waiting for %%${
-      game.public.waiting.join('%%, %%')}%%...`;
+    message = `waiting for %%${game.public.waiting.join('%%, %%')}%%...`;
     message = escapeString(message);
   }
   $('#waiting-for').html(message);
@@ -371,7 +370,7 @@ function populate() {
     function getLRString(i) {
       let str = game.public.players[i].longestRoad;
       if (game.private !== null) {
-        if (game.public.hasLongestRoad === game.private.playerID)
+        if (game.public.hasLongestRoad === i)
           str += '🚗';
       }
       return str;
@@ -431,7 +430,7 @@ function populate() {
 
       $(`button.play`).prop('disabled', true).hide();
       for (let dc in game.private.flags.canPlayDC) {
-        if (game.private.flags.canPlayDC[dc]) {
+        if (game.private.flags.canPlayDC[dc] && game.private.flags.isCurrentPlayer) {
           $(`button.play[name=${dc}]`).prop('disabled', false);
           $('button.play').show();
         }
@@ -467,6 +466,7 @@ function populate() {
         escapes[`%%${devCardNames[dc]}%%`] =
           `<strong class="${dc}">${devCardNames[dc]}</strong>`;
       }
+      escapes['%%DISCARD%%'] = `${game.private.flags.discard} card${game.private.flags.discard>1?'s':''}`;
 
       setWaitingMessage();
       updateButtons();
@@ -500,16 +500,16 @@ function onConnect(data) {
         listen.to(type, [num]);
       });
     }
-    $('.tile, .tile *').click( (t) => {
+    $('.tile *').click( (t) => {
       let [type, num] = getTypeAndNum(
         $(t.target).closest('.tile').attr('id'));
       listen.to(type, [num]);
     });
 
-    $('.robber, .robber *').click( (i) => {
+    $('.robber *').click( (i) => {
       let num = $(i.target).attr('num');
       if ($(`#tile${num}`).hasClass('robbable')) {
-        $(`#tile${num}`).click();
+        $(`#tile${num} polygon`).click();
       }
     })
 
@@ -830,6 +830,7 @@ const modals = {
       for (let res in modals.Trade.trade.in) {
         $(`#modal-trade .trade-in .resource-count[name=${res}]`).html(0);
       }
+      modals.Trade.trade = { out:{}, in:{}, with:[] };
       $('#modal-trade').hide();
     },
     confirm() {
@@ -885,7 +886,7 @@ const modals = {
 
           $('#modal-play-dc .dc-resources button').click( (dom) => {
 
-            let button = $(dom.target).attr('name');
+            let button = $(dom.target).closest('button').attr('name');
             if (button === 'reset') {
               modals.DC.card.args = [];
 
@@ -969,6 +970,7 @@ const modals = {
 
         case ('monopoly'):
           function monopolyString() {
+            console.log(modals.DC.card.args);
             if (!modals.DC.card.args.length)
               return 'You have not chosen a resource to monopolize.';
             return escapeString(`You have chosen to monopolize %%${modals.DC.card.args[0]}%%.`);
@@ -981,7 +983,8 @@ const modals = {
 
           $('#modal-play-dc .dc-resources button').click( (dom) => {
 
-            let button = $(dom.target).attr('name');
+            console.log(dom.target);
+            let button = $(dom.target).closest('button').attr('name');
             modals.DC.card.args = [button];
             if (button === 'reset')
               modals.DC.card.args = [];
@@ -1007,7 +1010,7 @@ const modals = {
           $('#modal-play-dc .modal-header').html( escapeString('Confirm %%Knight%%.') );
           $('#modal-play-dc .modal-string').html( knightString() );
 
-          $('.tile.robbable, .tile.robbable *').click( (dom) => {
+          $('.tile.dc-choose *').click( (dom) => {
 
             let num = parseInt($(dom.target).closest('.tile').attr('num'));
             moveRobber(num, head='#demo-robber');
