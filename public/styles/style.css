@@ -637,11 +637,6 @@ div#private-data {
   font-weight: bold;
 }
 
-.play .spot {
-  fill: #fff;
-  stroke-width: 0.05;
-}
-
 /*.play .spot:hover, .play .road:hover {
   stroke: #000;
 }*/
@@ -725,56 +720,75 @@ svg#gameboard {
   fill:  #adf442;
 	color: #adf442;
 }
+polygon.sheep {
+  fill: url(#pattern-sheep);
+}
 
 .brick {
   fill:  #ed8428;
 	color: #ed8428;
+}
+polygon.brick {
+  fill: url(#pattern-brick);
 }
 
 .wood {
   fill:  #2b6836;
 	color: #2b6836;
 }
+polygon.wood {
+	fill:	url(#pattern-wood);
+}
 
 .wheat {
   fill:  #e2d92f;
 	color: #e2d92f;
+}
+polygon.wheat {
+	fill:	url(#pattern-wheat);
 }
 
 .ore {
   fill:  #38332f;
 	color: #38332f;
 }
+polygon.ore {
+	fill:	url(#pattern-ore);
+}
 
 .desert {
   fill: #ead5c2;
+}
+polygon.desert {
+	fill:	url(#pattern-desert);
 }
 
 .mystery {
   fill: #ccc;
 }
 
-.tile polygon {
+.tile-group polygon {
   /*stroke: #fff;
   stroke-width: 0.25;*/
 }
 
-.tile text {
-  font-size: 1px;
+.tile-group text {
+  font-size: 0.7px;
+  dominant-baseline: middle;
+  /*alignment-baseline: central;*/
+  text-anchor: middle;
 }
 
-.tile text.red {
+.tile-group text.red {
   fill: #ff0000;
 }
 
 .spot {
-  fill: #000;
-  stroke: #fff;
-  stroke-width: 0.1;
+  fill: #222;
 }
 
 .road {
-  stroke: #fff;
+  stroke: #222;
   stroke-width: 0.2;
 }
 
@@ -820,6 +834,10 @@ svg#gameboard > rect {
 #demo-robber {
   opacity: 0.9;
 }
+.robber .robber-background {
+  stroke: #222;
+  stroke-width: 0.2;
+}
 
 
 #gameboard .active, #gameboard .dc-choose {
@@ -845,4 +863,10 @@ svg#gameboard > rect {
 #public-trade {
   display: flex;
   justify-content: space-between;
+}
+
+.tile-chip .tile-chip-circle {
+  fill: #FFB775;
+  stroke: #B5651D;
+  stroke-width: 0.05;
 }

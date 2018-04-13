@@ -4,7 +4,6 @@ const funcs = require('../funcs.js');
 // load config files
 const _NEW_GAME_FORM  = require('./new-game-form.js');
 const _INITIAL_VALUES = require('./initial-values.js');
-const _GUIS           = require('../gui/guis.js');
 
 // helper function generate/validate new game forms
 function populateNewGameForm() {

@@ -1,0 +1,510 @@
+#!/usr/bin/env node
+
+// get a game
+const game = require('../tests/example/games')[0];
+if (game === undefined) {
+  console.log('unable to find game');
+  process.exit(-1);
+}
+
+// use this helper data and this function to get the data about
+// where to place all the svg elements
+const helpers = {
+  standard : {
+    tiles : [
+      [-3,-4],
+      [-1,-4],
+      [ 1,-4],
+      [-4,-2],
+      [-2,-2],
+      [ 0,-2],
+      [2,-2],
+      [-5,0],
+      [-3,0],
+      [-1,0],
+      [1,0],
+      [3,0],
+      [-4,2],
+      [-2,2],
+      [ 0,2],
+      [2,2],
+      [-3,4],
+      [-1,4],
+      [ 1,4]
+    ],
+    ports : [
+      [-1,-4,0],
+      [3,-4,1],
+      [-4,-2,0],
+      [4,-1,2],
+      [-5,1,3],
+      [4,3,2],
+      [-4,3,4],
+      [-1,5,4],
+      [3,5,5]
+    ],
+    spots : [
+      [-2,-5],
+      [0,-5],
+      [2,-5],
+      [-3,-4],
+      [-1,-4],
+      [1,-4],
+      [3,-4],
+      [-3,-3],
+      [-1,-3],
+      [1,-3],
+      [3,-3],
+      [-4,-2],
+      [-2,-2],
+      [0,-2],
+      [2,-2],
+      [4,-2],
+      [-4,-1],
+      [-2,-1],
+      [0,-1],
+      [2,-1],
+      [4,-1],
+      [-5,0],
+      [-3,0],
+      [-1,0],
+      [1,0],
+      [3,0],
+      [5,0],
+      [-5,1],
+      [-3,1],
+      [-1,1],
+      [1,1],
+      [3,1],
+      [5,1],
+      [-4,2],
+      [-2,2],
+      [0,2],
+      [2,2],
+      [4,2],
+      [-4,3],
+      [-2,3],
+      [0,3],
+      [2,3],
+      [4,3],
+      [-3,4],
+      [-1,4],
+      [1,4],
+      [3,4],
+      [-3,5],
+      [-1,5],
+      [1,5],
+      [3,5],
+      [-2,6],
+      [0,6],
+      [2,6]
+    ],
+    roadkeys : [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      2,
+      2,
+      2
+    ]
+  }
+};
+const gamedata = (function (game) {
+
+  // SVG helper functions
+  function tileAnchorToPointsStr( coords ) {
+    const translations = [ [0,0], [1,-1], [2,0], [2,1], [1,2], [0,1] ];
+    let str = '';
+    for (let i=0; i<translations.length; i++) {
+      const transformedCoords = anchorToPoints([ coords[0] + translations[i][0], coords[1] + translations[i][1] ]);
+      str += transformedCoords[0] + ' ' + transformedCoords[1] + ' ';
+    }
+    return str;
+  }
+  function roadAnchorToPathStr( coords, dir ) {
+    var [x1,y1] = anchorToPoints( coords );
+    switch (dir) {
+      case 2:
+  		 [dx,dy] = [1,-1]; break;
+      case 4:
+  		 [dx,dy] = [1,1];  break;
+      case 6:
+  		 [dx,dy] = [0,1];  break;
+      case 8:
+  		 [dx,dy] = [-1,1]; break;
+      case 10:
+  		 [dx,dy] = [-1,-1];break;
+      case 12:
+  		 [dx,dy] = [0,-1]; break;
+    }
+    var [x2,y2] = anchorToPoints([ coords[0]+dx, coords[1]+dy ])
+    return 'M '+x1+' '+y1+' L '+x2+' '+y2;
+  }
+  function portAnchorToPathStr( key ) {
+    let [x1,y1] = key; // note: key has len 3
+    let x2, y2, x3, y3;
+    let d1 = 1/Math.sqrt(12);
+    let d2 = 1-1/Math.sqrt(3);
+    switch (key[2]) {
+      case 0:
+  		 [x2,y2] = [ x1+d1,  y1-1.0 ];
+  		 [x3,y3] = [ x1+1.0, y1-1.0 ];
+  		 break;
+      case 1:
+  		 [x2,y2] = [ x1-d1,  y1-1.0 ];
+  		 [x3,y3] = [ x1-1.0, y1-1.0 ];
+  		 break;
+      case 2:
+  		 [x2,y2] = [ x1+d2,  y1-0.5 ];
+  		 [x3,y3] = [ x1,		 y1-1.0 ];
+  		 break;
+      case 3:
+  		 [x2,y2] = [ x1-d2,  y1-0.5 ];
+  		 [x3,y3] = [ x1,		 y1-1.0 ];
+  		 break;
+      case 4:
+  		 [x2,y2] = [ x1+d1,  y1+1.0 ];
+  		 [x3,y3] = [ x1+1.0, y1+1.0 ];
+  		 break;
+      case 5:
+  		 [x2,y2] = [ x1-d1,  y1+1.0 ];
+  		 [x3,y3] = [ x1-1.0, y1+1.0 ];
+  		 break;
+    }
+    [x1,y1] = anchorToPoints([ x1,y1 ]);
+    [x2,y2] = anchorToPoints([ x2,y2 ]);
+    [x3,y3] = anchorToPoints([ x3,y3 ]);
+    return 'M '+x1+' '+y1+' L '+x2+' '+y2+' L '+x3+' '+y3+' L '+x1+' '+y1;
+  }
+  function anchorToPoints( coords, scale=1.5 ) {
+    const x = coords[0]*Math.sqrt(3)/2*scale;
+    const y = (coords[1]-0.5*Math.floor(coords[1]/2))*scale;
+    return [x,y];
+  }
+
+  // get the svg data
+  const svg = helpers[ game.meta.settings.scenario ];
+
+  data = {
+    tiles: [],
+    roads: [],
+    ports: [],
+    spots: [],
+  };
+
+  // data for tiles
+  for (let i=0; i<svg.tiles.length; i++) {
+    const textCoords = anchorToPoints([ svg.tiles[i][0]+1, svg.tiles[i][1]+0.5 ]);
+    data.tiles.push({
+      points  : tileAnchorToPointsStr( svg.tiles[i] ),
+      x       : textCoords[0],
+      y       : textCoords[1],
+      //resource: game.board.hexes[i].resource,
+      juncs   : game.board.hexes[i].juncs.join(' '),
+    });
+  }
+
+  // data for roads
+  let r = 0; // keep track of our road-indexer
+  for (let i=0; i<svg.spots.length; i++) {
+    switch (svg.roadkeys[i]) {
+      case 0: // 0-> draw legs at 8:00, 4:00  /\
+        data.roads.push({
+          path : roadAnchorToPathStr( svg.spots[i], 8 ),
+          juncs: game.board.roads[r].juncs.join(' ')
+        });
+        data.roads.push({
+          path : roadAnchorToPathStr( svg.spots[i], 4 ),
+          juncs: game.board.roads[r+1].juncs.join(' ')
+        });
+        r += 2;
+        break;
+      case 1: // 1-> draw leg at 6:00 |
+        data.roads.push({
+          path : roadAnchorToPathStr( svg.spots[i], 6 ),
+          juncs: game.board.roads[r].juncs.join(' ')
+        });
+        r += 1;
+        break;
+      case 2: // 2-> draw legs at 10:00, 2:00  /\
+        data.roads.push({
+          path : roadAnchorToPathStr( svg.spots[i], 10 ),
+          juncs: game.board.roads[r].juncs.join(' ')
+        });
+        data.roads.push({
+          path : roadAnchorToPathStr( svg.spots[i], 2 ),
+          juncs: game.board.roads[r+1].juncs.join(' ')
+        });
+        r += 2;
+        break;
+      case 3: // 3-> draw leg at 12:00
+        data.roads.push({
+          path : roadAnchorToPathStr( svg.spots[i], 12 ),
+          juncs: game.board.roads[r].juncs.join(' ')
+        });
+        r += 1;
+        break; // ignore 4
+    }
+  }
+
+  // build port skeleton
+  for (let i=0; i<svg.ports.length; i++) {
+    data.ports.push({
+      path : portAnchorToPathStr( svg.ports[i] ),
+      juncs: ''
+    });
+  }
+
+  // data for spots
+  for (let i=0; i<svg.spots.length; i++) {
+    const junc = game.board.juncs[i];
+    const coords = anchorToPoints( svg.spots[i] );
+
+    data.spots.push({
+      //'owner': junc.owner ? data.publ.players[ junc.owner ].hashcode : 'none',
+      x     : coords[0],
+      y     : coords[1],
+      //'isCity': junc.isCity,
+      roads : junc.roads.join(' '),
+      hexes : junc.hexes.join(' ')
+    });
+
+    if ( junc.port !== null ) {
+      data.ports[ junc.port.num ].juncs += (i + ' ');
+    }
+  }
+
+  return data;
+
+})(game);
+
+
+
+
+
+
+// constants to style the "tile-chip"s
+const TILE_CHIP_RADIUS = 0.65;
+const TILE_TEXT_OFFSET_Y = "-0.13em";
+const TILE_CHIP_DOTS_OFFSET_Y = 0.35;
+const TILE_CHIP_DOTS_OFFSET_X = 0.075;
+const TILE_CHIP_DOTS_RADIUS = 0.05;
+let first_tile_points = gamedata.tiles[0].points.split(' ');
+let first_tile_min_x = null, first_tile_max_x = null,
+    first_tile_min_y = null, first_tile_max_y = null;
+for (let i=0; i<first_tile_points.length; i++) {
+  let value = parseFloat(first_tile_points[i]);
+  if (!isNaN(value)) {
+    if (i%2) {
+      first_tile_min_x = (first_tile_min_x===null ? value : Math.min(first_tile_min_x, value));
+      first_tile_max_x = (first_tile_max_x===null ? value : Math.max(first_tile_max_x, value));
+    } else {
+      first_tile_min_y = (first_tile_min_y===null ? value : Math.min(first_tile_min_y, value));
+      first_tile_max_y = (first_tile_max_y===null ? value : Math.max(first_tile_max_y, value));
+    }
+  }
+}
+const TILE_PATTERN_IMAGE_WIDTH  = first_tile_max_y - first_tile_min_y;
+const TILE_PATTERN_IMAGE_HEIGHT = first_tile_max_x - first_tile_min_x;
+
+// globals (for the viewBox)
+global.minX=0; global.maxX=0; global.minY=0; global.maxY=0;
+
+
+
+// more constants and stuff to style the settlements/cities
+// params
+const SPOT_RADIUS = 0.1;
+const SPOT_SETTLEMENT_WIDTH  = 0.6;
+const SPOT_SETTLEMENT_WALL_HEIGHT = 0.4;
+const SPOT_SETTLEMENT_ROOF_HEIGHT = 0.3;
+// calculated
+const SPOT_SETTLEMENT_OFFSET_X = -SPOT_SETTLEMENT_WIDTH/2;
+const SPOT_SETTLEMENT_OFFSET_Y = -SPOT_SETTLEMENT_WALL_HEIGHT/2;
+function getSettlementPointsString(data) {
+  let points = [];
+  points.push(data.x+SPOT_SETTLEMENT_OFFSET_X, data.y+SPOT_SETTLEMENT_WALL_HEIGHT+SPOT_SETTLEMENT_OFFSET_Y);
+  points.push(data.x+SPOT_SETTLEMENT_OFFSET_X, data.y+SPOT_SETTLEMENT_OFFSET_Y);
+  points.push(data.x+SPOT_SETTLEMENT_WIDTH/2+SPOT_SETTLEMENT_OFFSET_X, data.y-SPOT_SETTLEMENT_ROOF_HEIGHT+SPOT_SETTLEMENT_OFFSET_Y);
+  points.push(data.x+SPOT_SETTLEMENT_WIDTH+SPOT_SETTLEMENT_OFFSET_X, data.y+SPOT_SETTLEMENT_OFFSET_Y);
+  points.push(data.x+SPOT_SETTLEMENT_WIDTH+SPOT_SETTLEMENT_OFFSET_X, data.y+SPOT_SETTLEMENT_WALL_HEIGHT+SPOT_SETTLEMENT_OFFSET_Y);
+
+  return points.join(' ');
+}
+// params
+const SPOT_CITY_SHORT_WIDTH = SPOT_SETTLEMENT_WIDTH*4/5;
+const SPOT_CITY_TALL_WIDTH  = SPOT_SETTLEMENT_WIDTH*4/5;
+const SPOT_CITY_WALL_F1_HEIGHT = SPOT_SETTLEMENT_WALL_HEIGHT*16/15;
+const SPOT_CITY_WALL_F2_HEIGHT = SPOT_SETTLEMENT_WALL_HEIGHT*8/15;
+const SPOT_CITY_ROOF_HEIGHT = SPOT_SETTLEMENT_ROOF_HEIGHT*4/5;
+// calculated
+const SPOT_CITY_OFFSET_X = -(SPOT_CITY_SHORT_WIDTH+SPOT_CITY_TALL_WIDTH)/2;
+const SPOT_CITY_OFFSET_Y = -SPOT_CITY_WALL_F1_HEIGHT/2-SPOT_CITY_WALL_F2_HEIGHT;
+function getCityPointsString(data) {
+  let points = [];
+  points.push(data.x+SPOT_CITY_OFFSET_X, data.y+SPOT_CITY_OFFSET_Y);
+  points.push(data.x+SPOT_CITY_TALL_WIDTH/2+SPOT_CITY_OFFSET_X, data.y-SPOT_CITY_ROOF_HEIGHT+SPOT_CITY_OFFSET_Y);
+  points.push(data.x+SPOT_CITY_TALL_WIDTH+SPOT_CITY_OFFSET_X, data.y+SPOT_CITY_OFFSET_Y);
+  points.push(data.x+SPOT_CITY_TALL_WIDTH+SPOT_CITY_OFFSET_X, data.y+SPOT_CITY_WALL_F2_HEIGHT+SPOT_CITY_OFFSET_Y);
+  points.push(data.x+SPOT_CITY_TALL_WIDTH+SPOT_CITY_SHORT_WIDTH+SPOT_CITY_OFFSET_X, data.y+SPOT_CITY_WALL_F2_HEIGHT+SPOT_CITY_OFFSET_Y);
+  points.push(data.x+SPOT_CITY_TALL_WIDTH+SPOT_CITY_SHORT_WIDTH+SPOT_CITY_OFFSET_X, data.y+SPOT_CITY_WALL_F1_HEIGHT+SPOT_CITY_WALL_F2_HEIGHT+SPOT_CITY_OFFSET_Y);
+  points.push(data.x+SPOT_CITY_OFFSET_X, data.y+SPOT_CITY_WALL_F1_HEIGHT+SPOT_CITY_WALL_F2_HEIGHT+SPOT_CITY_OFFSET_Y);
+
+  // make sure everything is going to fit into our viewBox
+  minX = Math.min(data.x+SPOT_CITY_OFFSET_X, minX);
+  maxX = Math.max(data.x+SPOT_CITY_TALL_WIDTH+SPOT_CITY_SHORT_WIDTH+SPOT_CITY_OFFSET_X, maxX);
+  minY = Math.min(data.y-SPOT_CITY_ROOF_HEIGHT+SPOT_CITY_OFFSET_Y, minY);
+  maxY = Math.max(data.y+SPOT_CITY_WALL_F1_HEIGHT+SPOT_CITY_WALL_F2_HEIGHT+SPOT_CITY_OFFSET_Y, maxY);
+
+  return points.join(' ');
+}
+
+
+
+
+
+
+
+// now use all of this stuff to build out an SVG string
+let svg = `<!-- CatOnline generated board for "${game.meta.settings.scenario}" (updated ${new Date()}) -->
+<svg version="1.1" id="gameboard" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" viewBox="REPLACE_ME">
+
+  <defs>
+    <!--
+    patterns courtesy of Ryan Schenk (http://ryanschenk.com/blog/2010/11/11/settlers-of-catan-tiles/) under CC-by-NC-SA 3.0 License -->
+    <pattern id="pattern-sheep" patternUnits="objectBoundingBox" width="1" height="1">
+      <image xlink:href="/images/tile-sheep.png" x="0" y="0" width="${TILE_PATTERN_IMAGE_WIDTH}" height="${TILE_PATTERN_IMAGE_HEIGHT}" />
+    </pattern>
+    <pattern id="pattern-wheat" patternUnits="objectBoundingBox" width="1" height="1">
+      <image xlink:href="/images/tile-wheat.png" x="0" y="0" width="${TILE_PATTERN_IMAGE_WIDTH}" height="${TILE_PATTERN_IMAGE_HEIGHT}" />
+    </pattern>
+    <pattern id="pattern-ore" patternUnits="objectBoundingBox" width="1" height="1">
+      <image xlink:href="/images/tile-ore.png" x="0" y="0" width="${TILE_PATTERN_IMAGE_WIDTH}" height="${TILE_PATTERN_IMAGE_HEIGHT}" />
+    </pattern>
+    <pattern id="pattern-wood" patternUnits="objectBoundingBox" width="1" height="1">
+      <image xlink:href="/images/tile-wood.png" x="0" y="0" width="${TILE_PATTERN_IMAGE_WIDTH}" height="${TILE_PATTERN_IMAGE_HEIGHT}" />
+    </pattern>
+    <pattern id="pattern-brick" patternUnits="objectBoundingBox" width="1" height="1">
+      <image xlink:href="/images/tile-brick.png" x="0" y="0" width="${TILE_PATTERN_IMAGE_WIDTH}" height="${TILE_PATTERN_IMAGE_HEIGHT}" />
+    </pattern>
+    <pattern id="pattern-desert" patternUnits="objectBoundingBox" width="1" height="1">
+      <image xlink:href="/images/tile-desert.png" x="0" y="0" width="${TILE_PATTERN_IMAGE_WIDTH}" height="${TILE_PATTERN_IMAGE_HEIGHT}" />
+    </pattern>
+  </defs>
+
+${gamedata.tiles.map( (value,key) => {
+  return `  <g class="tile-group" id="tile${key}" num="${key}">
+    <polygon points="${value.points}" resource="" juncs="${value.juncs}"></polygon>
+    <g class="tile-chip">
+      <circle class="tile-chip-circle" cx="${value.x}" cy="${value.y}" r="${TILE_CHIP_RADIUS}"></circle>
+      <text x="${value.x}" y="${value.y}" dy="${TILE_TEXT_OFFSET_Y}"></text>
+      <g class="tile-chip-dots">
+        <circle class="tile-chip-dot chip-dot-6 chip-dot-8" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*-4}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
+        <circle class="tile-chip-dot chip-dot-5 chip-dot-9" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*-3}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
+        <circle class="tile-chip-dot chip-dot-6 chip-dot-8 chip-dot-4 chip-dot-10" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*-2}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
+        <circle class="tile-chip-dot chip-dot-5 chip-dot-9 chip-dot-3 chip-dot-11" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*-1}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
+        <circle class="tile-chip-dot chip-dot-6 chip-dot-8 chip-dot-4 chip-dot-10 chip-dot-2 chip-dot-12" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*0}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
+        <circle class="tile-chip-dot chip-dot-5 chip-dot-9 chip-dot-3 chip-dot-11" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*1}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
+        <circle class="tile-chip-dot chip-dot-6 chip-dot-8 chip-dot-4 chip-dot-10" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*2}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
+        <circle class="tile-chip-dot chip-dot-5 chip-dot-9" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*3}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
+        <circle class="tile-chip-dot chip-dot-6 chip-dot-8" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*4}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
+      </g>
+    </g>
+    <title></title>
+  </g>`;
+}).join('\n')}
+
+${gamedata.ports.map( (value,key) => {
+  return `  <g class="port-group">
+    <path class="port" id="port${key}" num="${key}" d="${value.path}" junc="${value.juncs}"></path>
+    <title></title>
+  </g>`;
+}).join('\n')}
+
+${gamedata.roads.map( (value,key) => {
+  return `  <g class="road-group">
+    <path class="road" id="road${key}" num="${key}" d="${value.path}" juncs="${value.juncs}"></path>
+    <title></title>
+  </g>`;
+}).join('\n')}
+
+${gamedata.spots.map( (value,key) => {
+  return `  <g class="spot-group">
+    <circle class="spot" id="spot${key}" num="${key}" cx="${value.x}" cy="${value.y}" r="${SPOT_RADIUS}" roads="${value.roads}" hexes="${value.hexes}"></circle>
+    <polygon class="spot-settlement" id="spot-settlement${key}" num="${key}" points="${getSettlementPointsString(value)}"></polygon>
+    <polygon class="spot-city" id="spot-city${key}" num="${key}" points="${getCityPointsString(value)}"></polygon>
+    <title></title>
+  </g>`;
+}).join('\n')}
+
+  <g id="robber" class="robber">
+    <circle class="robber-head robber-background" cx="0" cy="0" r="0.3" />
+    <polygon class="robber-body robber-background" points="0 0 0.5 1 -0.5 1 0 0" />
+    <circle class="robber-head" cx="0" cy="0" r="0.3" />
+    <polygon class="robber-body" points="0 0 0.5 1 -0.5 1 0 0" />
+    <title>Robber? Barely even know her.</title>
+  </g>
+
+  <g id="demo-robber" class="robber">
+    <circle class="robber-head robber-background" cx="0" cy="0" r="0.3" />
+    <polygon class="robber-body robber-background" points="0 0 0.5 1 -0.5 1 0 0" />
+    <circle class="robber-head" cx="0" cy="0" r="0.3"></circle>
+    <polygon class="robber-body" points="0 0 0.5 1 -0.5 1 0 0"></polygon>
+    <title>Robber? Barely even know her.</title>
+  </g>
+
+</svg>`.replace('REPLACE_ME', `${minX-0.5} ${minY-0.5} ${maxX-minX+1.0} ${maxY-minY+1.0}`);
+
+
+
+
+// send it out to stdout (to be piped into > /views/svg/<scenario-name>.ejs)
+console.log(svg);

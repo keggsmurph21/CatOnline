@@ -27,12 +27,14 @@ function setWaitingMessage() {
 }
 function setDice(values) {
   for (let i=0; i<values.length; i++) {
-    let dots = dieValueToCoordinates[values[i]],
-      svg  = '';
-    for (let j=0; j<dots.length; j++) {
-      svg += `<circle class="die-dot" cx="${dots[j][0]}" cy="${dots[j][1]}" r="0.3"> </circle>`;
-    }
-    $(`#dice > :nth-child(${i+1}) g.die-dots`).html(svg);
+    $(`#dice > :nth-child(${i+1}) .die-dot`).each( (key,value) => {
+      let dot = $(value);
+      if (dot.hasClass(`die-${values[i]}`)) {
+        dot.show();
+      } else {
+        dot.hide();
+      }
+    });
   }
 }
 function build() {
@@ -65,13 +67,19 @@ function build() {
     escapes[`%%${hex.resource}%%`] =
       `<strong class="${hex.resource}">${hex.resource}</strong>`;
 
-    $('#tile'+i+' polygon')
+    let tile = $(`#tile${i}`);
+    tile.find('polygon')
       .attr( 'resource', hex.resource )
       .attr( 'class', hex.resource );
-    $('#tile'+i+' text')
-      .attr( 'class', [6,8].indexOf(hex.roll) > -1 ? 'red' : '' )
-      .text( hex.roll ? hex.roll : '' );
-    $(`#tile${i} title`).text(`resource:${hex.resource} ${hex.roll ? `roll:${hex.roll}` : ''}`);
+    tile.find('title')
+      .text(`resource:${hex.resource} ${hex.roll ? `roll:${hex.roll}` : ''}`);
+    tile.find('.tile-chip-dot').not(`.chip-dot-${hex.roll}`).hide();
+    if (hex.roll) {
+      tile.find('text').text(hex.roll)
+        .attr( 'class', [6,8].indexOf(hex.roll) > -1 ? 'red' : '' )
+    } else {
+      tile.find('.tile-chip').detach();
+    }
   }
   for (let i=0; i< game.public.players.length; i++) {
 
@@ -206,7 +214,7 @@ function build() {
     escapes[`%%${game.private.playerID}%%`] = `<strong class="${
       game.public.players[game.private.playerID].color}">you</strong>`;
 
-    $('.tile, .tile *').closest('.tile').children().hover( (i) => {
+    $('.tile-group, .tile-group *').closest('.tile-group').children().hover( (i) => {
       let target = $(i.target).closest('g');
       if (i.type === 'mouseenter') {
         if (target.hasClass('active') || target.hasClass('dc-choose')) {
@@ -259,8 +267,8 @@ function moveRobber(i, head='#robber') {
   $(`${head} .robber-body`).attr('points', pts.join(' '));
 
   if (head === '#robber') {
-    $(`.tile text`).show();
-    $(`#tile${i} text`).hide();
+    $(`.tile-group .tile-chip`).show();
+    $(`#tile${i} .tile-chip`).hide();
   }
 
 }
@@ -270,7 +278,7 @@ function populate() {
     moveRobber(game.public.robber);
     moveRobber(game.public.robber, head='#demo-robber');
 
-    $('.tile').addClass('robbable');
+    $('.tile-group').addClass('robbable');
     $(`#tile${game.public.robber}`).removeClass('robbable');
 
     //
@@ -309,7 +317,7 @@ function populate() {
         }
       }
       if (data.port !== null)
-        $('#port'+data.port.num).attr( 'class', 'port '+data.port.type );
+        $(`#port${data.port.num}`).addClass(data.port.type);
 
       spot.siblings('title').text(`owner:${
         owner===null ? 'none' : owner.lobbyData.name} ${
@@ -349,7 +357,7 @@ function populate() {
 
     }
 
-    $('#demo-robber').css('visibility', ($('.tile.robbable.active').length>0 ? 'visible' : 'hidden'));
+    $('#demo-robber').css('visibility', ($('.tile-group.robbable.active').length>0 ? 'visible' : 'hidden'));
     setDice(game.public.dice.values);
 
   }
@@ -500,9 +508,9 @@ function onConnect(data) {
         listen.to(type, [num]);
       });
     }
-    $('.tile *').click( (t) => {
+    $('.tile-group *').click( (t) => {
       let [type, num] = getTypeAndNum(
-        $(t.target).closest('.tile').attr('id'));
+        $(t.target).closest('.tile-group').attr('id'));
       listen.to(type, [num]);
     });
 
@@ -624,7 +632,7 @@ let gameid, game, escapes, panzoom,
     set() {
       listen.reset();
       if (game.private !== null) {
-        $('#gameboard *').removeClass('active'); 
+        $('#gameboard *').removeClass('active');
 
         for (let i=0; i<game.private.adjacents.length; i++) {
           let edge = getEdge(game.private.adjacents[i]);
@@ -1010,9 +1018,9 @@ const modals = {
           $('#modal-play-dc .modal-header').html( escapeString('Confirm %%Knight%%.') );
           $('#modal-play-dc .modal-string').html( knightString() );
 
-          $('.tile.dc-choose *').click( (dom) => {
+          $('.tile-group.dc-choose *').click( (dom) => {
 
-            let num = parseInt($(dom.target).closest('.tile').attr('num'));
+            let num = parseInt($(dom.target).closest('.tile-group').attr('num'));
             moveRobber(num, head='#demo-robber');
             modals.DC.card.args = [num];
 
