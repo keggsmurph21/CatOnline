@@ -57,6 +57,9 @@ typings/
 # dotenv environment variables file
 .env
 
+# vim files
+*.swp
+
 # don't want to track database files anymore ... fixed the issue that
 # was making the empty db's crash on startup
 data
@@ -66,3 +69,6 @@ data
 
 # temp files
 tmp
+
+# pip virtual environment
+Pipfile*

@@ -14,22 +14,70 @@
   <div class="play content">
 
     <div class="frame" id="control">
-      <div class="panel" id="buttons">
-        <button onclick="location.href='/lobby';" id="lobby">Go to lobby</button>
-      </div>
 
       <div class="panel" id="game-data">
-        <table id="public-data">
+
+        <table id="public-data" class="play">
           <tr class="header">
             <th id="public-name">name</th>
-            <th id="public-score">vp</th>
+            <th id="public-score">points</th>
             <th id="public-resources">resources</th>
             <th id="public-longest-road">road</th>
             <th id="public-dev-cards">dev cards</th>
             <th id="public-knights">knights</th>
           </tr>
+          <% for (let i=0; i< public.players.length; i++) { %>
+            <tr class="<%= public.players[i].color %>">
+            	<td><strong><%= public.players[i].lobbyData.name %></strong></td>
+            	<td><strong id="<%= i %>-score"></strong></td>
+            	<td><strong id="<%= i %>-resources"></strong></td>
+            	<td><strong id="<%= i %>-longest-road"></strong></td>
+            	<td><strong id="<%= i %>-dev-cards"></strong></td>
+            	<td><strong id="<%= i %>-knights"></strong></td>
+            </tr>
+          <% } %>
         </table>
-        <div id="private-data"></div>
+
+        <% if (private !== null) { %>
+
+          <div id="private-data">
+            <table id="private-resources" class="play private-data-table">
+              <tr class="header">
+                <th colspan="100">resources</th>
+                <% for (let res in private.resources) { %>
+                  <tr class="<%= res %>">
+                  	<td><%= res %></td>
+                  	<td id="num-<%= res %>"></td>
+                  	<td><button type="button" class="discard" name="<%= res %>">discard</button></td>
+                  </tr>
+                <% } %>
+              </tr>
+            </table>
+            <table id="private-dev-cards" class="play private-data-table">
+              <tr class="header">
+                <th colspan="100">dev cards</th>
+              </tr>
+              <% for (let dc in private.unplayedDCs) { %>
+                <tr class="<%= dc %>">
+                  <td><%= dc %></td>
+                  <td id="num-<%= dc %>"></td>
+                  <td><button type="button" class="play" name="<%= dc %>">play</button></td>
+                </tr>
+              <% } %>
+            </table>
+          </div>
+
+        <% } %>
+
+        <div id="public-trade">
+          <div id="public-trade-current"></div>
+          <div id="public-trade-buttons">
+            <button type="button" id="cancelTrade">cancel</button>
+            <button type="button" id="acceptTrade">accept</button>
+            <button type="button" id="declineTrade">decline</button>
+          </div>
+        </div>
+
         <div id="waiting-for"></div>
       </div>
 
@@ -38,65 +86,130 @@
     </div>
 
     <div class="frame" id="game">
-      <div id="dice">
-        <%- include( 'svg/die.ejs' ) %>
-        <%- include( 'svg/die.ejs' ) %>
+      <div id="board-floats">
+        <div id="dice" title="Roll the dice">
+          <%- include( 'svg/die.ejs' ) %>
+          <%- include( 'svg/die.ejs' ) %>
+        </div>
+        <br />
+        <div id="buttons">
+          <div id="endTurn" title="End your turn">
+            <strong>end turn</strong>
+          </div>
+          <div id="buyDevelopmentCard" title="Buy a development card">
+            <strong>buy dev card</strong>
+          </div>
+          <div id="offerTrade" title="Trade with a player or the bank">
+            <strong>trade</strong>
+          </div>
+          <div id="exitGame" title="Exit to lobby">
+            <strong>exit</strong>
+          </div>
+        </div>
       </div>
 
       <%- include( 'svg/standard.ejs' ) %>
 
-      <div id="modal-trade" class="modal" style="display:none;">
-        <div class="modal-header">
-          Offer a trade
-        </div>
-        <div class="modal-body">
-          <div class="trade-out">
-            Give
-            <table>
-              <tr>
-                <th>Resource</th>
-                <th>Number</th>
-              </tr>
-            </table>
+      <% if (private !== null) { %>
+        <div id="modal-trade" class="modal">
+          <div class="modal-header">
+            Offer a trade
           </div>
-          <div class="trade-in">
-            Get
-            <table>
-              <tr>
-                <th>Resource</th>
-                <th>Number</th>
-              </tr>
-            </table>
+          <div class="modal-body">
+            <div class="trade-out">
+              Give
+              <table>
+                <tr>
+                  <th>Resource</th>
+                  <th>Number</th>
+                </tr>
+                <% for (let res in private.resources) { %>
+                  <tr class="<%= res %>">
+                    <td><strong><%= res %></strong></td>
+                    <td>
+                      <button type="button" class="decrement" name="<%= res %>">-</button>
+                      <strong class="resource-count" name="<%= res %>">0</strong>
+                      <button type="button" class="increment" name="<%= res %>">+</button>
+                    </td>
+                  </tr>
+                <% } %>
+              </table>
+            </div>
+            <div class="trade-in">
+              Get
+              <table>
+                <tr>
+                  <th>Resource</th>
+                  <th>Number</th>
+                </tr>
+                <% for (let res in private.resources) { %>
+                  <tr class="<%= res %>">
+                    <td><strong><%= res %></strong></td>
+                    <td>
+                      <button type="button" class="decrement" name="<%= res %>">-</button>
+                      <strong class="resource-count" name="<%= res %>">0</strong>
+                      <button type="button" class="increment" name="<%= res %>">+</button>
+                    </td>
+                  </tr>
+                <% } %>
+              </table>
+            </div>
+            <div class="trade-with">
+              With
+              <table>
+                <tr>
+                  <td>
+                    <input type="checkbox" name="bank" class="trade-partner bank" />
+                  </td>
+                  <td>the Bank</td>
+                </tr>
+                <% if (public.players.length > 1) { %>
+                  <tr>
+                    <th></th>
+                    <th>Players</th>
+                  </tr>
+                  <% for (let i=0; i< public.players.length; i++) { if (i !== private.playerID) { %>
+                    <tr class="player-${i}">
+                      <td>
+                        <input type="checkbox" name="<%= i %>" class="trade-partner player" />
+                      </td>
+                      <td>
+                        <strong class="<%= public.players[i].color %>"><%= public.players[i].lobbyData.name %></strong>
+                      </td>
+                    </tr>
+                  <% } } %>
+                  <button name="select-all" type="button">Select all</button>
+                <% } %>
+              </table>
+            </div>
           </div>
-          <div class="trade-with">
-            With
-            <table>
-              <tr>
-                <td>
-                  <input type="checkbox" name="bank" class="trade-partner bank" onclick="modals.Trade.toggleCheck(this);" />
-                </td>
-                <td>the Bank</td>
-              </tr>
-            </table>
+          <div class="modal-string">
+            test
+          </div>
+          <div class="modal-footer">
+            <button type="button" name="confirm">Confirm</button>
+            <button type="cancel" name="cancel">Cancel</button>
           </div>
         </div>
-        <div class="modal-string">
-          test
+        <div id="modal-play-dc" class="modal">
+          <div class="modal-header"></div>
+          <div class="dc-resources">
+            <% for (let res in private.resources) { %>
+              <button type="button" class="<%= res %>" name="<%= res %>">
+                <strong class="<%= res %>"><%= res %></strong>
+              </button>
+            <% } %>
+            <button type="button" name="reset">
+              <strong>reset</strong>
+            </button>
+          </div>
+          <div class="modal-string"></div>
+          <div class="modal-footer">
+            <button type="button" name="confirm">Confirm</button>
+            <button type="button" name="cancel">Cancel</button>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" name="confirm" onclick="modals.Trade.confirm();">Confirm</button>
-          <button type="cancel" name="cancel"  onclick="modals.Trade.cancel();">Cancel</button>
-        </div>
-      </div>
-      <div id="modal-play-dc" class="modal" style="display:none;">
-        <div class="modal-header"></div>
-        <div class="dc-resources"></div>
-        <div class="modal-string"></div>
-        <div class="modal-footer">
-          <button type="button" name="confirm" onclick="modals.DC.confirm();">Confirm</button>
-          <button type="cancel" name="cancel"  onclick="modals.DC.cancel();">Cancel</button>
-        </div>
-      </div>
+      <% } %>
 
     </div>
 

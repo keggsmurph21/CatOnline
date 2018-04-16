@@ -362,7 +362,6 @@ global.minX=0; global.maxX=0; global.minY=0; global.maxY=0;
 
 // more constants and stuff to style the settlements/cities
 // params
-const SPOT_RADIUS = 0.1;
 const SPOT_SETTLEMENT_WIDTH  = 0.6;
 const SPOT_SETTLEMENT_WALL_HEIGHT = 0.4;
 const SPOT_SETTLEMENT_ROOF_HEIGHT = 0.3;
@@ -441,7 +440,7 @@ let svg = `<!-- CatOnline generated board for "${game.meta.settings.scenario}" (
   </defs>
 
 ${gamedata.tiles.map( (value,key) => {
-  return `  <g class="tile-group" id="tile${key}" num="${key}">
+  return `  <g class="tile-group clickable" type="tile" id="tile${key}" num="${key}">
     <polygon points="${value.points}" resource="" juncs="${value.juncs}"></polygon>
     <g class="tile-chip">
       <circle class="tile-chip-circle" cx="${value.x}" cy="${value.y}" r="${TILE_CHIP_RADIUS}"></circle>
@@ -463,24 +462,24 @@ ${gamedata.tiles.map( (value,key) => {
 }).join('\n')}
 
 ${gamedata.ports.map( (value,key) => {
-  return `  <g class="port-group">
-    <path class="port" id="port${key}" num="${key}" d="${value.path}" junc="${value.juncs}"></path>
+  return `  <g id="port${key}" class="port-group clickable" type="port" num="${key}">
+    <path class="port" num="${key}" d="${value.path}" juncs="${value.juncs}"></path>
     <title></title>
   </g>`;
 }).join('\n')}
 
 ${gamedata.roads.map( (value,key) => {
-  return `  <g class="road-group">
-    <path class="road" id="road${key}" num="${key}" d="${value.path}" juncs="${value.juncs}"></path>
+  return `  <g id="road${key}" class="road-group clickable" type="road" num="${key}">
+    <path class="road" num="${key}" d="${value.path}" juncs="${value.juncs}"></path>
     <title></title>
   </g>`;
 }).join('\n')}
 
 ${gamedata.spots.map( (value,key) => {
-  return `  <g class="spot-group">
-    <circle class="spot" id="spot${key}" num="${key}" cx="${value.x}" cy="${value.y}" r="${SPOT_RADIUS}" roads="${value.roads}" hexes="${value.hexes}"></circle>
-    <polygon class="spot-settlement" id="spot-settlement${key}" num="${key}" points="${getSettlementPointsString(value)}"></polygon>
-    <polygon class="spot-city" id="spot-city${key}" num="${key}" points="${getCityPointsString(value)}"></polygon>
+  return `  <g id="spot${key}" class="spot-group clickable" type="spot" num="${key}">
+    <circle class="spot" num="${key}" cx="${value.x}" cy="${value.y}" r="${SPOT_RADIUS}" roads="${value.roads}" hexes="${value.hexes}"></circle>
+    <polygon class="spot-settlement" num="${key}" points="${getSettlementPointsString(value)}"></polygon>
+    <polygon class="spot-city" num="${key}" points="${getCityPointsString(value)}"></polygon>
     <title></title>
   </g>`;
 }).join('\n')}

@@ -20,6 +20,8 @@ const _M = {
   }
 }
 
+// GLOBAL SCOPE MESSAGE-RELATED VARIABLES
+var escapes = {};
 
 
 

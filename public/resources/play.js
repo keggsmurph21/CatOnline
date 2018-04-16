@@ -23,7 +23,6 @@ function setWaitingMessage() {
     message = escapeString(message);
   }
   $('#waiting-for').html(message);
-  //_M.addMessage(message);
 }
 function setDice(values) {
   for (let i=0; i<values.length; i++) {
@@ -36,199 +35,6 @@ function setDice(values) {
       }
     });
   }
-}
-function build() {
-  function buildPublicDataTR(i) {
-    let str = ``;
-
-    str += `<tr class="${game.public.players[i].color}">`;
-    str +=   `<td>${game.public.players[i].lobbyData.name}</td>`;
-    str +=   `<td id="${i}-score"></td>`;
-    str +=   `<td id="${i}-resources"></td>`;
-    str +=   `<td id="${i}-longest-road"></td>`;
-    str +=   `<td id="${i}-dev-cards"></td>`;
-    str +=   `<td id="${i}-knights"></td>`;
-    str += `</tr>`;
-
-    return str;
-  }
-
-  $('#public-data').after(`
-    <div id="public-trade">
-      <div id="public-trade-current"></div>
-      <div id="public-trade-buttons"></div>
-    </div>`);
-  escapes = {
-    '%%Longest Road%%':'<strong class="longest-road">Longest Road</strong>',
-    '%%Largest Army%%':'<strong class="largest-army">Largest Army</strong>'
-  };
-  for (let i=0; i<game.public.hexes.length; i++) {
-    let hex = game.public.hexes[i];
-    escapes[`%%${hex.resource}%%`] =
-      `<strong class="${hex.resource}">${hex.resource}</strong>`;
-
-    let tile = $(`#tile${i}`);
-    tile.find('polygon')
-      .attr( 'resource', hex.resource )
-      .attr( 'class', hex.resource );
-    tile.find('title')
-      .text(`resource:${hex.resource} ${hex.roll ? `roll:${hex.roll}` : ''}`);
-    tile.find('.tile-chip-dot').not(`.chip-dot-${hex.roll}`).hide();
-    if (hex.roll) {
-      tile.find('text').text(hex.roll)
-        .attr( 'class', [6,8].indexOf(hex.roll) > -1 ? 'red' : '' )
-    } else {
-      tile.find('.tile-chip').detach();
-    }
-  }
-  for (let i=0; i< game.public.players.length; i++) {
-
-    escapes[`%%${i}%%`] =
-      `<strong class="${
-        game.public.players[i].color}">${
-        game.public.players[i].lobbyData.name}</strong>`;
-
-    // public game content rows
-    let tr = buildPublicDataTR(i);
-    $('#public-data tr:last').after(tr);
-  }
-
-  if (game.private !== null) {
-
-    function buildResourceTR(res) {
-      let str = ``;
-
-      str += `<tr class="${res}">`;
-      str +=   `<td>${res}</td>`;
-      str +=   `<td id="num-${res}"></td>`;
-      str +=   `<td><button type="button" class="discard" name="${res}">discard</button>`;
-      str += `</tr>`;
-
-      return str;
-    }
-    function buildDevCardTR(dc) {
-      let str = ``;
-
-      str += `<tr class="${dc}">`;
-      str +=   `<td>${dc}</td>`;
-      str +=   `<td id="num-${dc}"></td>`;
-      str +=   `<td><button type="button" class="play" name="${dc}">play</button>`;
-      str += `</tr>`;
-
-      return str;
-    }
-    function buildButtons() {
-
-      function buildButton(id, text, type='button', enabled=false) {
-        return `<button type="${type}" id="${id}"${(enabled
-          ? `` : ` disabled="disabled"`)}>${text}</button>`;
-      }
-
-      let buttons = [];
-      buttons.push( buildButton('buyDevelopmentCard', 'Buy development card') );
-      buttons.push( buildButton('endTurn', 'End turn') );
-      buttons.push( buildButton('offerTrade', 'Offer trade') );
-      buttons.push( buildButton('tradeBank', 'Trade bank') );
-
-      for (let i=0; i<buttons.length; i++) {
-        $('#buttons button:last').after( buttons[i] );
-      }
-
-      $('#public-trade-buttons').html( buildButton('cancelTrade', 'cancel', 'button', true) );
-      $('#public-trade-buttons button:last').after( buildButton('acceptTrade', 'accept', 'button', true) );
-      $('#public-trade-buttons button:last').after( buildButton('declineTrade', 'decline', 'button', true) );
-
-    }
-
-    // table skeletons and header rows
-    $('#private-data').html(
-        `<table id="private-resources" class="private-data-table">
-        <tr class="header">
-          <th colspan="100">resources</th>
-        </tr>
-      </table>
-      <table id="private-dev-cards" class="private-data-table">
-        <tr class="header">
-          <th colspan="100">dev cards</th>
-        </tr>
-      </table>`);
-    function buildTradeModalResourceTR(res) {
-      return `<tr class="${res}">
-        <td>${res}</td>
-        <td>
-          <button type="button" class="decrement" name="${res}" onclick="modals.Trade.decrement(this);">-</button>
-          <span class="resource-count" name="${res}">0</span>
-          <button type="button" class="increment" name="${res}" onclick="modals.Trade.increment(this);">+</button>
-        </td>
-      </tr>`;
-    }
-    function buildTradeModalPlayerTR(i) {
-      return `<tr class="player-${i}">
-        <td> <input type="checkbox" name="${i}" class="trade-partner player" onclick="modals.Trade.toggleCheck(this);" /> </td>
-        <td>${escapeString(`%%${i}%%`)}</td>
-      </tr>`;
-    }
-    function buildDCModalButton(res) {
-      return `<button type="button" class="${res}" name="${res}">${escapeString(`%%${res}%%`)}</span>`;
-    }
-
-
-    // resources content rows
-    for (let res in game.private.resources) {
-      let tr = buildResourceTR(res);
-      $('#private-resources tr:last').after(tr);
-
-      tr = buildTradeModalResourceTR(res);
-      $('.trade-out tr:last').after(tr);
-      $('.trade-in tr:last').after(tr);
-
-      tr = buildDCModalButton(res);
-      $('#modal-play-dc .dc-resources').append(tr);
-    }
-    $('#modal-play-dc .dc-resources').append(
-      `<button type="button" name="reset"><strong>reset</strong></span>`);
-
-
-    if (game.public.players.length > 1) {
-      $('.trade-with tr:last').after(
-        `<tr>
-          <th></th>
-          <th>Players</th>
-        </tr>`);
-      $('.trade-with table').after(
-        `<button type="button" onclick="modals.Trade.selectAll();">Select all</button>`);
-    }
-    for (let i=0; i<game.public.players.length; i++) {
-      if (i !== game.private.playerID) {
-        tr = buildTradeModalPlayerTR(i);
-        $('.trade-with tr:last').after(tr);
-      }
-    }
-
-    // development cards content rows
-    for (let dc in game.private.unplayedDCs) {
-      let tr = buildDevCardTR(dc);
-      $('#private-dev-cards tr:last').after(tr);
-    }
-
-    escapes[`%%${game.private.playerID}%%`] = `<strong class="${
-      game.public.players[game.private.playerID].color}">you</strong>`;
-
-    $('.tile-group, .tile-group *').closest('.tile-group').children().hover( (i) => {
-      let target = $(i.target).closest('g');
-      if (i.type === 'mouseenter') {
-        if (target.hasClass('active') || target.hasClass('dc-choose')) {
-          let j = parseInt(target.attr('id').slice(4));
-          $('#demo-robber *').attr('num', j).css('visibility', 'visible');
-          moveRobber(j, head='#demo-robber');
-          //target.closest('g').children().off('hover');
-        }
-      }
-    });
-
-    buildButtons();
-  }
-
 }
 function moveRobber(i, head='#robber') {
   let pts = $(`#tile${i}`).find('polygon').attr('points').split(' ');
@@ -272,313 +78,244 @@ function moveRobber(i, head='#robber') {
   }
 
 }
+
 function populate() {
-  function board() {
+  /*
+   *  handle updates to game data, call this every time we get a new response from the server
+   */
 
-    moveRobber(game.public.robber);
-    moveRobber(game.public.robber, head='#demo-robber');
+  // update things on the board first
 
-    $('.tile-group').addClass('robbable');
-    $(`#tile${game.public.robber}`).removeClass('robbable');
+  // set up robber
+  moveRobber(game.public.robber);
+  moveRobber(game.public.robber, head='#demo-robber');
+  $('.tile-group').addClass('robbable');
+  $(`#tile${game.public.robber}`).removeClass('robbable');
+  $('#demo-robber').css('visibility', ($('.tile-group.robbable.active').length>0 ? 'visible' : 'hidden'));
 
-    //
-    $('.spot').removeClass(['fortifiable', 'init-settleable', 'settleable', 'stealable']);
-    for (let i=0; i<game.public.juncs.length; i++) {
-      let spot = $('#spot'+i),
-          data = game.public.juncs[i],
-          owner= (data.owner>-1 ? game.public.players[data.owner] : null);
+  // set dice
+  setDice(game.public.dice.values);
 
-      if (game.private !== null) {
-        for (let j=0; j<data.hexes.length; j++) {
-          if (data.hexes[j] === game.public.robber
-            && data.owner !== -1
-            && data.owner !== game.private.playerID)
-            spot.addClass('stealable');
-        }
-      }
-      if (owner!==null) {
-        spot.addClass(owner.color)
-          .attr('owner',owner.playerID);
-        if (data.isCity) {
-          spot.addClass('city');
-        } else {
-          if (game.private !== null) {
-            if (owner.playerID === game.private.playerID)
-              spot.addClass('fortifiable');
-          }
-        }
-      } else if (data.isSettleable) {
-        spot.addClass('init-settleable');
-        for (let j=0; j<data.roads.length; j++) {
-          if (game.private !== null) {
-            if (game.public.roads[data.roads[j]].owner === game.private.playerID)
-              spot.addClass('settleable');
-          }
-        }
-      }
-      if (data.port !== null)
-        $(`#port${data.port.num}`).addClass(data.port.type);
+  // show all the settlements & cities, bind appropriate classes
+  $('.spot-group').removeClass(['fortifiable', 'init-settleable', 'settleable', 'stealable']);
+  for (let i=0; i<game.public.juncs.length; i++) {
 
-      spot.siblings('title').text(`owner:${
-        owner===null ? 'none' : owner.lobbyData.name} ${
-          data.port !== null
-            ? `port:${data.port.type}`
-            : ''
-        }`);
+    let spot = $(`#spot${i}`),
+        data = game.public.juncs[i],
+        owner= (data.owner>-1 ? game.public.players[data.owner] : null);
 
-    }
-    $('.road').removeClass(['paveable', 'init-paveable']);
-    for (let i=0; i<game.public.roads.length; i++) {
-      let road = $('#road'+i),
-          data = game.public.roads[i],
-          owner= (data.owner>-1 ? game.public.players[data.owner] : null);
-
-      if (owner!==null) {
-        road.addClass(owner.color)
-          .attr('owner',owner.playerID);
-      } else if (game.private !== null) {
-        let adjacentRoads = roadGetAdjRoads(game.public, i);
-        for (let j=0; j<adjacentRoads.length; j++) {
-          if (game.public.roads[adjacentRoads[j]].owner === game.private.playerID)
-            road.addClass('paveable');
-        }
-        for (let j=0; j<data.juncs.length; j++) {
-          if (game.public.juncs[data.juncs[j]].owner === game.private.playerID) {
-            road.addClass('paveable');
-            let settlements = game.public.players[game.private.playerID].settlements;
-            if (data.juncs[j] === settlements[settlements.length-1]) {
-              road.addClass('init-paveable');
-            }
-          }
-        }
-      }
-
-      road.siblings('title').text(`owner:${owner===null ? 'none' : owner.lobbyData.name}`);
-
-    }
-
-    $('#demo-robber').css('visibility', ($('.tile-group.robbable.active').length>0 ? 'visible' : 'hidden'));
-    setDice(game.public.dice.values);
-
-  }
-  function publicInfo() {
-
-    function getVPString(i) {
-      // get the score ... if this is the private player and the private
-      // score is different from the public score (e.g. if holding a VP dev card)
-      // then display it like "publicScore (privateScore)"
-      let pubScore = game.public.players[i].publicScore,
-        privScore  = '';
-      if (game.private !== null) {
-        if (i === game.private.playerID && pubScore !== game.private.privateScore)
-          privScore = ` (${game.private.privateScore})`;
-      }
-      return (pubScore + privScore);
-    }
-    function getLRString(i) {
-      let str = game.public.players[i].longestRoad;
-      if (game.private !== null) {
-        if (game.public.hasLongestRoad === i)
-          str += '🚗';
-      }
-      return str;
-    }
-    function getLAString(i) {
-      let str = game.public.players[i].numKnights;
-      if (game.private !== null) {
-        if (game.public.hasLargestArmy === game.private.playerID)
-          str += '⚔️';
-      }
-      return str;
-    }
-
-    for (let i=0; i<game.public.players.length; i++) {
-      $(`#${i}-score`).html( getVPString(i) );
-      $(`#${i}-resources`).html( game.public.players[i].resourcesInHand );
-      $(`#${i}-longest-road`).html( getLRString(i) );
-      $(`#${i}-dev-cards`).html( game.public.players[i].devCardsInHand );
-      $(`#${i}-knights`).html( getLAString(i) );
-    }
-
-    modals.Trade.setTrade(game.public.trade);
-    $('#public-trade-current').html( (modals.Trade.trade.out === {}
-      ? escapeString(`%%${
-        game.public.currentPlayerID}%%: ${
-          modals.Trade.toString()}` )
-      : '') );
-  }
-  function privateInfo() {
-    function updateButtons() {
-      function isAdjacent(edge) {
-        return (game.private.adjacents.indexOf(edge) > -1);
-      }
-
-      $('#buyDevelopmentCard')
-        .prop('disabled', !isAdjacent('_e_buy_dc'));
-      $('#endTurn')
-        .prop('disabled', !isAdjacent('_e_end_turn'));
-      $('#offerTrade')
-        .prop('disabled', !isAdjacent('_e_offer_trade'));
-      $('#viewTrade')
-        .prop('disabled', (game.public.trade.in===null));
-      $('#tradeBank')
-        .prop('disabled', !isAdjacent('_e_trade_bank'));
-
-      if (game.private.flags.discard > 0) {
-        $('button.discard').show();
-        for (let res in game.private.resources) {
-          $(`button.discard[name=${res}]`)
-            .css('visibility', (game.private.resources[res] > 0)
-              ? 'visible'
-              : 'hidden' );
-        }
-      } else {
-        $('button.discard').hide();
-      }
-
-      $(`button.play`).prop('disabled', true).hide();
-      for (let dc in game.private.flags.canPlayDC) {
-        if (game.private.flags.canPlayDC[dc] && game.private.flags.isCurrentPlayer) {
-          $(`button.play[name=${dc}]`).prop('disabled', false);
-          $('button.play').show();
-        }
-      }
-
-      if (game.private.adjacents.indexOf('_e_cancel_trade') > -1) {
-        $('#cancelTrade').show();
-      } else {
-        $('#cancelTrade').hide();
-      }
-      if (game.private.adjacents.indexOf('_e_accept_trade_other') > -1) {
-        $('#acceptTrade').show();
-      } else {
-        $('#acceptTrade').hide();
-      }
-      if (game.private.adjacents.indexOf('_e_decline_trade') > -1) {
-        $('#declineTrade').show();
-      } else {
-        $('#declineTrade').hide();
-      }
-
-      modals.update();
-    }
-
+    // check if we could steal from the owner of this spot
     if (game.private !== null) {
-
-      for (let res in game.private.resources) {
-        $(`#num-${res}`).html(game.private.resources[res]);
-        $(`#modal-trade .trade-out .resource-count[name=${res}]`).html(0);
+      for (let j=0; j<data.hexes.length; j++) {
+        if (data.hexes[j] === game.public.robber
+          && data.owner !== -1
+          && data.owner !== game.private.playerID)
+          spot.addClass('stealable');
       }
-      for (let dc in game.private.unplayedDCs) {
-        $(`#num-${dc}`).html( game.private.unplayedDCs[dc]+game.private.unplayableDCs[dc] );
-        escapes[`%%${devCardNames[dc]}%%`] =
-          `<strong class="${dc}">${devCardNames[dc]}</strong>`;
-      }
-      escapes['%%DISCARD%%'] = `${game.private.flags.discard} card${game.private.flags.discard>1?'s':''}`;
-
-      setWaitingMessage();
-      updateButtons();
-
     }
+
+    // check if it is a settlement or city (or could become a city)
+    if (owner!==null) {
+      spot.addClass(owner.color)
+        .attr('owner',owner.playerID);
+      if (data.isCity) {
+        spot.find('circle, .spot-settlement').hide();
+        spot.find('.spot-city').show();
+        spot.addClass('city');
+      } else {
+        spot.find('circle, .spot-city').hide();
+        spot.find('.spot-settlement').show();
+        if (game.private !== null) {
+          if (owner.playerID === game.private.playerID)
+            spot.addClass('fortifiable');
+        }
+      }
+
+    // check if it could become a settlement
+    } else if (data.isSettleable) {
+      spot.addClass('init-settleable');
+      for (let j=0; j<data.roads.length; j++) {
+        if (game.private !== null) {
+          if (game.public.roads[data.roads[j]].owner === game.private.playerID)
+            spot.addClass('settleable');
+        }
+      }
+    }
+
+    // check if it's a port
+    if (data.port !== null)
+      $(`#port${data.port.num}`).addClass(data.port.type)
+        .find('title').text( data.port.type === 'mystery'
+            ? '3:1 port'
+            : `2:1 ${data.port.type} port`);
+
+    // add the title
+    spot.find('title').text(`owner:${
+      owner===null ? 'none' : owner.lobbyData.name} ${
+        data.port !== null
+          ? `port:${data.port.type}`
+          : ''
+      }`);
   }
 
-  board();
-  publicInfo();
-  privateInfo();
+  // show all the roads with appropriate classes
+  $('.road-group').removeClass(['paveable', 'init-paveable']);
+  for (let i=0; i<game.public.roads.length; i++) {
+
+    let road = $(`#road${i}`),
+        data = game.public.roads[i],
+        owner= (data.owner>-1 ? game.public.players[data.owner] : null);
+
+    // if it is owned
+    if (owner!==null) {
+      road.addClass(owner.color)
+        .attr('owner',owner.playerID);
+
+    // or if it could be owned
+    } else if (game.private !== null) {
+      // only possible if it's next to an existing road
+      let adjacentRoads = roadGetAdjRoads(game.public, i);
+      for (let j=0; j<adjacentRoads.length; j++) {
+        if (game.public.roads[adjacentRoads[j]].owner === game.private.playerID)
+          road.addClass('paveable');
+      }
+      for (let j=0; j<data.juncs.length; j++) {
+        if (game.public.juncs[data.juncs[j]].owner === game.private.playerID) {
+          // or existing settlement
+          road.addClass('paveable');
+          let settlements = game.public.players[game.private.playerID].settlements;
+          if (data.juncs[j] === settlements[settlements.length-1]) {
+            // unless it's the first turn
+            road.addClass('init-paveable');
+          }
+        }
+      }
+    }
+
+    // add the title
+    road.find('title').text(`owner:${owner===null ? 'none' : owner.lobbyData.name}`);
+
+  }
+
+
+  // then update the public info
+
+  function getVPString(i) {
+    // get the score ... if this is the private player and the private
+    // score is different from the public score (e.g. if holding a VP dev card)
+    // then display it like "publicScore (privateScore)"
+    let pubScore = game.public.players[i].publicScore,
+      privScore  = '';
+    if (game.private !== null) {
+      if (i === game.private.playerID && pubScore !== game.private.privateScore)
+        privScore = ` (${game.private.privateScore})`;
+    }
+    return (pubScore + privScore);
+  }
+  function getLRString(i) {
+    // add an emoji if this player currently has the longest road
+    let str = game.public.players[i].longestRoad;
+    if (game.private !== null) {
+      if (game.public.hasLongestRoad === i)
+        str += '🚗';
+    }
+    return str;
+  }
+  function getLAString(i) {
+    // add an emoji if this player currently has the largest army
+    let str = game.public.players[i].numKnights;
+    if (game.private !== null) {
+      if (game.public.hasLargestArmy === game.private.playerID)
+        str += '⚔️';
+    }
+    return str;
+  }
+
+  // update each item in the public data table
+  for (let i=0; i<game.public.players.length; i++) {
+    $(`#${i}-score`).html( getVPString(i) );
+    $(`#${i}-resources`).html( game.public.players[i].resourcesInHand );
+    $(`#${i}-longest-road`).html( getLRString(i) );
+    $(`#${i}-dev-cards`).html( game.public.players[i].devCardsInHand );
+    $(`#${i}-knights`).html( getLAString(i) );
+  }
+
+  // send the server trade to the modal
+  modals.Trade.setTrade(game.public.trade);
+
+
+  // now update private stuff
+
+  if (game.private !== null) {
+
+    // resources, dev cards, escapes
+    for (let res in game.private.resources) {
+      $(`#num-${res}`).html(game.private.resources[res]);
+      $(`#modal-trade .trade-out .resource-count[name=${res}]`).html(0);
+    }
+    for (let dc in game.private.unplayedDCs) {
+      $(`#num-${dc}`).html( game.private.unplayedDCs[dc]+game.private.unplayableDCs[dc] );
+      escapes[`%%${devCardNames[dc]}%%`] =
+        `<strong class="${dc}">${devCardNames[dc]}</strong>`;
+    }
+    escapes['%%DISCARD%%'] = `${game.private.flags.discard} card${game.private.flags.discard>1?'s':''}`;
+
+
+    // button updates
+
+    // update the floating buttons (only the usable ones should be visible)
+    $('#endTurn')
+      .css('display', game.private.adjacents.indexOf('_e_end_turn')>-1
+        ? 'block' : 'none');
+    $('#buyDevelopmentCard')
+      .css('display', game.private.adjacents.indexOf('_e_buy_dc')>-1
+        ? 'block' : 'none');
+    $('#offerTrade')
+      .css('display',
+        (  game.private.adjacents.indexOf('_e_offer_trade')>-1
+        || game.private.adjacents.indexOf('_e_trade_bank') >-1)
+          ? 'block' : 'none');
+
+    // only show the discard buttons if we need to discard
+    $('button.discard').hide();
+    if (game.private.flags.discard > 0) {
+      $('button.discard').show();
+      for (let res in game.private.resources) {
+        if (game.private.resources[res] > 0)
+          $(`button.discard[name=${res}]`).show();
+      }
+    }
+
+    // and only show the play dev card buttons if we can play a dev card
+    $(`button.play`).hide();
+    for (let dc in game.private.flags.canPlayDC) {
+      if (game.private.flags.canPlayDC[dc] && game.private.flags.isCurrentPlayer) {
+        $(`button.play[name=${dc}]`).show();
+      }
+    }
+
+    // trade actions buttons
+    $('#cancelTrade').css('display', (game.private.adjacents.indexOf('_e_cancel_trade') > -1)
+      ? 'block' : 'none');
+    $('#acceptTrade').css('display', (game.private.adjacents.indexOf('_e_accept_trade_other') > -1)
+      ? 'block' : 'none');
+    $('#declineTrade').css('display',(game.private.adjacents.indexOf('_e_decline_trade') > -1)
+      ? 'block' : 'none');
+
+    // miscellaneous
+    modals.update();
+    setWaitingMessage();
+  }
+
+  // make sure we're listening for the right events
   listen.set();
 
-}
-function onConnect(data) {
-  function bindListeners() {
+  // add some other things that depend on the 'active' classes (set in listen.set())
+  let activeSpots = $('.active.fortifiable');
+  activeSpots.find('.spot-settlement, .spot-placeholder').hide();
+  activeSpots.find('.spot-city').show();
 
-    function getTypeAndNum(str) {
-      let type = str.slice(0,4);
-      let num  = parseInt(str.slice(4));
-      if (isNaN(num))
-        throw new GUIError('Unable to parse num for '+str);
 
-      return [type, num];
-    }
-
-    // listeners for SVG elements
-    let selectors = ['.road', '.spot', '.port'];
-    for (let i=0; i<selectors.length; i++) {
-      $(selectors[i]).click( (j) => {
-        let [type, num] = getTypeAndNum(j.target.id);
-        listen.to(type, [num]);
-      });
-    }
-    $('.tile-group *').click( (t) => {
-      let [type, num] = getTypeAndNum(
-        $(t.target).closest('.tile-group').attr('id'));
-      listen.to(type, [num]);
-    });
-
-    $('.robber *').click( (i) => {
-      let num = $(i.target).attr('num');
-      if ($(`#tile${num}`).hasClass('robbable')) {
-        $(`#tile${num} polygon`).click();
-      }
-    })
-
-    // listeners for buttons
-    $('#acceptTrade').click( (i) => {
-  		listen.to('acceptTrade');
-  	});
-
-    $('#declineTrade').click( (i) => {
-      listen.to('declineTrade');
-    })
-
-    $('#buyDevelopmentCard').click( (i) => {
-  		listen.to('buyDevelopmentCard');
-  	});
-
-    $('#cancelTrade').click( (i) => {
-  		listen.to('cancelTrade');
-  	});
-
-    $('#endTurn').click( (i) => {
-  		listen.to('endTurn');
-  	});
-
-    $('#offerTrade').click( (i) => {
-      modals.Trade.set('players');
-  	});
-
-    $('button.play').click( (i) => {
-      let type = $(i.target).attr('name');
-      modals.DC.set(type);
-  	});
-
-    $('#dice').click( (i) => {
-  		listen.to('dice');
-  	});
-
-    $('button.discard').click( (i) => {
-      let res = $(i.target).attr('name');
-  		listen.to('discard', `1 ${res} = 0 ${res}`);
-  	});
-
-    $('.spot').click( (i) => {
-      let target = $(i.target);
-      if (target.hasClass('stealable')) {
-        let player = parseInt(target.attr('owner'));
-    		listen.to('player', [player]);
-      }
-  	});
-
-    $('#tradeBank').click( (i) => {
-      modals.Trade.set('bank');
-  	});
-  }
-
-  game = data;
-  console.log(game);
-
-  build();
-  populate();
-  bindListeners();
 }
 function escapeString(str) {
   let toBeEscaped = Object.keys(escapes);
@@ -590,42 +327,33 @@ function escapeString(str) {
   };
   return str;
 }
-function onUpdate(data) {
-
-  if (data.success) {
-
-    for (let i=0; i<data.messages.length; i++) {
-      _M.addMessage( escapeString(data.messages[i]) );
-    }
-
-    getEdge(data.edge).onSuccess()
-    game = Object.assign({}, data.game);
-    populate();
-
-  } else {
-
-    _M.addMessage(data.message, { class:'error' });
-
-  }
-}
 
 // set global variables
-let gameid, game, escapes, panzoom,
+let blocked = false, gameid, game, panzoom,
   listen = {
 
-    to(source, args) {
-      console.log(source, args);
-      if (listen.for[source]!==undefined) {
-        let edge = getEdge(listen.for[source]);
-        if (edge.confirm.length) {
-          let response = confirm(edge.confirm);
-          if (!response)
+    to(sound, args) {
+      console.log('sound',sound,'args',args);
+      if (listen.for[sound]!==undefined) {
+        for (let i=0; i<listen.for[sound].length; i++) {
+          let edge = getEdge(listen.for[sound][i]);
+          if (game.private.adjacents.indexOf(edge.name) > -1) {
+            if (edge.confirm.length) {
+              let response = confirm(edge.confirm);
+              if (!response) {
+                blocked = false;
+                return;
+              }
+            }
+            emitAction({
+              player:game.private.playerID,
+              edge:listen.for[sound][i],
+              args:args });
             return;
+          }
         }
-        emitAction({
-          player:game.private.playerID,
-          edge:listen.for[source],
-          args:args });
+      } else {
+        blocked = false;
       }
     },
 
@@ -636,12 +364,14 @@ let gameid, game, escapes, panzoom,
 
         for (let i=0; i<game.private.adjacents.length; i++) {
           let edge = getEdge(game.private.adjacents[i]);
-          listen.for[edge.listen] = edge.name;
+          if (listen.for[edge.listen] === undefined)
+            listen.for[edge.listen] = [];
+          listen.for[edge.listen].push(edge.name);
 
           if (edge.activate.length)
             $(edge.activate)
               .addClass('active')
-              .siblings('title').text(edge.title);
+              .find('title').text(edge.title);
         }
       }
     },
@@ -691,13 +421,13 @@ const modals = {
       $('#public-trade-current').html( game.public.trade.with.length
         ? modals.Trade.toString('public') : '' );
 
-      $('#modal-trade .decrement').each( (i,item) => {
-        let data = modals.Trade.get(item);
-        $(item).prop( 'disabled', data.num===0 );
+      $('#modal-trade .decrement').each( (key,value) => {
+        let data = modals.Trade.get(value);
+        $(value).prop( 'disabled', data.num===0 );
       });
-      $('#modal-trade .trade-out .increment').each( (i,item) => {
-        let data = modals.Trade.get(item);
-        $(item).prop( 'disabled', data.num === game.private.resources[data.res] );
+      $('#modal-trade .trade-out .increment').each( (key,value) => {
+        let data = modals.Trade.get(value);
+        $(value).prop( 'disabled', data.num === game.private.resources[data.res] );
       });
       $('#modal-trade .modal-string').html( modals.Trade.toString() );
     },
@@ -716,12 +446,12 @@ const modals = {
       };
     },
     parse() {
-      $('#modal-trade .trade-out .resource-count').each( (i,item) => {
-        let data = modals.Trade.get(item);
+      $('#modal-trade .trade-out .resource-count').each( (key,value) => {
+        let data = modals.Trade.get(value);
         modals.Trade.trade.out[data.res] = data.num;
       });
-      $('#modal-trade .trade-in .resource-count').each( (i,item) => {
-        let data = modals.Trade.get(item);
+      $('#modal-trade .trade-in .resource-count').each( (key,value) => {
+        let data = modals.Trade.get(value);
         modals.Trade.trade.in[data.res] = data.num;
       });
     },
@@ -747,11 +477,7 @@ const modals = {
         whos = '<strong>the Bank</strong>';
       } else {
         if (trade.with.length) {
-          whos = trade.with
-            .map( (item) => {
-              return `%%${item}%%`;
-            })
-            .join(', ');
+          whos = `%%${trade.with.join('%%, %%')}%%`;
         } else {
           whos = '<strong>no one</strong>';
         }
@@ -759,7 +485,9 @@ const modals = {
 
       let outs = toString(trade.out),
         ins = toString(trade.in),
-        str = `trading ${outs} for ${ins} with ${whos}`;
+        str = `${destination==='public'
+          ? `%%${game.public.currentPlayerID}%%:` : ''
+          } trading ${outs} for ${ins} with ${whos}`;
       str = escapeString(str);
       return str;
     },
@@ -978,7 +706,6 @@ const modals = {
 
         case ('monopoly'):
           function monopolyString() {
-            console.log(modals.DC.card.args);
             if (!modals.DC.card.args.length)
               return 'You have not chosen a resource to monopolize.';
             return escapeString(`You have chosen to monopolize %%${modals.DC.card.args[0]}%%.`);
@@ -991,7 +718,6 @@ const modals = {
 
           $('#modal-play-dc .dc-resources button').click( (dom) => {
 
-            console.log(dom.target);
             let button = $(dom.target).closest('button').attr('name');
             modals.DC.card.args = [button];
             if (button === 'reset')
@@ -1112,20 +838,207 @@ const modals = {
 // once all DOM is rendered
 $( function(){
 
+  // assign this global-scoped object
+  panzoom = svgPanZoom('svg#gameboard');
+
+
   // tell the socket that we're here to request game data
   // so that we can populate our html
   socket.emit('play connect', null);
-  // socket response
+
+  // when we get our first response from the server
   socket.on('play connect', function(data) {
-    onConnect(data);
+
+    game = data;
+    console.log(game);
+
+    game.public.trade = { in:{ ore:1 }, out:{ wheat:1 }, with:[0] };
+    game.private.adjacents.push('_e_cancel_trade');
+    //game.private.adjacents.push('_e_accept_trade_other','_e_decline_trade');
+
+    // BUILD THE GAME TILES
+    for (let i=0; i<game.public.hexes.length; i++) {
+      let hex = game.public.hexes[i], tile = $(`#tile${i}`);
+
+      tile.find('polygon')
+        .attr( 'resource', hex.resource )
+        .attr( 'class', hex.resource );
+      tile.find('title')
+        .text(`resource:${hex.resource} ${hex.roll
+          ? `roll:${hex.roll}` : ''}`);
+      tile.find('.tile-chip-dot')
+        .not(`.chip-dot-${hex.roll}`).hide();
+
+      // if it's the desert, detach its tile-chip
+      if (hex.roll) {
+        tile.find('text').text(hex.roll)
+          .attr( 'class', [6,8].indexOf(hex.roll) > -1 ? 'red' : '' )
+      } else {
+        tile.find('.tile-chip').detach();
+      }
+
+      // add some things to escape in the message queue/info panels
+      escapes[`%%${hex.resource}%%`] =
+        `<strong class="${hex.resource}">${hex.resource}</strong>`;
+    }
+    escapes['%%Longest Road%%'] = '<strong class="longest-road">Longest Road</strong>';
+    escapes['%%Largest Army%%'] = '<strong class="largest-army">Largest Army</strong>';
+    for (let i=0; i< game.public.players.length; i++) {
+      // including player names
+      escapes[`%%${i}%%`] =
+        `<strong class="${
+          game.public.players[i].color}">${
+          game.public.players[i].lobbyData.name
+        }</strong>`;
+    }
+    if (game.private !== null) {
+      escapes[`%%${game.private.playerID}%%`] = `<strong class="${
+        game.public.players[game.private.playerID].color
+      }">you</strong>`;
+    }
+
+
+    // IMPORTANT! push server data out
+    populate();
+
+    // bind listeners for SVG elements
+    $('.clickable *').click( (i) => {
+      // .clickable includes roads, hexes, spots
+      if (!blocked) { // rudimentary lock to prevent overloading with redundant messages
+        blocked = true;
+        let clickable = $(i.target).closest('.clickable'),
+          type = clickable.attr('type'),
+          num  = clickable.attr('num');
+        listen.to(type, [num]);
+      }
+    });
+    $('.spot').click( (i) => {
+      let clickable = $(i.target).closest('.clickable');
+      if (clickable.hasClass('stealable')) {
+        let player = parseInt(clickable.attr('owner'));
+    		listen.to('player', [player]);
+      }
+  	});
+    $('.robber *').click( (i) => {
+      let num = $(i.target).attr('num');
+      if ($(`#tile${num}`).hasClass('robbable')) {
+        $(`#tile${num} polygon`).click();
+      }
+    })
+
+    // moving the demo robber around on hover (probably rewrite this) TODO
+    $('.tile-group, .tile-group *').closest('.tile-group').children().hover( (i) => {
+      let target = $(i.target).closest('g');
+      if (i.type === 'mouseenter') {
+        if (target.hasClass('active') || target.hasClass('dc-choose')) {
+          let j = parseInt(target.attr('id').slice(4));
+          $('#demo-robber *').attr('num', j).css('visibility', 'visible');
+          moveRobber(j, head='#demo-robber');
+        }
+      }
+    });
+
+    // roll dice
+    $('#dice').click( (i) => {
+  		listen.to('dice');
+  	});
+
+    // floating buttons
+    $('#endTurn').click( () => {
+  		listen.to('endTurn');
+  	});
+    $('#buyDevelopmentCard').click( () => {
+  		listen.to('buyDevelopmentCard');
+  	});
+    $('#offerTrade').click( () => {
+      modals.Trade.set('players');
+  	});
+    $('#exitGame').click( () => {
+      location.href = '/lobby';
+    });
+
+    // trade actions
+    $('#acceptTrade').click( () => {
+  		listen.to('acceptTrade');
+  	});
+    $('#declineTrade').click( () => {
+      listen.to('declineTrade');
+    })
+    $('#cancelTrade').click( () => {
+  		listen.to('cancelTrade');
+  	});
+
+    // discard after 7
+    $('button.discard').click( (i) => {
+      let res = $(i.target).attr('name');
+  		listen.to('discard', `1 ${res} = 0 ${res}`);
+  	});
+
+    // play dev card
+    $('button.play').click( (i) => {
+      let type = $(i.target).attr('name');
+      modals.DC.set(type);
+  	});
+
+    // Trade modal
+    $('#modal-trade .decrement').click( (i) => {
+      modals.Trade.decrement(i.target);
+    });
+    $('#modal-trade .increment').click( (i) => {
+      modals.Trade.increment(i.target);
+    });
+    $('#modal-trade input[type=checkbox]').click( (i) => {
+      modals.Trade.toggleCheck(i.target);
+    });
+    $('#modal-trade [name=select-all]').click( () => {
+      modals.Trade.selectAll();
+    });
+    $('#modal-trade [name=confirm]').click( () => {
+      modals.Trade.confirm();
+    });
+    $('#modal-trade [name=cancel]').click( () => {
+      modals.Trade.cancel();
+    });
+
+    // DC modal
+    $('#modal-play-dc [name=confirm]').click( () => {
+      modals.DC.confirm();
+    });
+    $('#modal-play.dc [name=cancel]').click( () => {
+      modals.DC.cancel();
+    });
+
   });
 
-  // set semiglobal objects
-  panzoom = svgPanZoom('svg#gameboard');
-
+  // subsequent server responses
   socket.on('play callback', function(data) {
+
     console.log('callback',data);
-    onUpdate(data);
+    // if server responded with no errors
+    if (data.success) {
+
+      // add all the messages
+      for (let i=0; i<data.messages.length; i++) {
+        _M.addMessage( escapeString(data.messages[i]) );
+      }
+
+      // take all the appropriate actions to modify our UI
+      getEdge(data.edge).onSuccess()
+      game = Object.assign({}, data.game);
+      populate();
+
+    } else {
+
+      // let the client know why it errored
+      _M.addMessage(data.message, { class:'error' });
+
+    }
+
+    // unblock the listeners
+    blocked = false;
   });
 
 });
+
+
+// TODO: update the confirms for moving robber on the state graph sheet

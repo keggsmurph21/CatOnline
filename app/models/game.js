@@ -226,6 +226,13 @@ GameSchema.methods.checkIsActive = function() {
 GameSchema.methods.formatDate = function( datetime ) {
   return dateformat(datetime, "mmm. dS, h:MM:ss tt")
 }
+GameSchema.methods.getPlayerIDByUser = function( user ) {
+  for (let p=0; p<this.state.players.length; p++) {
+    if (this.state.players[p].lobbyData.id.toString()===user.id.toString())
+      return p;
+  }
+  return null;
+}
 
 // create the model for games and expose it to our app
 module.exports = mongoose.model('Game', GameSchema, 'games');

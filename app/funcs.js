@@ -334,6 +334,7 @@ module.exports = {
   },
 
 
+  // TODO: get rid of this dumb shit
   User : require('./models/user'),
   Game : require('./models/game')
 

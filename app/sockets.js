@@ -849,13 +849,8 @@ module.exports = function(io, sessionStore) {
 
       funcs.requireGameById(req.session.gameid, function(err,game) {
         socket.leave(req.ref);
-        for (let p=0; p<game.state.players.length; p++) {
-          if (funcs.usersCheckEqual(game.state.players[p].lobbyData, req.session.user)) {
-            req.session.p = p;
-            req.ref = `${req.session.gameid}_${p}`;
-            console.log('gameid',req.session.gameid,'p',p,'ref',req.ref);
-          }
-        }
+        req.session.p = game.getPlayerIDByUser(req.session.user);
+        req.ref = `${req.session.gameid}_${req.session.p}`;
         socket.join(req.ref);
         req.msock = req.ref.slice(0,req.ref.indexOf('_'));
         socket.join(req.msock);

@@ -593,20 +593,49 @@ span.batch * {
   min-height: 150px;
 }
 
-#game #dice {
+#board-floats {
   position: absolute;
   top: 0;
   left: 0;
   height: 4em;
   display: flex;
+  flex-flow: column;
+  align-items: center;
 }
-#game #dice :hover {
+#dice :hover {
   cursor: pointer;
 }
 
-#game #dice .die {
+#dice {
+  display: block;
+  height: 4em;
+}
+#dice .die {
   height: 100%;
+  margin: 0.1em;
+}
+#buttons {
+  margin: 0.2em 0 0;
+}
+#buttons div {
   margin: 0.2em;
+  padding:0.2em 1em;
+  cursor: pointer;
+  border: 4px solid #000;
+  background-color: #bbb;
+  border-radius: 10px;
+  text-align: center;
+  display: none;
+  width: 100%
+}
+#buttons #exitGame {
+  color: #fff;
+  background-color: #222;
+  display: block;
+}
+
+#public-trade-buttons button {
+  display: none;
 }
 
 .play #game-data {
@@ -637,6 +666,12 @@ div#private-data {
   font-weight: bold;
 }
 
+.clickable polygon {
+  stroke-width: 0;
+}
+.clickable :hover {
+  cursor: pointer;
+}
 /*.play .spot:hover, .play .road:hover {
   stroke: #000;
 }*/
@@ -645,7 +680,13 @@ div#private-data {
 .play .red {
   color: #f00;
 }
-.play .spot.red, .play .road.red {
+.clickable.red polygon {
+  fill: #f00;
+}
+.clickable.red path {
+  stroke: #f00;
+}
+/*.play .spot.red, .play .road.red {
   stroke: #f00;
   fill:   #f00;
 }
@@ -654,12 +695,18 @@ div#private-data {
 }
 .play .spot.red.city {
   stroke-width: 0.5;
-}
+}*/
 
 .play .orange {
   color: #ffa500;
 }
-.play .spot.orange, .play .road.orange {
+.clickable.orange polygon {
+  fill: #ffa500;
+}
+.clickable.orange path {
+  stroke: #ffa500;
+}
+/*.play .spot.orange, .play .road.orange {
   stroke: #ffa500;
   fill:   #ffa500;
 }
@@ -668,13 +715,19 @@ div#private-data {
 }
 .play .spot.orange.city {
   stroke-width: 0.5;
-}
+}*/
 
 
 .play .blue {
   color: #00f;
 }
-.play .spot.blue, .play .road.blue {
+.clickable.blue polygon {
+  fill: #00f;
+}
+.clickable.blue path {
+  stroke: #00f;
+}
+/*.play .spot.blue, .play .road.blue {
   stroke: #00f;
   fill:   #00f;
 }
@@ -683,12 +736,18 @@ div#private-data {
 }
 .play .spot.blue.city {
   stroke-width: 0.5;
-}
+}*/
 
 .play .white {
   color: #fff;
 }
-.play .spot.white, .play .road.white {
+.clickable.white polygon {
+  fill: #aaa;
+}
+.clickable.white path {
+  stroke: #aaa;
+}
+/*.play .spot.white, .play .road.white {
   stroke: #aaa;
   fill:   #aaa;
 }
@@ -697,7 +756,7 @@ div#private-data {
 }
 .play .spot.white.city {
   stroke-width: 0.5;
-}
+}*/
 
 .yop, .monopoly, .rb, .longest-road {
   color: #2b6836;
@@ -755,6 +814,9 @@ polygon.wheat {
 polygon.ore {
 	fill:	url(#pattern-ore);
 }
+tr.ore {
+  color: #ddd;
+}
 
 .desert {
   fill: #ead5c2;
@@ -791,8 +853,9 @@ polygon.desert {
   stroke: #222;
   stroke-width: 0.2;
 }
-
 .port {
+  stroke: #222;
+  stroke-width: 0.1;
 }
 
 svg#gameboard > * {
@@ -812,10 +875,11 @@ svg#gameboard > rect {
   top: 50%;
   left: 50%;
 }
-.modal#moday-trade {
+.modal#modal-trade {
+  display: none;
 }
-.modal#play-dc {
-
+.modal#modal-play-dc {
+  display: none;
 }
 
 .modal .modal-body {
@@ -853,13 +917,6 @@ svg#gameboard > rect {
   stroke: #420;
 }
 
-.private-data-table {
-  background-color: #999;
-}
-.private-data-table th {
-  padding: 0em 1em;
-}
-
 #public-trade {
   display: flex;
   justify-content: space-between;
@@ -869,4 +926,80 @@ svg#gameboard > rect {
   fill: #FFB775;
   stroke: #B5651D;
   stroke-width: 0.05;
+}
+
+.clickable .spot-settlement, .clickable .spot-city {
+  display: none;
+  stroke: #000;
+  stroke-width: 0.04;
+}
+
+.active.init-settleable .spot-settlement, .active.settleable .spot-settlement {
+  display: inline;
+  fill: #fff;
+}
+.active.init-settleable .spot-settlement:hover, .active.settleable .spot-settlement:hover {
+  fill: #000;
+}
+
+#gameboard .active.fortifiable .spot-city {
+  fill: #fff;
+}
+#gameboard .active.fortifiable .spot-city:hover {
+  fill: #000;
+}
+
+.active.init-paveable .road, .active.paveable .road {
+  stroke: #fff;
+}
+.active.init-paveable .road:hover, .active.paveable .road:hover {
+  stroke: #000;
+}
+
+#public-data {
+  margin-bottom: 5px;
+}
+
+table.play {
+  font-size: 0.9em;
+  border-collapse: collapse;
+}
+
+table.play {
+  background-color: #222;
+}
+table.play th {
+  padding: 0em 0.5em;
+}
+table.play {
+  border-left: 5px solid #222;
+  border-right:5px solid #222;
+}
+
+
+tr.play:first-child {
+  border-left: 1px solid #222;
+}
+tr.play.header:first-child {
+  border-left: none;
+}
+
+tr.play th {
+  background-color: #222;
+  color: #fff;
+  border-bottom: 1px solid #222;
+  font-weight: 500;
+}
+tr.play th:first-child {
+  border-radius: 5px 0 0;
+}
+tr.play th:last-child {
+  border-radius: 0 5px 0 0;
+}
+
+tr.play td {
+  background-color: #ddd;
+  color: #222;
+  border-bottom: 1px solid #222;
+  font-weight: 300;
 }

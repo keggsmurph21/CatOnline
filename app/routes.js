@@ -40,14 +40,13 @@ module.exports = function(app, passport) {
         req.flash('lobbyMessage', 'Unable to find game ' + req.params.gameid );
         res.redirect('/lobby');
       } else if (game.state.status==='in-progress' && (funcs.checkIfUserInGame( req.user, game ) || req.user.isAdmin) ) {
-        //let data = logic.getGameData(req.user, game);
 
+        let playerID = game.getPlayerIDByUser(req.user);
         res.render('play.ejs', {
           message:  req.flash('playMessage'),
           user:     req.user,
-          //gameid:   game.id,
-          //public:   data.public,
-          //private:  data.private
+          public:   game.getPublicGameData(),
+          private:  (playerID===null ? null : game.getPrivateGameData(playerID))
         });
 
       } else {
