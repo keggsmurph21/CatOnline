@@ -653,7 +653,7 @@ span.batch * {
 }
 
 .play table tr.header th {
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid #bbb;
 }
 
 div#private-data {
@@ -967,6 +967,7 @@ table.play {
 
 table.play {
   background-color: #222;
+  color: #bbb;
 }
 table.play th {
   padding: 0em 0.5em;
