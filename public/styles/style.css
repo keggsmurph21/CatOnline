@@ -1004,3 +1004,13 @@ tr.play td {
   border-bottom: 1px solid #222;
   font-weight: 300;
 }
+
+#dice .greyed-out .die-dot {
+  fill: #bbb;
+}
+#dice .greyed-out rect {
+  stroke: #bbb;
+}
+#dice .die.greyed-out :hover {
+  cursor: default;
+}

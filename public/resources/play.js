@@ -264,6 +264,11 @@ function populate() {
     // button updates
 
     // update the floating buttons (only the usable ones should be visible)
+    if (game.private.adjacents.indexOf('_e_roll')>-1) {
+      $('#dice .die').removeClass('greyed-out');
+    } else {
+      $('#dice .die').addClass('greyed-out');
+    }
     $('#endTurn')
       .css('display', game.private.adjacents.indexOf('_e_end_turn')>-1
         ? 'block' : 'none');
@@ -912,7 +917,7 @@ $( function(){
         listen.to(type, [num]);
       }
     });
-    $('.spot').click( (i) => {
+    $('.spot-group.clickable *').click( (i) => {
       let clickable = $(i.target).closest('.clickable');
       if (clickable.hasClass('stealable')) {
         let player = parseInt(clickable.attr('owner'));
@@ -1024,6 +1029,17 @@ $( function(){
 
       // take all the appropriate actions to modify our UI
       getEdge(data.edge).onSuccess()
+
+      // tell player if it's now their turn
+      //console.log(data.game.public.currentPlayerID, game.public.currentPlayerID, game.private.playerID, data.game.private.flags.isCurrentPlayer, game.private.flags.isCurrentPlayer);
+      ///console.log('comp1', (game.public.currentPlayerID !== data.game.public.currentPlayerID));
+      //console.log('comp2', (game.private.playerID === data.game.public.currentPlayerID));
+      if (data.game.private.flags.isCurrentPlayer) {
+        if (game.private !== null) {
+          if (game.private.flags.isCurrentPlayer !== data.game.private.flags.isCurrentPlayer)
+            alert('It\'s your turn!');
+        }
+      }
       game = Object.assign({}, data.game);
       populate();
 
