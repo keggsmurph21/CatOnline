@@ -852,8 +852,8 @@ $( function(){
     game = data;
     console.log(game);
 
-    game.public.trade = { in:{ ore:1 }, out:{ wheat:1 }, with:[0] };
-    game.private.adjacents.push('_e_cancel_trade');
+    //game.public.trade = { in:{ ore:1 }, out:{ wheat:1 }, with:[0] };
+    //game.private.adjacents.push('_e_cancel_trade');
     //game.private.adjacents.push('_e_accept_trade_other','_e_decline_trade');
 
     // BUILD THE GAME TILES
@@ -1039,6 +1039,3 @@ $( function(){
   });
 
 });
-
-
-// TODO: update the confirms for moving robber on the state graph sheet
