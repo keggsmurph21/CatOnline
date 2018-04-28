@@ -168,71 +168,76 @@ function validateEdgeArgs(game, edge, args) {
 function validateEdgeIsAdjacent(game, p, edge) {
   return (game.state.players[p].adjacents.indexOf(edge) > -1);
 }
+
 module.exports = {
 
-  execute(game, p, estring, args, messages=[]) {
+  play : {
+    execute(game, p, estring, args, messages=[]) {
 
-    let player = funcs.parse.player(game, p);//game.state.players[p];
-    edge = getStateEdge(estring);
+      let player = funcs.parse.player(game, p);//game.state.players[p];
+      edge = getStateEdge(estring);
 
-    let messenger = { list:messages };
+      let messenger = { list:messages };
 
-    let ret = edge.execute(messenger, game, player, args);
-    storeHistory(game, p, estring, args, ret);
+      let ret = edge.execute(messenger, game, player, args);
+      storeHistory(game, p, estring, args, ret);
 
-    player.vertex = edge.target;
-    updateGameStates(game);
+      player.vertex = edge.target;
+      updateGameStates(game);
 
-    for (let q=0; q<game.state.players.length; q++) {
-      for (let a=0; a<game.state.players[q].adjacents.length; a++) {
-        let adj_estring = game.state.players[q].adjacents[a];
-        if (getStateEdge(adj_estring).isPriority)
-          module.exports.execute(game, q, adj_estring, [], messenger.list);
+      for (let q=0; q<game.state.players.length; q++) {
+        for (let a=0; a<game.state.players[q].adjacents.length; a++) {
+          let adj_estring = game.state.players[q].adjacents[a];
+          if (getStateEdge(adj_estring).isPriority)
+            module.exports.execute(game, q, adj_estring, [], messenger.list);
+        }
       }
+
+      game.meta.updated = new Date;
+
+      return {
+        ret:ret,
+        messages:messenger.list }/*,
+        flags:player.flags,
+        adjs:player.adjacents };*/
+    },
+    validate(game, p, estring, args) {
+      if (!validateEdgeIsAdjacent(game, p, estring)) {
+        console.log(game.state.players[p].flags);
+        throw new UserInputError( `Player ${p} is not adjacent to ${estring} (only ${game.state.players[p].adjacents.join(', ')}).` );
+      }
+      return validateEdgeArgs(game, estring, args);
     }
-
-    game.meta.updated = new Date;
-
-    return {
-      ret:ret,
-      messages:messenger.list }/*,
-      flags:player.flags,
-      adjs:player.adjacents };*/
   },
-  validate(game, p, estring, args) {
-    if (!validateEdgeIsAdjacent(game, p, estring)) {
-      console.log(game.state.players[p].flags);
-      throw new UserInputError( `Player ${p} is not adjacent to ${estring} (only ${game.state.players[p].adjacents.join(', ')}).` );
+
+  lobby : {
+    launch(game, next) {
+
+      console.log('launching');
+      for (let i=0; i<game.meta.settings.numCPUs; i++) {
+        game.state.players.push( config.getNewPlayerData(user,game,false) );
+      }
+
+      funcs.shuffle(game.state.players);
+      colors = config.getColors(game);
+
+      for (let i=0; i<colors.length; i++) {
+        let player = game.state.players[i];
+        player.playerID = i;
+        player.color    = colors[i];
+      }
+
+      game.state.currentPlayerID = 0;
+      game.state.turn   = 1;
+      game.state.status = 'in-progress';
+
+      updateGameStates(game);
+      game.meta.updated = new Date;
+
+      module.exports.execute(game, 0, '_e_take_turn', null);
+
+      return next(null);
     }
-    return validateEdgeArgs(game, estring, args);
-  },
-
-  launch(game, next) {
-
-    console.log('launching');
-    for (let i=0; i<game.meta.settings.numCPUs; i++) {
-      game.state.players.push( config.getNewPlayerData(user,game,false) );
-    }
-
-    funcs.shuffle(game.state.players);
-    colors = config.getColors(game);
-
-    for (let i=0; i<colors.length; i++) {
-      let player = game.state.players[i];
-      player.playerID = i;
-      player.color    = colors[i];
-    }
-
-    game.state.currentPlayerID = 0;
-    game.state.turn   = 1;
-    game.state.status = 'in-progress';
-
-    updateGameStates(game);
-    game.meta.updated = new Date;
-
-    module.exports.execute(game, 0, '_e_take_turn', null);
-
-    return next(null);
   }
 
 }

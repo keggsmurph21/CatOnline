@@ -2,6 +2,7 @@
 
 // load stuff
 const LocalStrategy = require('passport-local').Strategy;
+
 const funcs = require('../app/funcs.js')
 
 // expose this function to our app using module.exports
@@ -126,4 +127,47 @@ module.exports = function(passport) {
     }
   ));
 
+  passport.use('api-login', new LocalStrategy(
+    {
+      usernameField : 'username',
+      passwordField : 'password',
+    },
+    function(username, password, done) {
+
+      username = username.toLowerCase();
+
+      // find a user whose username is the same as the form's username
+      // we are checking to see if the user trying to register already exists
+      funcs.User.findOne( { name:username }, function(err,user) {
+
+        // if there are any errors, return the error
+        if (err) { return done(err) }
+
+        // if something goes wrong, return the message
+        if (!user) {
+          return done(null, false);
+        } else if (!user.validPassword(password)) {
+          return done(null, false);
+        }
+
+        return done(null, user);
+
+      });
+
+    }
+  ))
+  /*let options = {
+    jwtFromRequest : ExtractJwt.fromAuthHeader(),
+    secret : 'passport-jwt-secret'
+  };
+  passport.use('jwt-login', new JwtStrategy(options, function(jwt_payload, done) {
+    funcs.User.findById(jwt_payload.id, function(err, user) {
+        if (err)
+          return done(err, false);
+        if (!user)
+          return done(null, false);
+
+        return done(null, user);
+      });
+  }));*/
 };

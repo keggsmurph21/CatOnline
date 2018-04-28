@@ -4,50 +4,6 @@ const logic = require('./logic/logic');
 const config = require('./logic/init');
 
 // socket helper functions
-function socketAuthorizationCallback(handshake, sessionStore, next) {
-  // probably want to do more authentication here
-  if (handshake.headers.cookie) {
-
-    // for some reason we're getting issues parsing the cookie correctly
-    handshake.sid = handshake.cookies['express.sid'].substring(2,34);
-    sessionStore.get(handshake.sid, function (err, session) {
-      if (err || !session) { // if we cannot grab a session, turn down the connection
-        next('Socket authorization error: cannot find session.', false);
-      } else {
-        if (session.user) { // only accept sessions w/ authenticated users
-
-          handshake.session = session;
-
-          // make sure we know which page this socket is connecting from
-          let referer = handshake.headers.referer;
-          console.log(referer);
-          if (referer.includes( '/lobby' )) {
-            handshake.ref = 'lobby';
-            handshake.url = referer;
-          } else if (referer.includes( '/play' )) {
-            let gameid = referer.slice(referer.indexOf('play'));
-            gameid = gameid.split('/')[1];
-            handshake.session.gameid = gameid;
-            handshake.ref = `${gameid}-authorization`;
-            handshake.url = referer;
-          } else if (referer.includes( '/admin' )) {
-            handshake.ref = 'admin';
-            handshake.url = referer;
-          }
-
-          // save the session data and accept the connection
-          handshake.session = session;
-          next(null, true); // SUCCESS
-
-        } else {
-          next( 'Socket authorization error: no user data', false );
-        }
-      }
-    });
-  } else {
-    return next( 'Socket authorization error: no cookie transmitted', false );
-  }
-}
 function socketHandleNewConnection(socket) {
 
   let req = socket.request;
@@ -293,7 +249,7 @@ function _LaunchGame(agent, user, game, next) {
   if (game.state.status!=='ready')
     return next( 'Unable to launch until enough players have joined.' );
 
-  logic.launch(game, function(err) {
+  logic.lobby.launch(game, function(err) {
     if (err) return next(err);
     funcs.saveAndCatch( game, function(err) {
       if (err) return next(err);
@@ -758,8 +714,51 @@ var numUsersByPage = {};
 
 module.exports = function(io, sessionStore) {
 
-  io.set( 'authorization', function(handshake,next) {
-    socketAuthorizationCallback(handshake, sessionStore, next);
+  io.set( 'authorization', function(handshake, next) {
+
+    // probably want to do more authentication here
+    if (handshake.headers.cookie) {
+
+      // for some reason we're getting issues parsing the cookie correctly
+      handshake.sid = handshake.cookies['express.sid'].substring(2,34);
+      sessionStore.get(handshake.sid, function (err, session) {
+        if (err || !session) { // if we cannot grab a session, turn down the connection
+          next('Socket authorization error: cannot find session.', false);
+        } else {
+          if (session.user) { // only accept sessions w/ authenticated users
+
+            handshake.session = session;
+
+            // make sure we know which page this socket is connecting from
+            let referer = handshake.headers.referer;
+            console.log(referer);
+            if (referer.includes( '/lobby' )) {
+              handshake.ref = 'lobby';
+              handshake.url = referer;
+            } else if (referer.includes( '/play' )) {
+              let gameid = referer.slice(referer.indexOf('play'));
+              gameid = gameid.split('/')[1];
+              handshake.session.gameid = gameid;
+              handshake.ref = `${gameid}-authorization`;
+              handshake.url = referer;
+            } else if (referer.includes( '/admin' )) {
+              handshake.ref = 'admin';
+              handshake.url = referer;
+            }
+
+            // save the session data and accept the connection
+            handshake.session = session;
+            next(null, true); // SUCCESS
+
+          } else {
+            next( 'Socket authorization error: no user data', false );
+          }
+        }
+      });
+    } else {
+      return next( 'Socket authorization error: no cookie transmitted', false );
+    }
+
   });
 
   io.sockets.on('connection', function (socket) {
@@ -871,8 +870,8 @@ module.exports = function(io, sessionStore) {
         if (err) throw err;
 
         try {
-          let args= logic.validate(game, data.player, data.edge, data.args);
-          let ret = logic.execute( game, data.player, data.edge, args);
+          let args= logic.play.ealidate(game, data.player, data.edge, data.args);
+          let ret = logic.play.execute( game, data.player, data.edge, args);
 
           funcs.saveAndCatch(game, function(err) {
             if (err) throw err;
