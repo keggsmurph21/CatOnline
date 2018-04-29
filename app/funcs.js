@@ -179,6 +179,18 @@ module.exports = {
     return Array.from(adjs);
 
   },
+  userGetGamesAsAuthor : function(user, next) {
+    module.exports.Game.find({ "meta.author.id" : user.id }, function(err,games) {
+      next(err,games);
+    });
+  },
+  userGetGamesAsPlayer : function(user, next) {
+    // for some reason IDs weren't working here so names are used instead
+    module.exports.Game.find({ "meta.players" : { $elemMatch: { "name":user.name }}}, function(err,games) {
+      next(err,games);
+    });
+  },
+
   /*roadGetAdjAvailableRoads : function(board, r) {
     let adjs = new Set(), road = board.roads[r];
     for (let j=0; j<road.juncs.length; j++) {

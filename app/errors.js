@@ -22,7 +22,29 @@ global.NotImplementedError = NotImplementedError;
 
 
 
-class GameLogicError extends CatonlineError {
+class LogicError extends CatonlineError {
+  constructor(message) {
+    super(message);
+    this.name = 'LobbyLogicError';
+  }
+}
+global.LogicError = LogicError
+
+
+
+
+class LobbyLogicError extends LogicError {
+  constructor(message) {
+    super(message);
+    this.name = 'LobbyLogicError';
+  }
+}
+global.LobbyLogicError = LobbyLogicError
+
+
+
+
+class GameLogicError extends LogicError {
   constructor(message) {
     super(message);
     this.name = 'GameLogicError';

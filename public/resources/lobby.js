@@ -227,10 +227,14 @@ var expandedid;
 // ON READY
 $( function() {
 
-  // Socket events
-  socket.on('on connection', function(data) {
+  socket.emit('lobby connect');
+  socket.on('lobby connect', function(data) {
     user = data.user; // declared as GLOBAL in messages.js
     updateTables(data.games);
+  });
+
+  // Socket events
+  socket.on('on connection', function(data) {
   });
   socket.on('new connection', function(data) {
     //updateTables(data.games);
