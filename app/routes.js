@@ -1,5 +1,6 @@
 // load stuff
 const funcs = require('./funcs');
+const lobby = require('./logic/lobby');
 const logic = require('./logic/logic');
 const config= require('./logic/init');
 
@@ -72,7 +73,10 @@ module.exports = function(app, passport) {
     });
   });
   app.get('/api/lobby', authenticateAPI, function(req,res) {
-    res.json({res:'ponse'});
+    lobby.get(function(err, data) {
+      if (err) throw err;
+      res.json(data);
+    });
   });
 
   // PLAY PAGES
