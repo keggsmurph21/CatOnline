@@ -2,7 +2,6 @@
 const funcs = require('./funcs');
 const lobby = require('./logic/lobby');
 const logic = require('./logic/logic');
-const config = require('./logic/init');
 
 // socket helper functions
 function socketHandleNewConnection(socket) {
@@ -128,16 +127,18 @@ module.exports = function(io, sessionStore) {
 
       console.log('received lobby action',data);
       funcs.requireUserById( req.session.user.id, function(err,user) {
-        if (err) throw new LobbyLogicError();
+        funcs.requireGameById(data.args.gameid, function(err, game) {
 
-        lobby.do(user, data, function(response) {
+          lobby.do(user, game, data, function(response) {
 
-          socket.broadcast.to('lobby').emit( 'lobby callback', response );
-          socket.broadcast.to('admin').emit( 'lobby callback', response );
-          socket.emit( 'lobby callback', response);
+            console.log('lobby do callback', response);
+            socket.broadcast.to('lobby').emit( 'lobby callback', response );
+            socket.broadcast.to('admin').emit( 'lobby callback', response );
+            socket.emit( 'lobby callback', response);
 
+          });
         });
-      })
+      });
     });
 
     socket.on('admin action', function(data) {
@@ -181,8 +182,8 @@ module.exports = function(io, sessionStore) {
         if (err) throw err;
 
         try {
-          let args= logic.play.validate(game, data.player, data.edge, data.args);
-          let ret = logic.play.execute( game, data.player, data.edge, args);
+          let args= logic.validate(game, data.player, data.edge, data.args);
+          let ret = logic.execute( game, data.player, data.edge, args);
 
           funcs.saveAndCatch(game, function(err) {
             if (err) throw err;

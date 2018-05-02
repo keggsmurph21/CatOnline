@@ -31,6 +31,8 @@ module.exports = {
   },
   isValidID : function(id) {
     // mongo IDs are always 24 alphanumeric chars
+    if (id === undefined)
+      return false;
     return (id.length===24 && id.match(/^[a-z0-9]+$/i));
   },
   saveAndCatch : function(Model, next) {

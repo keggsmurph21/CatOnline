@@ -10,7 +10,7 @@ function checkIfUserInGame( user, game ) {
   return false;
 }
 function sendLobbyAction(data) {
-  if (data.action==='new-game') toggleNewGame();
+  if (data.action==='new_game') toggleNewGame();
   socket.emit('lobby action', data);
 }
 function toggleNewGame() {
@@ -101,18 +101,18 @@ function outputGameMaxRowString( data, type ) {
   str +=       '<input type="hidden" name="gameid" value="' + data.id + '" />';
   switch (type) {
     case 'active':
-      str += '<button type="button" class="lobby post" name="delete-game" '+(canDelete?'':'disabled')+'>Delete</button>';
+      str += '<button type="button" class="lobby post" name="delete_game" '+(canDelete?'':'disabled')+'>Delete</button>';
       str +=   '<button type="button" class="lobby post" name="play">'+(checkIfUserInGame(user,data)?'Play':'Watch')+'</button>';
       break;
     case 'pending':
-      str += '<button type="button" class="lobby post" name="delete-game" '+(canDelete?'':'disabled')+'>Delete</button>';
+      str += '<button type="button" class="lobby post" name="delete_game" '+(canDelete?'':'disabled')+'>Delete</button>';
       str +=   '<button type="button" class="lobby post" name="leave">Leave</button>';
       str +=   '<button type="button" class="lobby post" name="share">Share</button>';
       str +=   '<button type="button" class="lobby post" name="launch" '+(data.isFull?'':'disabled')+'>Launch</button>';
       break;
     case 'available':
       if (user.isSuperAdmin)
-        str += '<button type="button" class="lobby post" name="delete-game"">Delete</button>';
+        str += '<button type="button" class="lobby post" name="delete_game"">Delete</button>';
       if (!data.isFull)
         str += '<button type="button" class="lobby post" name="join">Join</button>';
       break;

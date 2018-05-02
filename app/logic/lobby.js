@@ -289,7 +289,7 @@ function tryKickByUsers(agent, data, next) {
           if (err) { next(err); }
           else {
             for (let g=0; g<games.length; g++) {
-              _KickUserFromGame(agent, user, games[g], next);
+              _LeaveGame(agent, user, games[g], next);
             }
           }
         });
@@ -309,7 +309,7 @@ function tryKickBatch(agent, data, next) {
         funcs.iteratePlayers(game, function(err,player) {
           if (err) { next(err); }
           else {
-            _KickUserFromGame(agent, player, game, next);
+            _LeaveGame(agent, player, game, next);
           }
         });
       }
@@ -321,7 +321,7 @@ function tryKickBatch(agent, data, next) {
       if (err) { next(err); } else {
         funcs.requireUserById( userid, function(err,user) {
           if (err) { next(err); } else {
-            _KickUserFromGame(agent, user, game, next);
+            _LeaveGame(agent, user, game, next);
           }
         });
       }
@@ -342,8 +342,9 @@ function tryKickBatch(agent, data, next) {
 
 
 
-
-const funcs = require('../funcs')
+const config = require('./init');
+const logic  = require('./logic');
+const funcs  = require('../funcs');
 
 // multiple-actionset helper functions
 // these are the functions that actually do the work
@@ -357,7 +358,7 @@ function _DeleteUser(agent, user, next) {
     funcs.userGetGamesAsPlayer( user, function(err,games) {
       if (err) { next(err); } else {
         for (let g=0; g<games.length; g++) {
-          _KickUserFromGame(agent, user, games[g], next);
+          _LeaveGame(agent, user, games[g], next);
         }
       }
     });
@@ -375,185 +376,6 @@ function _DeleteUser(agent, user, next) {
     });
   }
 }
-function _CreateNewGame(agent, author, data, next) {
-  config.getNewGame(author, data, function(err,game) {
-    if (err) return next(err);
-    funcs.saveAndCatch(game, function(err) {
-      if (err) return next(err);
-      author.activeGamesAsAuthor += 1;
-      funcs.saveAndCatch(author, function(err) {
-        if (err) return next(err);
-
-        // SUCCESS
-        next(null, { action:'ADD', udata:[author], gdata:[game] });
-
-      });
-    })
-  });
-}
-function _DeleteGame(agent, game, next) {
-  // takes an agent (Model) and a game (Model) and attempts to
-  // delete the game
-  funcs.requireUserById( game.meta.author.id, function(err,author) {
-    if (err) return next(err);
-    if ( !funcs.usersCheckEqual(agent, author) || agent.isSuperAdmin )
-      return next( 'Only superadmins or owners can delete games.' );
-    author.activeGamesAsAuthor -= 1;
-    funcs.saveAndCatch(author, function(err) {
-      if (err) { next(err); } else {
-        next(null, { action:'UPDATE', udata:[author], gdata:[] });
-      }
-    });
-    funcs.iteratePlayers(game, function(err,player) {
-      if (err) { next(err); } else {
-        player.activeGamesAsPlayer -= 1;
-        funcs.saveAndCatch(player, function(err) {
-          if (err) { next(err); } else {
-            next(null, { action:'UPDATE', udata:[player], gdata:[] });
-          }
-        });
-      }
-    });
-    game.remove( function(err,game) {
-      if (err) return next(err);
-      funcs.log( 'user '+agent.id+' ('+agent.name+') deleted game '+game.id );
-      next(null, { action:'UPDATE', udata:[author], gdata:[] });
-      next(null, { action:'REMOVE', udata:[], gdata:[game] });
-      return;
-    });
-  });
-}
-function _JoinUserToGame(agent, user, game, next) {
-  if ( !game.checkIsActive() )
-    return next('Unable to join: game is not active.');
-  if ( funcs.checkIfUserInGame(user,game) )
-    return next('Unable to join: you have already joined!' );
-  if ( game.checkIsFull() )
-    return next('Unable to join: game is full.' );
-  if ( game.state.status==='in-progress' )
-    return next('Unable to join: you can\'t join a game once it starts!' );
-  game.state.players.push( config.getNewPlayerData(user,game) );
-  game.state.status = ( game.checkIsFull() ? 'ready' : 'pending' );
-  game.meta.updated = new Date;
-  funcs.saveAndCatch(game, function(err) {
-    if (err) return next(err);
-    user.activeGamesAsPlayer -= 1;
-    funcs.saveAndCatch(user, function(err) {
-      if (err) return next(err);
-
-      // SUCCESS
-      next(null, { action:'UPDATE', udata:[user], gdata:[game] });
-
-    });
-  });
-}
-function _KickUserFromGame(agent, user, game, next) {
-  // takes a user (Model) and a game (Model) and attempts to kick the
-  // user from that game
-  if ( !game.checkIsActive() )
-    return next('Unable to leave: game is not active.' );
-  if ( !funcs.checkIfUserInGame(user,game) )
-    return next("Unable to leave: you can't leave a game you haven't joined!" );
-  if ( game.state.status==='in-progress' )
-    return next("Unable to leave: you can't leave a game once it starts!  Try quitting instead." );
-  if ( funcs.usersCheckEqual( user, game.meta.author ) )
-    return next("Unable to leave: this user is the author.  Try deleting instead." );
-  if ( !funcs.usersCheckEqual( user, agent ) && !agent.isSuperAdmin && user.isAdmin )
-    return next("Unable to leave: only superadmins may perform this operation." )
-  let newlist = [];
-  for (let p=0; p<game.state.players.length; p++) {
-    if ( !funcs.usersCheckEqual(game.state.players[p].lobbyData, user) ) {
-      newlist.push( game.state.players[p] );
-    }
-  }
-  game.state.players = newlist;
-  game.state.status = ( game.checkIsFull() ? 'ready' : 'pending' );
-  game.meta.updated = new Date;
-  funcs.saveAndCatch(game, function(err) {
-    if (err) return next(err);
-    user.activeGamesAsPlayer -= 1;
-    funcs.saveAndCatch(user, function(err) {
-      if (err) return next(err);
-
-      // SUCCESS
-      next(null, { action:'UPDATE', udata:[user], gdata:[game] });
-
-    });
-  });
-}
-function _LaunchGame(agent, user, game, next) {
-  if (!funcs.checkIfUserInGame(user, game) && !agent.isAdmin)
-    return next( 'You can\'t launch a game you haven\'t joined!' );
-  if (game.state.status==='in-progress')
-    return next(null, { action:'PLAY', url:game._id }); // redirect to /play
-  if (game.state.status!=='ready')
-    return next( 'Unable to launch until enough players have joined.' );
-
-  lobby.launch(game, function(err) {
-    if (err) return next(err);
-    funcs.saveAndCatch( game, function(err) {
-      if (err) return next(err);
-
-      funcs.log( 'user '+user.id+' ('+user.name+') launched game '+game.id );
-      next(null, { action:'UPDATE', udata:[], gdata:[game] });
-      next(null, { action:'PLAY', url:game._id }); // redirect to /play
-      return;
-
-    });
-  });
-}
-
-function tryJoin(agent, data, next) {
-  funcs.requireUserById( agent.id, function(err,user) {
-    if (err) return next(err);
-    if (user.activeGamesAsPlayer >= user.maxActiveGamesAsPlayer && !agent.isAdmin)
-      return next('Unable to join: you are already in the maximum number of games.');
-    funcs.requireGameById( data.args.gameid, function(err,game) {
-      if (err) return next(err);
-      _JoinUserToGame(agent, user, game, next);
-    });
-  });
-}
-function tryLeave(agent, data, next) {
-  funcs.requireUserById( agent.id, function(err,user) {
-    if (err) return next(err);
-    funcs.requireGameById( data.args.gameid, function(err,game) {
-      if (err) return next(err);
-      _KickUserFromGame(agent, user, game, next);
-    });
-  });
-}
-function tryHostNewGame(agent, data, next) {
-  funcs.requireUserById( agent.id, function(err,user) {
-    if (err) return next(err);
-    if (user.activeGamesAsAuthor >= user.maxActiveGamesAsAuthor && !agent.isAdmin)
-      return next('Unable to create new game: you already own the maximum number of games.');
-    if (user.activeGamesAsPlayer >= user.maxActiveGamesAsPlayer && !agent.isAdmin)
-      return next('Unable to create new game: you are already in the maximum number of games.');
-    _CreateNewGame(agent, user, data.args, next);
-  });
-}
-function tryDeleteGame(agent, data, next) {
-  funcs.requireUserById( agent.id, function(err,user) {
-    if (err) return next(err);
-    funcs.requireGameById( data.args.gameid, function(err,game) {
-      if (err) return next(err);
-      _DeleteGame(agent, game, next);
-    });
-  });
-}
-function tryLaunch(agent, data, next) {
-  funcs.requireUserById( agent.id, function(err,user) {
-    if (err) return next(err);
-    funcs.requireGameById( data.args.gameid, function(err,game) {
-      if (err) return next(err);
-      _LaunchGame(agent, user, game, next);
-    });
-  });
-}
-function tryPlay(agent, data, next) {
-  tryLaunch(agent,data,next); // _LaunchGame will catch this correctly
-}
 function tryShare(agent, data, next) {
   funcs.requireUserById( agent.id, function(err,user) {
     if (err) return next(err);
@@ -570,66 +392,199 @@ function tryShare(agent, data, next) {
   });
 }
 
-module.exports = {
-  do : function(user, data, next) {
 
-    const map = {
-      'join': tryJoin,
-      'leave': tryLeave,
-      'new-game': tryHostNewGame,
-      'delete-game': tryDeleteGame,
-      'launch': tryLaunch,
-      'play': tryPlay,
-      'share': tryShare
-    }
-    if (map.indexOf(data.action) == -1)
-      throw new LobbyLogicError(`Unrecognized lobby action (${data.action})`);
 
-    console.log(user, data);
-    map[ data.action ](user, data, function(err, result) {
-      console.log(result);
 
-      let response;
-      if (err) {
-        console.log( 'ERR AT LOBBY CALLBACK ', err  )
-        response = {
-          user    : agent,
-          request : request,
-          action  :'ERROR',
-          message : err
-        };
-      } else if (data.action==='PLAY') {
 
-        let response = {
-          user    : agent,
-          request : request,
-          action  : data.action,
-          url     : data.url
-        };
-        return socket.emit( 'lobby callback', response );
 
-      } else {
 
-        let udata=[], gdata=[];
-        for (let u=0; u<data.udata.length; u++) {
-          udata.push( data.udata[u].getExtendedLobbyData() ); }
-        for (let g=0; g<data.gdata.length; g++) {
-          gdata.push( data.gdata[g].getLobbyData() ); }
-        response = {
-          user   : agent,
-          request: request,
-          action : data.action,
-          users  : udata,
-          games  : gdata
-        };
-        funcs.log( 'user '+agent.id+' ('+agent.name+') ran ADMIN ACTION "'+request+'" affecting \n - '
-          +data.udata.length+' USERS ('+data.udata.map(u=>u.name+'~'+u.id)+')\n - '
-          +data.gdata.length+' GAMES ('+data.gdata.map(g=>g.id)+')' );
-      }
 
-      next(response);
 
+
+
+
+
+const _NewGame = (user, params) => {
+
+  if (user.activeGamesAsAuthor >= user.maxActiveGamesAsAuthor && !user.isAdmin)
+    throw new LobbyLogicError('Unable to create new game: you already own the maximum number of games.');
+  if (user.activeGamesAsPlayer >= user.maxActiveGamesAsPlayer && !user.isAdmin)
+    throw new LobbyLogicError('Unable to create new game: you are already in the maximum number of games.');
+
+  let game = config.getNewGame(user, params);
+  user.activeGamesAsAuthor += 1;
+
+  funcs.saveAndCatch(user, function(err) {
+    if (err) throw err; // TODO: print
+  });
+  funcs.saveAndCatch(game, function(err) {
+    if (err) throw err; // TODO: just print these (eventually)
+  });
+
+  return { action:'ADD', users:[user], games:[game] };
+
+};
+const _DeleteGame = (user, game) => {
+
+  let author = game.meta.author;
+  if ( !funcs.usersCheckEqual(user, author) && !user.isSuperAdmin )
+    throw new LobbyLogicError('Only superadmins or owners can delete games.');
+
+  funcs.requireUserById(author.id, function(err, author) {
+    if (err) throw err; // TODO: print
+    author.activeGamesAsAuthor -= 1;
+    funcs.saveAndCatch(author, function(err) {
+      if (err) throw err; // TODO: print
     });
+  });
+  for (let p=0; p<game.state.players.length; p++) {
+    funcs.requireUserById(game.state.players[p].lobbyData.id, function(err, player) {
+      if (err) throw err;
+      player.activeGamesAsPlayer -= 1;
+      funcs.saveAndCatch(player, function(err) {
+        if (err) throw err; // TODO: print
+      });
+    });
+  }
+  game.remove(function(err) {
+    if (err) throw err; // TODO: print
+  });
+
+  return { action:'REMOVE', users:[], games:[game] };
+
+};
+const _LaunchGame = (user, game) => {
+
+  if (!funcs.checkIfUserInGame(user, game))
+    throw new LobbyLogicError('You can\'t launch a game you haven\'t joined!');
+  if (game.state.status === 'in-progress')
+    return { action:'PLAY', url:game._id, users:[], games:[] }; // redirect to /play
+  if (game.state.status !== 'ready')
+    throw new LobbyLogicError('Unable to launch until enough players have joined.');
+
+  logic.launch(game);
+  funcs.saveAndCatch(game, function(err) {
+    if (err) throw err; // TODO: print
+  });
+
+  return { action:'PLAY', url:game._id, users:[], games:[game] };
+
+};
+function _JoinGame(user, game) {
+
+  if (user.activeGamesAsPlayer >= user.maxActiveGamesAsPlayer && !user.isAdmin)
+    throw new LobbyLogicError('Unable to join: you are already in the maximum number of games.');
+  if (!game.checkIsActive())
+    throw new LobbyLogicError('Unable to join: game is not active.');
+  if (funcs.checkIfUserInGame(user, game))
+    throw new LobbyLogicError('Unable to join: you have already joined!');
+  if (game.checkIsFull())
+    throw new LobbyLogicError('Unable to join: game is full.');
+  if (game.state.status==='in-progress')
+    throw new LobbyLogicError('Unable to join: you can\'t join a game once it starts!');
+
+  game.state.players.push( config.getNewPlayerData(user,game) );
+  game.state.status = ( game.checkIsFull() ? 'ready' : 'pending' );
+  game.meta.updated = new Date;
+
+  funcs.saveAndCatch(game, function(err) {
+    if (err) throw err; // TODO: print
+    user.activeGamesAsPlayer += 1;
+    funcs.saveAndCatch(user, function(err) {
+      if (err) throw err; // TODO: print
+    });
+  });
+
+  return { action:'UPDATE', users:[user], games:[game] };
+
+}
+function _LeaveGame(user, game) {
+
+  if (!game.checkIsActive())
+    throw new LobbyLogicError('Unable to leave: game is not active.');
+  if (!funcs.checkIfUserInGame(user, game))
+    throw new LobbyLogicError('Unable to leave: you can\'t leave a game you haven\'t joined!');
+  if (game.state.status==='in-progress')
+    throw new LobbyLogicError('Unable to leave: you can\'t leave a game once it starts!  Try quitting instead.');
+  if (funcs.usersCheckEqual(user, game.meta.author))
+    throw new LobbyLogicError('Unable to leave: this user is the author.  Try deleting instead.');
+  /*if (!funcs.usersCheckEqual(user, agent) && !agent.isSuperAdmin && user.isAdmin)
+    throw new LobbyLogicError('Unable to leave: only superadmins may perform this operation.')*/
+
+  game.state.players = game.state.players.filter( (player) => {
+    return !funcs.usersCheckEqual(user, player.lobbyData);
+  });
+  game.state.status = ( game.checkIsFull() ? 'ready' : 'pending' );
+  game.meta.updated = new Date;
+
+  funcs.saveAndCatch(game, function(err) {
+    if (err) throw err; // TODO: print
+    user.activeGamesAsPlayer -= 1;
+    funcs.saveAndCatch(user, function(err) {
+      if (err) throw err; // TODO: print
+    });
+  });
+
+  return { action:'UPDATE', users:[user], games:[game] };
+}
+
+const lobby_actions = {
+
+  new_game: (user, game, data) => {
+    return _NewGame(user, data.args); },
+  delete_game: (user, game, data) =>  {
+    return _DeleteGame(user, game); },
+  launch: (user, game, data) => {
+    return _LaunchGame(user, game); },
+  play: (user, game, data) => {
+    return _LaunchGame(user, game); },
+  join: (user, game, data) => {
+    return _JoinGame(user, game); },
+  leave: (user, game, data) => {
+    return _LeaveGame(user, game); },
+  share: (user, game, data) => {
+    throw new NotImplementedError();
+  }
+
+}
+
+
+
+
+module.exports = {
+  do : (user, game, data, next) => {
+
+    let func = lobby_actions[data.action];
+    let response = { user:user };
+
+    try {
+      if (func === undefined)
+        throw new LobbyLogicError(`Unrecognized lobby action (${data.action})`);
+
+      let result = func(user, game, data);
+      console.log('result', result);
+
+      if (result.action === 'PLAY')
+        response.url = result.url;
+
+      response.action = result.action;
+      response.users = result.users.map((user) => {
+        return user.getExtendedLobbyData();
+      });
+      response.games = result.games.map((game) => {
+        return game.getLobbyData();
+      });
+
+    } catch(e) {
+
+      response.action  = 'ERROR';
+      response.message = e.message;
+
+    }
+    console.log('response', response);
+
+    next(response);
+
   },
 
   sudo : function(user, data, next) {

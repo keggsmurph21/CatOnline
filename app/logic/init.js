@@ -13,45 +13,41 @@ function validateNewGameParams(data, next) {
 
   let validated = {};
 
-  try {
-    for (let datatype in _NEW_GAME_FORM) {
-		 if (datatype==='strings') {
+  for (let datatype in _NEW_GAME_FORM) {
+    if (datatype==='strings') {
 
-		 for (let param in _NEW_GAME_FORM[datatype]) {
-			let value = data[param];
-			let options = _NEW_GAME_FORM[datatype][param].options;
-			if (options.indexOf( value ) < 0)
-			  return next( 'Data validation error (expected one of['+options+'], got '+value+' for '+param+')' );
-			validated[param] = value;
-		 }
+      for (let param in _NEW_GAME_FORM[datatype]) {
+        let value = data[param];
+        let options = _NEW_GAME_FORM[datatype][param].options;
+        if (options.indexOf( value ) < 0)
+          throw new NewGameLogicError(`Expected one of [${options.join(', ')}], got ${value} for ${param}.`);
+        validated[param] = value;
+      }
 
-		 } else if (datatype==='ints') {
+    } else if (datatype==='ints') {
 
-		 for (let param in _NEW_GAME_FORM[datatype]) {
-			let value = parseInt(data[param]),
-			  min=_NEW_GAME_FORM[datatype][param].min,
-			  max=_NEW_GAME_FORM[datatype][param].max;
-			if (isNaN(value) || value<min || value>max )
-			  return next( 'Data validation error (expected integer between '+min+' and '+max+', got '+data[param]+' for '+param+')' );
-			validated[param] = value;
-		 }
+      for (let param in _NEW_GAME_FORM[datatype]) {
+        let value = parseInt(data[param]),
+          min=_NEW_GAME_FORM[datatype][param].min,
+          max=_NEW_GAME_FORM[datatype][param].max;
+        if (isNaN(value) || value<min || value>max )
+          throw new NewGameLogicError(`Expected integer between ${min} and ${max}, ${data[param]} for ${param}.`);
+        validated[param] = value;
+      }
 
-		 } else if (datatype==='bools') {
+    } else if (datatype==='bools') {
 
-		 for (let param in _NEW_GAME_FORM[datatype]) {
-			let value = data[param];
-			if (typeof value !== 'boolean')
-			  return next( 'Data validation error (expected boolean, got '+value+' for '+param+')' );
-			validated[param] = value;
-		 }
+      for (let param in _NEW_GAME_FORM[datatype]) {
+        let value = data[param];
+        if (typeof value !== 'boolean')
+          throw new NewGameLogicError(`Expected boolean, got ${value} for ${param}.`);
+        validated[param] = value;
+      }
 
-		 }
     }
-  } catch(err) {
-    return next( 'Data validation error ('+err+')' );
   }
 
-  return next(null,validated);
+  return validated;
 
 }
 
@@ -275,7 +271,7 @@ function buildInitialPlayerState(user, settings, isHuman, num) {
     playerState.isHuman = true;
     playerState.lobbyData = user.getLobbyData();
   } else {
-    throw Error( 'adding CPUs is not yet implemented' );
+    throw new NotImplementedError(`CPUs are not yet implemented :(`);
   }
 
   return playerState;
@@ -301,9 +297,7 @@ module.exports = {
   // build the meta, game graph, and state graph
   getNewGame : function(user, settings, next) {
 
-    try {
-		 validateNewGameParams(settings, function(err,settings) {
-		 if (err) return next(err);
+		 settings = validateNewGameParams(settings);
 
 		 let game = new funcs.Game();
 		 game.state = initGameState(user, settings);
@@ -316,12 +310,9 @@ module.exports = {
 		 };
 
 		 saveInitialGameBoardToState(game);
-		 next(null, game);
 
-		 });
-    } catch(err) {
-		 return next( 'Data validation error (uncaught '+err+')' );
-    }
+     return game;
+
   },
   getNewPlayerData : function(user, game, human=true) {
     return buildInitialPlayerState(user, game.meta.settings, human, game.state.players.length);

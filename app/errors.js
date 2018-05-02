@@ -52,8 +52,13 @@ class GameLogicError extends LogicError {
 }
 global.GameLogicError = GameLogicError;
 
-
-
+class NewGameLogicError extends GameLogicError {
+  constructor(options, value, param) {
+    super(message);
+    this.name = 'NewGameLogicError';
+  }
+}
+global.NewGameLogicError = NewGameLogicError;
 
 
 class UserInputError extends CatonlineError {
