@@ -406,6 +406,8 @@ function tryShare(agent, data, next) {
 
 const _NewGame = (user, params) => {
 
+  console.log('params', params);
+
   if (user.activeGamesAsAuthor >= user.maxActiveGamesAsAuthor && !user.isAdmin)
     throw new LobbyLogicError('Unable to create new game: you already own the maximum number of games.');
   if (user.activeGamesAsPlayer >= user.maxActiveGamesAsPlayer && !user.isAdmin)
@@ -470,7 +472,7 @@ const _LaunchGame = (user, game) => {
   return { action:'PLAY', url:game._id, users:[], games:[game] };
 
 };
-function _JoinGame(user, game) {
+const _JoinGame = (user, game) => {
 
   if (user.activeGamesAsPlayer >= user.maxActiveGamesAsPlayer && !user.isAdmin)
     throw new LobbyLogicError('Unable to join: you are already in the maximum number of games.');
@@ -498,7 +500,7 @@ function _JoinGame(user, game) {
   return { action:'UPDATE', users:[user], games:[game] };
 
 }
-function _LeaveGame(user, game) {
+const _LeaveGame = (user, game) => {
 
   if (!game.checkIsActive())
     throw new LobbyLogicError('Unable to leave: game is not active.');
@@ -530,19 +532,19 @@ function _LeaveGame(user, game) {
 
 const lobby_actions = {
 
-  new_game: (user, game, data) => {
-    return _NewGame(user, data.args); },
-  delete_game: (user, game, data) =>  {
+  new_game: (user, game, args) => {
+    return _NewGame(user, args); },
+  delete_game: (user, game, args) =>  {
     return _DeleteGame(user, game); },
-  launch: (user, game, data) => {
+  launch: (user, game, args) => {
     return _LaunchGame(user, game); },
-  play: (user, game, data) => {
+  play: (user, game, args) => {
     return _LaunchGame(user, game); },
-  join: (user, game, data) => {
+  join: (user, game, args) => {
     return _JoinGame(user, game); },
-  leave: (user, game, data) => {
+  leave: (user, game, args) => {
     return _LeaveGame(user, game); },
-  share: (user, game, data) => {
+  share: (user, game, args) => {
     throw new NotImplementedError();
   }
 
@@ -561,7 +563,7 @@ module.exports = {
       if (func === undefined)
         throw new LobbyLogicError(`Unrecognized lobby action (${data.action})`);
 
-      let result = func(user, game, data);
+      let result = func(user, game, data.args);
       console.log('result', result);
 
       if (result.action === 'PLAY')
@@ -644,26 +646,69 @@ module.exports = {
     });
   },
 
+  post : function(userid, data, next) {
+
+    funcs.requireUserById(userid, function(err,user) {
+      funcs.requireGameById(data.gameid, function(err, game) {
+
+        let func = lobby_actions[data.action];
+        let response = { user:user };
+
+        try {
+          if (func === undefined)
+            throw new LobbyLogicError(`Unrecognized lobby action (${data.action})`);
+
+          let result = func(user, game, data);
+          console.log('result', result);
+
+          if (result.action === 'PLAY')
+            response.url = result.url;
+
+          response.action = result.action;
+          response.users = result.users.map((user) => {
+            return user.getExtendedLobbyData();
+          });
+          response.games = result.games.map((game) => {
+            return game.getLobbyData();
+          });
+
+        } catch(e) {
+
+          console.log(e);
+          response.action  = 'ERROR';
+          response.message = e.message;
+
+        }
+        console.log('response', response);
+
+        setTimeout(() => {
+          module.exports.get(function(err, data) {
+
+            data.response = response;
+            next(err, data);
+
+          });
+        }, 250);
+        
+      });
+    });
+  },
+
   get : function(next) {
+
+    let data = {};
 
     // only pass relevent information to the admin.ejs page for each user
     funcs.User.find({}, function(err,users) {
-      if (err) return next(err);
-
-      let data = { users:[], games:[] };
-      for (let u=0; u<users.length; u++) {
-        data.users.push( users[u].getExtendedLobbyData() );
-      }
+      data.users = users.map((user) => {
+        return user.getExtendedLobbyData();
+      });
 
       // only pass relevant information to the lobby.ejs page for each game
       funcs.Game.find({}, function(err,games) {
-        if (err) return next(err);
-
-        for (let g=0; g<games.length; g++) {
-          if ( games[g].checkIsActive() || agent.isAdmin) {
-            data.games.push( games[g].getLobbyData() );
-          }
-        }
+        data.games = games.map((game) => {
+          return game.getLobbyData();
+        });
 
         next(err, data);
 

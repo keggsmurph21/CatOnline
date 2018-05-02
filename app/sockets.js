@@ -126,7 +126,7 @@ module.exports = function(io, sessionStore) {
     socket.on('lobby action', function(data) {
 
       console.log('received lobby action',data);
-      funcs.requireUserById( req.session.user.id, function(err,user) {
+      funcs.requireUserById(req.session.user.id, function(err,user) {
         funcs.requireGameById(data.args.gameid, function(err, game) {
 
           lobby.do(user, game, data, function(response) {

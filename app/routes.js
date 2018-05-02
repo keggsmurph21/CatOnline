@@ -78,6 +78,14 @@ module.exports = function(app, passport) {
       res.json(data);
     });
   });
+  app.post('/api/lobby', authenticateAPI, function(req,res) {
+    lobby.post(req.token.id, req.body, function(err, data) {
+      console.log('body', req.body)
+      if (err) throw err;
+
+      res.json(data);
+    });
+  });
 
   // PLAY PAGES
   app.get('/play/:gameid', funcs.isLoggedIn, function(req,res) {

@@ -53,7 +53,7 @@ class GameLogicError extends LogicError {
 global.GameLogicError = GameLogicError;
 
 class NewGameLogicError extends GameLogicError {
-  constructor(options, value, param) {
+  constructor(message) {
     super(message);
     this.name = 'NewGameLogicError';
   }

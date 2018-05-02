@@ -31,7 +31,7 @@ function validateNewGameParams(data, next) {
           min=_NEW_GAME_FORM[datatype][param].min,
           max=_NEW_GAME_FORM[datatype][param].max;
         if (isNaN(value) || value<min || value>max )
-          throw new NewGameLogicError(`Expected integer between ${min} and ${max}, ${data[param]} for ${param}.`);
+          throw new NewGameLogicError(`Expected integer between ${min} and ${max}, got ${data[param]} for ${param}.`);
         validated[param] = value;
       }
 
@@ -39,6 +39,8 @@ function validateNewGameParams(data, next) {
 
       for (let param in _NEW_GAME_FORM[datatype]) {
         let value = data[param];
+        if (typeof value === 'string')
+          value = (value === 'true');
         if (typeof value !== 'boolean')
           throw new NewGameLogicError(`Expected boolean, got ${value} for ${param}.`);
         validated[param] = value;
