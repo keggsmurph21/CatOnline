@@ -34,11 +34,6 @@
     "socket.io": "^2.0.4",
     "socket.io-cookie-parser": "^1.0.0"
   },
-  "scripts": {
-    "runlocal": "nodemon src/local/server.js",
-    "runweb": "nodemon src/web/server.js",
-    "test": "node src/tests/all"
-  },
   "devDependencies": {
     "chalk": "^2.3.2",
     "commander": "^2.15.1",

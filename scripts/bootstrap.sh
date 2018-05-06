@@ -5,14 +5,11 @@ GREEN="\033[1;32m"
 RED="\033[1;31m"
 RESET="\033[0m"
 
-
-notimplemented() {
-  echo "${RED}not set up yet :($RESET"
-  false
-}
-
 alias echo="echo -e"
-alias catext=notimplemented
+
+alias runlocal=". scripts/runserver.sh local"
+alias runweb=". scripts/runserver.sh web"
+alias stopserver=". scripts/stopserver.sh"
 
 # python virtual environment setup
 if hash virtualenv 2>/dev/null; then
@@ -41,3 +38,10 @@ ENV=.env.co
 if [ ! -f $ENV ]; then
   echo "" > /dev/null # placeholder
 fi
+
+# more instructions
+echo "available commands:"
+echo "  - run local server: ${GREEN}runlocal$RESET"
+echo "  - run web server:   ${GREEN}runweb$RESET"
+echo "  - stop server:      ${RED}stopserver$RESET"
+echo ""

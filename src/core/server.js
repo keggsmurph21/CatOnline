@@ -4,7 +4,7 @@
 const funcs         = require('./app/funcs.js');
 const express       = require('express');
 const app           = express();
-const port          = process.env.PORT || 3000;
+const port          = process.env.PORT;
 const mongoose      = require('mongoose');
 const passport      = require('passport');
 const flash         = require('connect-flash');
@@ -23,10 +23,9 @@ const configDB      = require('./config/database.js');
 const sessionStore   = new express.session.MemoryStore();
 
 // configuration
-require('./app/errors');
-require('./config/logger.js');
-configDB.config( mongoose, funcs );
-require('./config/passport.js')(passport);
+require('./errors');
+require('./logger');
+require('./passport')(passport);
 
 app.use(morgan('dev'));
 app.use(cookieParser());
