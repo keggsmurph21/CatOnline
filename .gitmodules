@@ -1,0 +1,3 @@
+[submodule "src/catext"]
+	path = src/catext
+	url = https://github.com/keggsmurph21/catext
