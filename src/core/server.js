@@ -1,10 +1,8 @@
-// server.js
+'use strict';
 
 // setup
-const funcs         = require('./app/funcs.js');
+const funcs         = require('./funcs.js');
 const express       = require('express');
-const app           = express();
-const port          = process.env.PORT;
 const mongoose      = require('mongoose');
 const passport      = require('passport');
 const flash         = require('connect-flash');
@@ -18,43 +16,47 @@ const sioCookieParser=require('socket.io-cookie-parser');
 const bodyParser    = require('body-parser');
 const session       = require('express-session');
 
-const configDB      = require('./config/database.js');
-
 const sessionStore   = new express.session.MemoryStore();
 
 // configuration
+const port   = process.env.APP_PORT || 49160;
+const secret = process.env.APP_SECRET || 'default';
+
 require('./errors');
 require('./logger');
-require('./passport')(passport);
+require('./config/passport')(passport);
+require('./config/database');
 
+// express setup
+const app = express();
 app.use(morgan('dev'));
 app.use(cookieParser());
-app.use(bodyParser());
-
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
-
+app.set('views', './src/core/views');
 app.use(session({
   store:  sessionStore,
-  secret: 'testsecret',
-  key: 'express.sid'
+  secret: secret,
+  key: 'express.sid',
+  saveUninitialized: true,
+  resave: false
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
 // routes
-require('./app/routes.js')(app, passport);
+require('./routing/web.js')(app, passport);
+require('./routing/api.js')(app, passport);
 app.use(express.static(__dirname + '/public'));
 
 // launch server
 const server = http.createServer(app).listen(port, function() {
-  console.log( 'Express server listening on port ' + port );
-  funcs.log( 'Express server listening on port '+port );
-})
+  log.app.info(`express server listening on port ${port}`)
+});
 
 // setup sockets
 const sio = io.listen(server);
 sio.use(sioCookieParser());
-
-// handle socket requests
-require('./app/sockets.js')(sio, sessionStore);
+require('./routing/socket-io.js')(sio, sessionStore);

@@ -93,29 +93,6 @@ module.exports = {
       return next('require: Invalid game id '+id);
     }
   },
-  isLoggedIn : function(req,res,next) {
-    // route middleware to make sure user is logged in
-
-    if (req.isAuthenticated()) {
-      req.user = req.user.getLobbyData();
-      return next();
-    }
-
-    // 403
-    req.flash('loginMessage', 'You must be logged in to view this page!');
-    res.redirect('/login');
-
-  },
-  notLoggedIn : function(req,res,next) {
-    // route middleware to disallow login page to those already logged in
-
-    if (!req.isAuthenticated()) {
-      return next();
-    }
-
-    req.flash('lobbyMessage', "You're already logged in!");
-    res.redirect('/lobby');
-  },
   isAdmin : function(req,res,next) {
 
     if (req.user) {

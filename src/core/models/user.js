@@ -8,15 +8,15 @@ const bcrypt   = require('bcrypt-nodejs');
 var UserSchema = mongoose.Schema({
   name : String,
   password : String,
-  isSuperAdmin : Boolean,
-  isAdmin : Boolean,
-  isMuted : Boolean,
-  flair: String,
-  activeGamesAsAuthor: Number,
-  activeGamesAsPlayer: Number,
-  maxActiveGamesAsAuthor: Number,
-  maxActiveGamesAsPlayer: Number,
-  allowResetPassword: Boolean
+  isSuperAdmin : { type:Boolean, default:false },
+  isAdmin : { type:Boolean, default:false },
+  isMuted : { type:Boolean, default:false },
+  flair: { type:String, default:'' },
+  activeGamesAsAuthor: { type:Number, default:0 },
+  activeGamesAsPlayer: { type:Number, default:0 },
+  maxActiveGamesAsAuthor: { type:Number, default:5 },
+  maxActiveGamesAsPlayer: { type:Number, default:7 },
+  allowResetPassword: { type:Boolean, default:false }
 });
 
 // methods

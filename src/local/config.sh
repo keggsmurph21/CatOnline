@@ -2,16 +2,18 @@
 
 
 # app setup
-APP_PORT=49160
-APP_UDP_PATH=sockets
+export API_SECRET=default # overwrite in .env file
+export APP_SECRET=default # overwrite in .env file
+export APP_PORT=49160
+export APP_UDP_PATH=sockets
 
 # logging variables
-LOG_DIR=logs
-DEBUG=DEBUG
-DEBUG_STDERR=1
+export LOG_DIR=logs
+export DEBUG_LEVEL=DEBUG
+export DEBUG_STDERR=1
 
 # db setup
-DB_NAME=catonline-db
-DB_PORT=27017
-DB_URI=mongodb://mongo:$DB_PORT/$DB_NAME
-DB_PATH=data/db
+export DB_NAME=catonline-db
+export DB_PORT=27017
+export DB_URI=mongodb://localhost:$DB_PORT/$DB_NAME
+export DB_PATH=data/db

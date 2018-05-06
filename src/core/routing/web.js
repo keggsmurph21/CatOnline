@@ -1,46 +1,42 @@
+'use strict';
+
 // load stuff
-const funcs = require('./funcs');
-const lobby = require('./logic/lobby');
-const logic = require('./logic/logic');
-const config= require('./logic/init');
+const funcs = require('../funcs');
+const config= require('../logic/init');
 
-// api token stuff
-const apiSecret = 'api-secret-69';
-const jwt       = require('jsonwebtoken');
-//const authenticateAPI = require('express-jwt')({secret : apiSecret});
-const authenticateAPI = function(req,res,next) {
-  // check header or url parameters or post parameters for token
-  var token = req.body.token || req.query.token || req.headers['x-access-token'];
 
-  // decode token
-  if (token) {
-
-    // verifies secret and checks exp
-    jwt.verify(token, apiSecret, function(err, decoded) {
-      if (err)
-        return res.status(401).json({ success: false, message: 'Failed to authenticate token.' });
-
-      // if everything is good, save to request for use in other routes
-      req.token = decoded;
-      next();
-    });
-
-  } else {
-
-    // if there is no token
-    // return an error
-    return res.status(403).send({
-      success: false,
-      message: 'No token provided.'
-    });
+// web routing middleware
+const isLoggedIn = (req,res,next) => {
+  // route middleware to make sure user is logged in
+  if (req.isAuthenticated()) {
+    req.user = req.user;
+    return next();
   }
-}
+
+  // 403
+  req.flash('loginMessage', 'You must be logged in to view this page!');
+  res.redirect('/login');
+
+};
+const notLoggedIn = (req,res,next) => {
+  // route middleware to disallow login page to those already logged in
+
+  if (!req.isAuthenticated()) {
+    return next();
+  }
+
+  req.flash('lobbyMessage', "You're already logged in!");
+  res.redirect('/lobby');
+
+};
+
+
 
 // app/routes.js
 module.exports = function(app, passport) {
 
   // LOBBY PAGE
-  app.get('/lobby', funcs.isLoggedIn, function(req,res) {
+  app.get('/lobby', isLoggedIn, function(req,res) {
     res.render('lobby.ejs', {
       message: req.flash('lobbyMessage'),
       user: req.user,
@@ -65,30 +61,8 @@ module.exports = function(app, passport) {
     });
   });
 
-  app.post('/api/login', passport.authenticate('api-login', { session: false }), function(req,res) {
-    req.token = jwt.sign({ id : req.user.id }, apiSecret);
-    res.json({
-      user: req.user,
-      token:req.token
-    });
-  });
-  app.get('/api/lobby', authenticateAPI, function(req,res) {
-    lobby.get(function(err, data) {
-      if (err) throw err;
-      res.json(data);
-    });
-  });
-  app.post('/api/lobby', authenticateAPI, function(req,res) {
-    lobby.post(req.token.id, req.body, function(err, data) {
-      console.log('body', req.body)
-      if (err) throw err;
-
-      res.json(data);
-    });
-  });
-
   // PLAY PAGES
-  app.get('/play/:gameid', funcs.isLoggedIn, function(req,res) {
+  app.get('/play/:gameid', isLoggedIn, function(req,res) {
     funcs.requireGameById(req.params.gameid, function(err,game) {
       if (err) {
         req.flash('lobbyMessage', 'Unable to find game ' + req.params.gameid );
@@ -119,26 +93,26 @@ module.exports = function(app, passport) {
   });
 
   // LOGIN PAGES
-  app.get('/login', funcs.notLoggedIn, function(req,res) {
+  app.get('/login', notLoggedIn, function(req,res) {
     res.render('login.ejs', {
       message: req.flash('loginMessage'),
       user: req.user
     });
   });
-  app.post('/login', passport.authenticate('local-login', {
+  app.post('/login', passport.authenticate('web-login', {
     successRedirect : '/lobby',
     failureRedirect : '/login',
     failureFlash : true
   }));
 
   // REGISTER PAGES
-  app.get('/register', funcs.notLoggedIn, function(req,res) {
+  app.get('/register', notLoggedIn, function(req,res) {
     res.render('register.ejs', {
       message: req.flash('registerMessage'),
       user: req.user
     });
   });
-  app.post('/register', passport.authenticate('local-signup', {
+  app.post('/register', passport.authenticate('web-signup', {
     successRedirect : '/lobby',
     failureRedirect : '/register',
     failureFlash : true
@@ -151,10 +125,10 @@ module.exports = function(app, passport) {
   });
 
   // PROFILE PAGES
-  app.get('/profile', funcs.isLoggedIn, function(req,res) {
+  app.get('/profile', isLoggedIn, function(req,res) {
     res.redirect( '/profile/' + req.user.name );
   });
-  app.get('/profile/:username', funcs.isLoggedIn, function(req,res) {
+  app.get('/profile/:username', isLoggedIn, function(req,res) {
     funcs.User.findOne({ name:req.params.username }, function(err,user) {
       if (err) throw err;
       if (!user) {

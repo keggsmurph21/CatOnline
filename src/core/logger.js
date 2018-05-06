@@ -1,98 +1,144 @@
+'use strict';
 
-const df = require('dateformat');
+const dateformat = require('dateformat');
 const fs = require('fs');
 const path = require('path');
 
-function format(msg, level) {
-  return `[${df(new Date(), 'default')}] ${level.toUpperCase()}: ${msg}\n`;
-}
-function write(data, file) {
-  if (file !== 'core')
-    fs.appendFile( log.paths.core, data, 'utf8', function(err) {
+class Logger extends Object {
+  constructor(loggerName, levelName, stderr) {
+
+    super();
+
+    this.loggerName = loggerName.toUpperCase();
+
+    const loggerDir = process.env.LOG_DIR || 'logs',
+      loggerFile = loggerName.toLowerCase();
+    this.loggerPath = path.join('.', loggerDir, `${loggerFile}.log`);
+
+    this.levelName = levelName;
+    this.level = ['CRITICAL', 'ERROR', 'WARN', 'INFO', 'DEBUG']
+      .indexOf(levelName);
+
+    this.stderr = stderr;
+
+    if (this.level === -1)
+      throw new CatonlineError(`Unrecognized Logger levelName "${levelName}"`);
+
+  }
+
+  _write(message) {
+    if (this.loggerName !== rootLoggerName)
+      global.log._write(message);
+    fs.appendFile( this.loggerPath, message, 'utf8', function(err) {
       if (err) throw err;
     });
+    if (this.stderr && stderr)
+      console.error(message.trim());
+  }
 
-  fs.appendFile( log.paths[file], data, 'utf8', function(err) {
-    if (err) throw err;
-  });
+  /*
+   * Override prototype toString() method
+   */
+  toString() {
+    return `Logger (level=${this.levelName})`;
+  }
+
+  /*
+   * `private` method
+   * format a message to be printed
+   *
+   * @param {String} message:   message to be printed
+   * @param {Boolean} showTimestamp:  set to `false` to suppress the current time
+   *   from being output
+   *
+   * @return {String} formatted message
+   */
+  _format(tag=null, message='', showTimestamp=true, showName=true) {
+
+    let string = '';
+    if (showTimestamp) {
+      let date = dateformat(new Date(), 'default');
+      string += `[${date}] `;
+    }
+    if (showName)
+      string += `${this.loggerName}: `;
+    if (tag)
+      string += `${tag}: `;
+    string += `${message}\n`;
+
+    return string;
+
+  }
+
+  /*
+   * `private` method
+   * helper function for the below functions ... decides whether or not a message
+   * should be written out
+   *
+   * @param {Number} level:     integer representing the output priority level
+   * @param {String} message:   message to be printed (default='')
+   * @param {Boolean} showTimestamp:  set to `false` to suppress the current time
+   *   from being output
+   *
+   * @return <none>
+   */
+  _handle(level, tag, message='') {
+    if (level <= this.level) {
+      message = this._format(tag, message, true);
+      this._write(message);
+    }
+  }
+
+
+  /*
+   * `public` methods
+   * call these functions to use this class's functionality (see above for details)
+   *
+   * @param {String} message:   message to be printed
+   *
+   * @return <none>
+   */
+  critical(message) {
+    this._handle(0, 'CRITICAL', message);
+  }
+  error(message) {
+    this._handle(1, 'ERROR', message);
+  }
+  warn(message) {
+    this._handle(2, 'WARN', message);
+  }
+  info(message) {
+    this._handle(3, 'INFO', message);
+  }
+  debug(message) {
+    this._handle(4, 'DEBUG', message);
+  }
+
+
+  /*
+   * `public` method
+   * log normally (always and without special formatting)
+   *
+   * @param {...various} args:    zero or more things to be written out
+   *
+   * @return <none>
+   */
+  out(message) {
+    message = this._format('APP', message, false, false);
+    fs.appendFile( global.log.app.loggerPath, message, 'utf8', function(err) {
+      if (err) throw err;
+      console.log(message);
+    });
+  }
+
 }
 
-global.log = {
-  debug(msg, logfile='core') {
-    if (log.level > 4) {
+// set up some loggers
+const level = process.env.DEBUG_LEVEL || 'ERROR';
+const stderr = process.env.DEBUG_STDERR ? process.env.DEBUG_STDERR==='1' : false;
+const rootLoggerName = 'ROOT';
 
-      msg = format(msg, 'debug');
-      console.log(msg);
-      write( msg, logfile);
-
-    }
-  },
-  info(msg, logfile='core') {
-    if (log.level > 3) {
-
-      msg = format(msg, 'info');
-			console.log(msg);
-			write( msg, logfile);
-
-    }
-  },
-  warn(msg, logfile='core') {
-    if (log.level > 2) {
-
-      msg = format(msg, 'warn');
-			console.log(msg);
-			write( msg, logfile);
-
-    }
-  },
-  error(msg, logfile='core') {
-    if (log.level > 1) {
-
-      msg = format(msg, 'error');
-			console.log(msg);
-			write( msg, logfile);
-
-    }
-  },
-  critical(msg, logfile='core') {
-    if (log.level > 0) {
-
-      msg = format(msg, 'critical');
-			console.log(msg);
-			write( msg, logfile);
-
-    }
-  },
-  level : null
-};
-
-(function() { // SETUP
-
-  log.level = {
-    'DEBUG'   : 5,
-    'INFO'    : 4,
-    'WARN'    : 3,
-    'ERROR'   : 2,
-    'CRITICAL': 1
-  }[process.env.CATONLINE_VERBOSITY || 'DEBUG'];
-  if (!log.level) {
-    throw new CatonlineError('Unable to parse logging verbosity.');
-  }
-
-  let logPath = path.join('.', 'logs');
-  if (!fs.existsSync( logPath ))
-    fs.mkdirSync( logPath );
-
-  log.paths = {
-    db : path.join(logPath, 'mongoose.log'),
-    messages : path.join(logPath, 'messages.log'),
-    play : path.join(logPath, 'play.log'),
-    core : path.join(logPath, 'core.log'),
-    debug : path.join(logPath, 'debug.log'),
-    info : path.join(logPath, 'info.log'),
-    warn : path.join(logPath, 'warn.log'),
-    error : path.join(logPath, 'error.log'),
-    critical : path.join(logPath, 'critical.log')
-  }
-
-})();
+global.log = new Logger(rootLoggerName, level, false);
+global.log.app = new Logger('APP', level, true);
+global.log.mongoose = new Logger('MONGOOSE', level, false);
+global.log.passport = new Logger('PASSPORT', level, false);

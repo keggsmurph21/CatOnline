@@ -1,7 +1,7 @@
 // game/sockets.js
-const funcs = require('./funcs');
-const lobby = require('./logic/lobby');
-const logic = require('./logic/logic');
+const funcs = require('../funcs');
+const lobby = require('../logic/lobby');
+const logic = require('../logic/logic');
 
 // socket helper functions
 function socketHandleNewConnection(socket) {
