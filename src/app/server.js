@@ -1,7 +1,7 @@
 'use strict';
 
 // setup
-const funcs         = require('./funcs.js');
+const funcs         = require('./funcs');
 const express       = require('express');
 const mongoose      = require('mongoose');
 const passport      = require('passport');
@@ -47,8 +47,8 @@ app.use(passport.session());
 app.use(flash());
 
 // routes
-require('./routing/web.js')(app, passport);
-require('./routing/api.js')(app, passport);
+require('./routing/web')(app, passport);
+require('./routing/api')(app, passport);
 app.use(express.static(__dirname + '/public'));
 
 // launch server
@@ -56,7 +56,10 @@ const server = http.createServer(app).listen(port, function() {
   log.app.info(`express server listening on port ${port}`)
 });
 
-// setup sockets
+// setup socket-io
 const sio = io.listen(server);
 sio.use(sioCookieParser());
-require('./routing/socket-io.js')(sio, sessionStore);
+require('./routing/socket-io')(sio, sessionStore);
+
+// setup udp sockets
+require('./routing/udp-socket')(app);

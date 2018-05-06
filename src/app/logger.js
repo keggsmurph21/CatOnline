@@ -142,3 +142,4 @@ global.log = new Logger(rootLoggerName, level, false);
 global.log.app = new Logger('APP', level, true);
 global.log.mongoose = new Logger('MONGOOSE', level, false);
 global.log.passport = new Logger('PASSPORT', level, false);
+global.log.udp = new Logger('UDP', level, true);

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+echo -e "\033[31mNOT SETUP YET\033[0m"
+exit 1
+
 PORT=443
 DB_PATH=$MONGODB_URI
 DEBUG=DEBUG
