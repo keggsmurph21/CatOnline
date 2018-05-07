@@ -10,7 +10,7 @@ const lobby = require('../logic/lobby');
 const logic = require('../logic/logic');
 
 const apiSecret = process.env.API_SECRET || 'default';
-const socketPath = process.env.CATONLINE_UDP_SOCKET;
+const socketPath = path.join(process.env.CATONLINE_UDP_PATH, process.env.CATONLINE_UDP_SOCKET);
 
 const authenticate = (token, next) => {
   if (token) {

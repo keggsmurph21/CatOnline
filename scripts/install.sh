@@ -3,16 +3,12 @@
 set -e
 
 if [ ! -d catonline ]; then
-  git clone https://github.com/keggsmurph21/catonline
+  git clone -b module --single-branch https://github.com/keggsmurph21/catonline --recurse-submodules
 fi
 cd catonline
-git checkout module
-git submodule update --recursive --remote
+. scripts/bootstrap.sh
 cd src/catext
-ls
-return
 pip install -r requirements.txt
 cd ../..
 
-. scripts/bootstrap.sh
 runlocal

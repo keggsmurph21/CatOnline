@@ -26,6 +26,13 @@ fi
 # stop other app instances
 stopserver
 
+# make sockets directory
+log "Setting sockets directory to: $CATONLINE_UDP_PATH"
+if [ ! -d $CATONLINE_UDP_PATH ]; then
+  mkdir -p $CATONLINE_UDP_PATH
+  log "Created directory for sockets at: $CATONLINE_UDP_PATH"
+fi
+
 # make logs directory
 log "Setting logs directory to: $LOG_DIR"
 if [ ! -d $LOG_DIR ]; then

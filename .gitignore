@@ -75,3 +75,6 @@ catenv
 
 # internal sockets
 sockets
+
+# big gifs
+*.gif

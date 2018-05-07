@@ -12,7 +12,8 @@ alias runweb=". scripts/runserver.sh web"
 alias stopserver=". scripts/stopserver.sh"
 alias catancli="python src/catext/src/app.py"
 
-export CATONLINE_UDP_SOCKET=sockets/local.sock
+export CATONLINE_UDP_PATH=sockets
+export CATONLINE_UDP_SOCKET=local.sock
 export CATONLINE_PATH=$(pwd)
 
 # python virtual environment setup
