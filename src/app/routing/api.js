@@ -8,8 +8,7 @@ const config= require('../logic/init');
 // api token stuff
 const jwt       = require('jsonwebtoken');
 const apiSecret = process.env.API_SECRET || 'default';
-const authenticateAPI = (req,res,next) => {
-  
+const authenticate = (req,res,next) => {
   // check header or url parameters or post parameters for token
   const token = req.body.token || req.query.token || req.headers['x-access-token'];
 
@@ -34,7 +33,7 @@ const authenticateAPI = (req,res,next) => {
       message: 'No token provided.'
     });
   }
-}
+};
 
 // app/routes.js
 module.exports = function(app, passport) {
@@ -47,13 +46,13 @@ module.exports = function(app, passport) {
       config: config.getNewGameForm()
     });
   });
-  app.get('/api/lobby', authenticateAPI, function(req,res) {
+  app.get('/api/lobby', authenticate, function(req,res) {
     lobby.get(function(err, data) {
       if (err) throw err;
       res.json(data);
     });
   });
-  app.post('/api/lobby', authenticateAPI, function(req,res) {
+  app.post('/api/lobby', authenticate, function(req,res) {
     lobby.post(req.token.id, req.body, function(err, data) {
       console.log('body', req.body)
       if (err) throw err;

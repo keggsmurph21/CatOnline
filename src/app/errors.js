@@ -22,13 +22,24 @@ global.NotImplementedError = NotImplementedError;
 
 
 
+class APIError extends CatonlineError {
+  constructor(message) {
+    super(message);
+    this.name = 'APIError';
+  }
+}
+global.APIError = APIError;
+
+
+
+
 class LogicError extends CatonlineError {
   constructor(message) {
     super(message);
     this.name = 'LobbyLogicError';
   }
 }
-global.LogicError = LogicError
+global.LogicError = LogicError;
 
 
 

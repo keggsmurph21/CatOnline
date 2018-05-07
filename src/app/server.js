@@ -6,22 +6,18 @@ const express       = require('express');
 const mongoose      = require('mongoose');
 const passport      = require('passport');
 const flash         = require('connect-flash');
-
 const http          = require('http');
 const io            = require('socket.io');
-
 const morgan        = require('morgan');
 const cookieParser  = require('cookie-parser');
 const sioCookieParser=require('socket.io-cookie-parser');
 const bodyParser    = require('body-parser');
 const session       = require('express-session');
-
-const sessionStore   = new express.session.MemoryStore();
+const sessionStore  = new express.session.MemoryStore();
 
 // configuration
-const port   = process.env.APP_PORT || 49160;
+const port   = process.env.APP_PORT   || 49160;
 const secret = process.env.APP_SECRET || 'default';
-
 require('./errors');
 require('./logger');
 require('./config/passport')(passport);
@@ -34,7 +30,7 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
-app.set('views', './src/core/views');
+app.set('views', './src/app/views');
 app.use(session({
   store:  sessionStore,
   secret: secret,
@@ -49,6 +45,7 @@ app.use(flash());
 // routes
 require('./routing/web')(app, passport);
 require('./routing/api')(app, passport);
+require('./routing/udp-socket')(app, passport);
 app.use(express.static(__dirname + '/public'));
 
 // launch server
@@ -60,6 +57,3 @@ const server = http.createServer(app).listen(port, function() {
 const sio = io.listen(server);
 sio.use(sioCookieParser());
 require('./routing/socket-io')(sio, sessionStore);
-
-// setup udp sockets
-require('./routing/udp-socket')(app);

@@ -10,6 +10,10 @@ alias echo="echo -e"
 alias runlocal=". scripts/runserver.sh local"
 alias runweb=". scripts/runserver.sh web"
 alias stopserver=". scripts/stopserver.sh"
+alias catancli="python src/catext/src/app.py"
+
+export CATONLINE_UDP_SOCKET=sockets/local.sock
+export CATONLINE_PATH=$(pwd)
 
 # python virtual environment setup
 if hash virtualenv 2>/dev/null; then
@@ -41,7 +45,8 @@ fi
 
 # more instructions
 echo "available commands:"
-echo "  - run local server: ${GREEN}runlocal$RESET"
-echo "  - run web server:   ${GREEN}runweb$RESET"
-echo "  - stop server:      ${RED}stopserver$RESET"
+echo "  - run local server:  ${GREEN}runlocal$RESET"
+echo "  - run web server:    ${GREEN}runweb$RESET"
+echo "  - stop server:       ${RED}stopserver$RESET"
+echo "  - use catonline cli: ${GREEN}catancli$RESET (note: local server must be running)"
 echo ""

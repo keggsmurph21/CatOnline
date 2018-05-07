@@ -223,10 +223,10 @@ module.exports = function(passport) {
         // if something goes wrong, return the message
         if (!user) {
           log.passport.error('user not found');
-          return done(null, 'user not found');
+          return done(null, false, 'user not found');
         } else if (!user.validPassword(password)) {
           log.passport.error('invalid username or password');
-          return done(null, 'invalid username or password');
+          return done(null, false, 'invalid username or password');
         }
 
         return done(null, user);

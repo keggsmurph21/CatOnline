@@ -5,7 +5,6 @@
 export API_SECRET=default # overwrite in .env file
 export APP_SECRET=default # overwrite in .env file
 export APP_PORT=49160
-export APP_UDP_PATH=sockets
 
 # logging variables
 export LOG_DIR=logs
