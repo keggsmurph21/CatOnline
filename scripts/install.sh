@@ -8,7 +8,7 @@ fi
 cd catonline
 . scripts/bootstrap.sh
 cd src/catext
-pip install -r requirements.txt
+. scripts/bootstrap
 cd ../..
 
 runlocal
