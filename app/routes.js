@@ -39,7 +39,7 @@ const authenticateAPI = function(req,res,next) {
 // app/routes.js
 module.exports = function(app, passport) {
 
-  app.get('/DYvcG5J-RSVY7_YlEOUjU9R4miAKWBtMcGaWl2y8diA', (req, res) => {
+  app.get('/.well-known/acme-challenge/DYvcG5J-RSVY7_YlEOUjU9R4miAKWBtMcGaWl2y8diA', (req, res) => {
     res.send('DYvcG5J-RSVY7_YlEOUjU9R4miAKWBtMcGaWl2y8diA.6hXgxEs2WZWPOb4c4dj-Jo_cpcW10BizUWfwti3eHKA');
   })
 
