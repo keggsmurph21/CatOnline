@@ -39,8 +39,8 @@ const authenticateAPI = function(req,res,next) {
 // app/routes.js
 module.exports = function(app, passport) {
 
-  app.get('/jqjo-gEFKp9PTWrcSkUvGGWoq5LYKSvBeJjI_PrptzU', (req, res) => {
-    res.send('jqjo-gEFKp9PTWrcSkUvGGWoq5LYKSvBeJjI_PrptzU.6hXgxEs2WZWPOb4c4dj-Jo_cpcW10BizUWfwti3eHKA');
+  app.get('/DYvcG5J-RSVY7_YlEOUjU9R4miAKWBtMcGaWl2y8diA', (req, res) => {
+    res.send('DYvcG5J-RSVY7_YlEOUjU9R4miAKWBtMcGaWl2y8diA.6hXgxEs2WZWPOb4c4dj-Jo_cpcW10BizUWfwti3eHKA');
   })
 
 
