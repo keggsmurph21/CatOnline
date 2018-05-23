@@ -8,6 +8,7 @@ const passport      = require('passport');
 const flash         = require('connect-flash');
 const http          = require('http');
 const io            = require('socket.io');
+const ip            = require('ip');
 const morgan        = require('morgan');
 const cookieParser  = require('cookie-parser');
 const sioCookieParser=require('socket.io-cookie-parser');

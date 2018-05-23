@@ -78,3 +78,12 @@ sockets
 
 # big gifs
 *.gif
+
+
+# python compiled files
+__pycache__
+*.pyc
+
+# local data
+.users
+.games
