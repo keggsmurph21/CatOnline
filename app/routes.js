@@ -39,6 +39,11 @@ const authenticateAPI = function(req,res,next) {
 // app/routes.js
 module.exports = function(app, passport) {
 
+  app.get('/jqjo-gEFKp9PTWrcSkUvGGWoq5LYKSvBeJjI_PrptzU', (req, res) => {
+    res.send('jqjo-gEFKp9PTWrcSkUvGGWoq5LYKSvBeJjI_PrptzU.6hXgxEs2WZWPOb4c4dj-Jo_cpcW10BizUWfwti3eHKA');
+  })
+
+
   // LOBBY PAGE
   app.get('/lobby', funcs.isLoggedIn, function(req,res) {
     res.render('lobby.ejs', {
