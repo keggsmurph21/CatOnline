@@ -1,0 +1,134 @@
+name = 'standard'
+
+dice = [
+
+  # note this is a specific ordering
+  { roll = 9, dots = 4 },
+  { roll = 5, dots = 4 },
+  { roll = 2, dots = 1 },
+  { roll = 6, dots = 5 },
+  { roll = 3, dots = 2 },
+  { roll = 8, dots = 5 },
+  { roll = 10, dots = 3 },
+  { roll = 12, dots = 1 },
+  { roll = 11, dots = 2 },
+  { roll = 4, dots = 3 },
+  { roll = 8, dots = 5 },
+  { roll = 10, dots = 3 },
+  { roll = 9, dots = 4 },
+  { roll = 4, dots = 3 },
+  { roll = 5, dots = 4 },
+  { roll = 6, dots = 5 },
+  { roll = 3, dots = 2 },
+  { roll = 11, dots = 2 },
+
+]
+
+topology = [
+
+  # row 1
+  { coords = { x = 1, y = -1, z = 0 }, isOcean = true },
+  { coords = { x = 2, y = -2, z = 0 }, isOcean = true },
+  { coords = { x = 3, y = -3, z = 0 }, isOcean = true },
+  { coords = { x = 4, y = -4, z = 0 }, isOcean = true },
+
+  # row 2
+  { coords = { x = 0, y = -1, z = 1 }, isOcean = true },
+  { coords = { x = 1, y = -2, z = 1 }, isOcean = false, resources = '*' },
+  { coords = { x = 2, y = -3, z = 1 }, isOcean = false, resources = '*' },
+  { coords = { x = 3, y = -4, z = 1 }, isOcean = false, resources = '*' },
+  { coords = { x = 4, y = -5, z = 1 }, isOcean = true },
+
+  # row 3
+  { coords = { x = -1, y = -1, z = 2 }, isOcean = true },
+  { coords = { x = 0, y = -2, z = 2 }, isOcean = false, resources = '*' },
+  { coords = { x = 1, y = -3, z = 2 }, isOcean = false, resources = '*' },
+  { coords = { x = 2, y = -4, z = 2 }, isOcean = false, resources = '*' },
+  { coords = { x = 3, y = -5, z = 2 }, isOcean = false, resources = '*' },
+  { coords = { x = 4, y = -6, z = 2 }, isOcean = true },
+
+  # row 4
+  { coords = { x = -2, y = -1, z = 3 }, isOcean = true },
+  { coords = { x = -1, y = -2, z = 3 }, isOcean = false, resources = '*' },
+  { coords = { x = 0, y = -3, z = 3 }, isOcean = false, resources = '*' },
+  { coords = { x = 1, y = -4, z = 3 }, isOcean = false, resources = '*' },
+  { coords = { x = 2, y = -5, z = 3 }, isOcean = false, resources = '*' },
+  { coords = { x = 3, y = -6, z = 3 }, isOcean = false, resources = '*' },
+  { coords = { x = 4, y = -7, z = 3 }, isOcean = true },
+
+  # row 5
+  { coords = { x = -2, y = -2, z = 4 }, isOcean = true },
+  { coords = { x = -1, y = -3, z = 4 }, isOcean = false, resources = '*' },
+  { coords = { x = 0, y = -4, z = 4 }, isOcean = false, resources = '*' },
+  { coords = { x = 1, y = -5, z = 4 }, isOcean = false, resources = '*' },
+  { coords = { x = 2, y = -6, z = 4 }, isOcean = false, resources = '*' },
+  { coords = { x = 3, y = -7, z = 4 }, isOcean = true },
+
+  # row 6
+  { coords = { x = -2, y = -3, z = 5 }, isOcean = true },
+  { coords = { x = -1, y = -4, z = 5 }, isOcean = false, resources = '*' },
+  { coords = { x = 0, y = -5, z = 5 }, isOcean = false, resources = '*' },
+  { coords = { x = 1, y = -6, z = 5 }, isOcean = false, resources = '*' },
+  { coords = { x = 2, y = -7, z = 5 }, isOcean = true },
+
+  # row 7
+  { coords = { x = -2, y = -4, z = 6 }, isOcean = true },
+  { coords = { x = -1, y = -5, z = 6 }, isOcean = true },
+  { coords = { x = 0, y = -6, z = 6 }, isOcean = true },
+  { coords = { x = 1, y = -7, z = 6 }, isOcean = true },
+
+]
+
+ports = [
+
+  { hex = { orientation = 1, coords = { x = 3, y = -4, z = 1 }, }, orientation = [10, 4], type = 'wheat' },
+  { hex = { orientation = 3, coords = { x = 3, y = -5, z = 2 }, }, orientation = [12, 6], type = 'wood' },
+  { hex = { orientation = 3, coords = { x = 2, y = -6, z = 4 }, }, orientation = [12, 6], type = 'sheep' },
+  { hex = { orientation = 5, coords = { x = 1, y = -6, z = 5 }, }, orientation = [2, 8], type = 'mystery' },
+  { hex = { orientation = 5, coords = { x = -1, y = -4, z = 5 }, }, orientation = [2, 8], type = 'mystery' },
+  { hex = { orientation = 7, coords = { x = -1, y = -3, z = 4 }, }, orientation = [4, 10], type = 'brick' },
+  { hex = { orientation = 9, coords = { x = -1, y = -2, z = 3 }, }, orientation = [6, 12], type = 'mystery' },
+  { hex = { orientation = 11, coords = { x = 0, y = -2, z = 2 }, }, orientation = [8, 2], type = 'ore' },
+  { hex = { orientation = 1, coords = { x = 1, y = -2, z = 1 }, }, orientation = [10, 4], type = 'mystery' },
+
+]
+
+[buyable]
+
+  [buyable.road]
+  name = 'road'
+  max_num = 15
+  cost = { brick = 1, wood = 1 }
+
+  [buyable.settlement]
+  name = 'settlement'
+  max_num = 5
+  cost = { wheat = 1, sheep = 1, brick = 1, wood = 1 }
+
+  [buyable.city]
+  name = 'city'
+  max_num = 4
+  cost = { ore = 3, wheat = 2 }
+
+  [buyable.developmentCard]
+  name = 'development card'
+  max_num = 25
+  cost = { ore = 1, wheat = 1, sheep = 1 }
+
+[developmentCards]
+
+  vp = { count = 5, name = { singular = 'victory point', plural = 'victory points' }}
+  knight = { count = 14, name = { singular = 'knight', plural = 'knights' }}
+  monopoly = { count = 2, name = { singular = 'monopoly', plural = 'monopolies' }}
+  rb = { count = 2, name = { singular = 'road builder', plural = 'road builders' }}
+  yop = { count = 2, name = { singular = 'year of plenty', plural = 'year of plenties' }}
+
+[resources]
+
+  ore = { count = 3, yields = true }
+  wheat = { count = 4, yields = true }
+  sheep = { count = 4, yields = true }
+  brick = { count = 3, yields = true }
+  wood = { count = 4, yields = true }
+  desert = { count = 1, yields = false }
+  ocean = { count = 18, yields = false }

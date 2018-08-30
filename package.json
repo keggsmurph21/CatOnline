@@ -13,6 +13,8 @@
     "bcrypt-nodejs": "0.0.3",
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.2",
+    "chai": "^4.1.2",
+    "cheerio": "^1.0.0-rc.2",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.3",
     "dateformat": "^3.0.3",
@@ -24,6 +26,7 @@
     "express-session": "^1.15.6",
     "log4js": "^2.5.3",
     "method-override": "^2.3.10",
+    "mocha": "^5.2.0",
     "mongodb": "^3.0.5",
     "mongoose": "^4.13.12",
     "morgan": "^1.9.0",
@@ -31,12 +34,14 @@
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
+    "sinon": "^6.1.5",
     "socket.io": "^2.0.4",
-    "socket.io-cookie-parser": "^1.0.0"
+    "socket.io-cookie-parser": "^1.0.0",
+    "toml": "^2.3.3"
   },
   "scripts": {
     "start": "nodemon server.js",
-    "test": "node tests/all"
+    "test": "mocha test/index.js"
   },
   "devDependencies": {
     "chalk": "^2.3.2",
