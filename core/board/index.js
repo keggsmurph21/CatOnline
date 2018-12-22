@@ -263,31 +263,6 @@ class Board extends BaseObject {
 
     });
 
-    //$('.tile-chip-dot').css('fill', '#42069a');
-    /*
-    ${gamedata.tiles.map( (value,key) => {
-      return `  <g class="tile-group clickable" type="tile" id="tile${key}" num="${key}">
-        <polygon points="${value.points}" resource="" juncs="${value.juncs}"></polygon>
-        <g class="tile-chip">
-          <circle class="tile-chip-circle" cx="${value.x}" cy="${value.y}" r="${TILE_CHIP_RADIUS}"></circle>
-          <text x="${value.x}" y="${value.y}" dy="${TILE_TEXT_OFFSET_Y}"></text>
-          <g class="tile-chip-dots">
-            <circle class="tile-chip-dot chip-dot-6 chip-dot-8" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*-4}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
-            <circle class="tile-chip-dot chip-dot-5 chip-dot-9" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*-3}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
-            <circle class="tile-chip-dot chip-dot-6 chip-dot-8 chip-dot-4 chip-dot-10" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*-2}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
-            <circle class="tile-chip-dot chip-dot-5 chip-dot-9 chip-dot-3 chip-dot-11" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*-1}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
-            <circle class="tile-chip-dot chip-dot-6 chip-dot-8 chip-dot-4 chip-dot-10 chip-dot-2 chip-dot-12" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*0}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
-            <circle class="tile-chip-dot chip-dot-5 chip-dot-9 chip-dot-3 chip-dot-11" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*1}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
-            <circle class="tile-chip-dot chip-dot-6 chip-dot-8 chip-dot-4 chip-dot-10" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*2}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
-            <circle class="tile-chip-dot chip-dot-5 chip-dot-9" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*3}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
-            <circle class="tile-chip-dot chip-dot-6 chip-dot-8" cx="${value.x + TILE_CHIP_DOTS_OFFSET_X*4}" cy="${value.y + TILE_CHIP_DOTS_OFFSET_Y}" r="${TILE_CHIP_DOTS_RADIUS}"></circle>
-          </g>
-        </g>
-        <title></title>
-      </g>`;
-    }).join('\n')}
-    */
-
     return $.html();
   }
 }
